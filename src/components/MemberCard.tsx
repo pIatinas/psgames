@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Member } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { GameController } from 'lucide-react';
+import { Gamepad2 } from 'lucide-react';
 
 interface MemberCardProps {
   member: Member;
@@ -30,7 +30,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, className = '' }) => {
         <CardContent className="p-3 text-center">
           <h3 className="font-semibold text-base">{member.name}</h3>
           <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
-            <GameController className="h-3.5 w-3.5" />
+            <Gamepad2 className="h-3.5 w-3.5" />
             <span>{activeAccounts} {activeAccounts === 1 ? 'conta ativa' : 'contas ativas'}</span>
           </p>
           <p className="text-xs text-muted-foreground mt-1">

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -6,7 +5,7 @@ import Footer from '@/components/Footer';
 import SectionTitle from '@/components/SectionTitle';
 import { members, accounts } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Mail, GameController, Check, X } from 'lucide-react';
+import { ArrowLeft, Calendar, Mail, Gamepad2, Check, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Card, 
@@ -112,7 +111,7 @@ const MemberDetail = () => {
                     </div>
                     
                     <div className="flex items-center justify-center md:justify-start">
-                      <GameController className="h-4 w-4 mr-1" />
+                      <Gamepad2 className="h-4 w-4 mr-1" />
                       <span>PSN ID: {member.psn_id}</span>
                     </div>
                     
