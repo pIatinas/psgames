@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
       <div className="container px-4 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-bold mb-4 text-gradient">PS5 Account Hub</h3>
+            <h3 className="text-lg font-bold mb-4 text-gradient">PSGames</h3>
             <p className="text-sm text-muted-foreground">
               Compartilhamento de contas e jogos para PS5 e outras plataformas.
             </p>
@@ -46,17 +46,17 @@ const Footer: React.FC = () => {
             <h4 className="font-semibold mb-4 text-foreground">Contato</h4>
             <ul className="space-y-2 text-sm">
               <li className="text-muted-foreground">
-                Email: suporte@ps5hub.com
+                Email: suporte@psgames.com
               </li>
               <li className="text-muted-foreground">
-                Discord: PS5Hub
+                Discord: PSGames
               </li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-border/40 mt-8 pt-4 text-center text-xs text-muted-foreground">
-          <p>&copy; {currentYear} PS5 Account Hub. Todos os direitos reservados.</p>
+          <p>&copy; {currentYear} PSGames. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

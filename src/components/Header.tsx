@@ -19,7 +19,7 @@ const Header: React.FC = () => {
                 <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm-.5 5v6H5v2h6.5v6h1v-6H19v-2h-6.5V5h-1z" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-gradient">PS5 Account Hub</span>
+            <span className="text-xl font-bold text-gradient">PSGames</span>
           </Link>
           
           <nav className="hidden md:flex items-center ml-6 space-x-4">
