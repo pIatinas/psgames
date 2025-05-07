@@ -45,7 +45,7 @@ const AccountDetail = () => {
               </Link>
             </Button>
             <SectionTitle 
-              title={account.name} 
+              title={account.email} 
               className="mb-0"
             />
           </div>
@@ -78,3 +78,4 @@ const AccountDetail = () => {
 };
 
 export default AccountDetail;
+

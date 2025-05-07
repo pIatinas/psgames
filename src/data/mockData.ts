@@ -73,6 +73,38 @@ export const games: Game[] = [
     banner: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=1920&h=500&fit=crop",
     created_at: createDate(2),
     platform: ["PS5", "PS4"],
+  },
+  {
+    id: "9",
+    name: "Uncharted 4",
+    image: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=300&h=400&fit=crop",
+    banner: "https://images.unsplash.com/photo-1553481187-be93c21490a9?q=80&w=1920&h=500&fit=crop",
+    created_at: createDate(40),
+    platform: ["PS4", "PS5"],
+  },
+  {
+    id: "10",
+    name: "The Last of Us Part I",
+    image: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=300&h=400&fit=crop",
+    banner: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1920&h=500&fit=crop",
+    created_at: createDate(18),
+    platform: ["PS3", "PS4", "PS5"],
+  },
+  {
+    id: "11",
+    name: "Persona 4 Golden",
+    image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=300&h=400&fit=crop",
+    banner: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?q=80&w=1920&h=500&fit=crop",
+    created_at: createDate(35),
+    platform: ["VITA", "PC", "PS4"],
+  },
+  {
+    id: "12",
+    name: "Beat Saber",
+    image: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?q=80&w=300&h=400&fit=crop",
+    banner: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?q=80&w=1920&h=500&fit=crop",
+    created_at: createDate(14),
+    platform: ["VR", "PS5"],
   }
 ];
 
@@ -81,7 +113,7 @@ export const accounts: Account[] = [
   {
     id: "1",
     name: "Conta Principal",
-    email: "conta1@example.com",
+    email: "psngames_principal@example.com",
     password: "senha123",
     code: "ABC123",
     qrcode: "https://images.unsplash.com/photo-1605369570554-353195d1b964?q=80&w=200&h=200&fit=crop",
@@ -95,7 +127,7 @@ export const accounts: Account[] = [
   {
     id: "2",
     name: "Conta Jogos Exclusivos",
-    email: "conta2@example.com",
+    email: "psngames_exclusivos@example.com",
     password: "senha456",
     code: "DEF456",
     qrcode: "https://images.unsplash.com/photo-1605369570554-353195d1b964?q=80&w=200&h=200&fit=crop",
@@ -109,56 +141,56 @@ export const accounts: Account[] = [
   {
     id: "3",
     name: "Conta Multiplayer",
-    email: "conta3@example.com",
+    email: "psngames_multi@example.com",
     password: "senha789",
     code: "GHI789",
     qrcode: "https://images.unsplash.com/photo-1605369570554-353195d1b964?q=80&w=200&h=200&fit=crop",
     created_at: createDate(15),
     birthday: createDate(1200),
     response: "Nome da mãe",
-    games: [games[6], games[7]],
+    games: [games[6], games[7], games[8], games[9]],
     slot1: undefined,
     slot2: undefined,
   },
   {
     id: "4",
     name: "Conta Indie Games",
-    email: "conta4@example.com",
+    email: "psngames_indie@example.com",
     password: "senhaABC",
     code: "JKL012",
     qrcode: "https://images.unsplash.com/photo-1605369570554-353195d1b964?q=80&w=200&h=200&fit=crop",
     created_at: createDate(12),
     birthday: createDate(1300),
     response: "Primeiro carro",
-    games: [games[0], games[7]],
+    games: [games[0], games[7], games[10]],
     slot1: undefined,
     slot2: undefined,
   },
   {
     id: "5",
     name: "Conta RPG",
-    email: "conta5@example.com",
+    email: "psngames_rpg@example.com",
     password: "senhaDEF",
     code: "MNO345",
     qrcode: "https://images.unsplash.com/photo-1605369570554-353195d1b964?q=80&w=200&h=200&fit=crop",
     created_at: createDate(10),
     birthday: createDate(1400),
     response: "Filme favorito",
-    games: [games[2], games[3], games[4]],
+    games: [games[2], games[3], games[4], games[11]],
     slot1: undefined,
     slot2: undefined,
   },
   {
     id: "6",
     name: "Conta Aventura",
-    email: "conta6@example.com",
+    email: "psngames_aventura@example.com",
     password: "senhaGHI",
     code: "PQR678",
     qrcode: "https://images.unsplash.com/photo-1605369570554-353195d1b964?q=80&w=200&h=200&fit=crop",
     created_at: createDate(5),
     birthday: createDate(1500),
     response: "Banda favorita",
-    games: [games[1], games[5], games[6]],
+    games: [games[1], games[5], games[6], games[9], games[10]],
     slot1: undefined,
     slot2: undefined,
   }
@@ -274,7 +306,7 @@ export const members: Member[] = [
   }
 ];
 
-// Configurando o uso de slots para alguns membros
+// Configurando o uso de slots para alguns membros e conectando membros às contas
 const now = new Date();
 accounts[0].slot1 = {
   member: members[0],
@@ -289,6 +321,16 @@ accounts[1].slot2 = {
 accounts[2].slot1 = {
   member: members[2],
   entered_at: new Date(now.getTime() - 1000 * 60 * 120) // 2 horas atrás
+};
+
+accounts[3].slot1 = {
+  member: members[3],
+  entered_at: new Date(now.getTime() - 1000 * 60 * 45) // 45 minutos atrás
+};
+
+accounts[4].slot2 = {
+  member: members[0],
+  entered_at: new Date(now.getTime() - 1000 * 60 * 90) // 90 minutos atrás
 };
 
 // Users (admin e membros)
@@ -335,3 +377,4 @@ export const getRecentAccounts = (limit = 6): Account[] => {
     .sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
     .slice(0, limit);
 };
+

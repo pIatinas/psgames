@@ -34,10 +34,15 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, className = '' }) =>
           </div>
         </div>
         <CardContent className="p-3">
-          <h3 className="font-semibold text-base line-clamp-2">{account.name}</h3>
+          <h3 className="font-semibold text-base line-clamp-1">{account.email}</h3>
           <p className="text-xs text-muted-foreground mt-1">
             {account.games ? `${account.games.length} jogos` : "Sem jogos"}
           </p>
+          {account.games && account.games.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+              {account.games.map(game => game.name).join(', ')}
+            </p>
+          )}
         </CardContent>
       </Card>
     </Link>
@@ -45,3 +50,4 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, className = '' }) =>
 };
 
 export default AccountCard;
+

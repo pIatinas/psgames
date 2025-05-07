@@ -11,6 +11,19 @@ interface GameCardProps {
 }
 
 const GameCard: React.FC<GameCardProps> = ({ game, className = '' }) => {
+  // Helper function to determine badge class based on platform
+  const getPlatformClass = (platform: string) => {
+    switch (platform) {
+      case 'PS3': return 'tag-ps3';
+      case 'PS4': return 'tag-ps4';
+      case 'PS5': return 'tag-ps5';
+      case 'VITA': return 'tag-vita';
+      case 'VR': return 'tag-vr';
+      case 'PC': return 'tag-pc';
+      default: return '';
+    }
+  };
+
   return (
     <Link to={`/games/${game.id}`} className={`block ${className}`}>
       <Card className="group overflow-hidden transition-all hover:-translate-y-1 hover:neon-border rounded-lg">
@@ -25,7 +38,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, className = '' }) => {
             {game.platform.map((platform) => (
               <Badge 
                 key={platform} 
-                className="bg-primary/80 hover:bg-primary text-white text-xs"
+                className={getPlatformClass(platform)}
               >
                 {platform}
               </Badge>
@@ -44,3 +57,4 @@ const GameCard: React.FC<GameCardProps> = ({ game, className = '' }) => {
 };
 
 export default GameCard;
+

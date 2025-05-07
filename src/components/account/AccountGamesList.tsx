@@ -32,3 +32,4 @@ const AccountGamesList: React.FC<AccountGamesListProps> = ({ games }) => {
 };
 
 export default AccountGamesList;
+

@@ -12,7 +12,7 @@ const AccountList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   
   const filteredAccounts = accounts.filter(account => {
-    return account.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return account.email.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   return (
@@ -30,7 +30,7 @@ const AccountList = () => {
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Pesquisar contas..."
+              placeholder="Pesquisar por email..."
               className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -61,3 +61,4 @@ const AccountList = () => {
 };
 
 export default AccountList;
+

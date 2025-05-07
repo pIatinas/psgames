@@ -6,13 +6,13 @@
 @layer base {
   :root {
     --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --foreground: 328 100% 85%;
     
     --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card-foreground: 328 100% 85%;
     
     --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover-foreground: 328 100% 85%;
     
     --primary: 328 100% 45%;
     --primary-foreground: 0 0% 100%;
@@ -21,7 +21,7 @@
     --secondary-foreground: 0 0% 98%;
     
     --muted: 240 5% 15%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted-foreground: 328 100% 75%;
     
     --accent: 267 100% 50%;
     --accent-foreground: 0 0% 98%;
@@ -69,8 +69,29 @@
     @apply border border-accent/50 shadow-[0_0_10px_rgba(112,0,255,0.5)];
   }
   
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
+  /* Platform tag colors */
+  .tag-ps3 {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+  
+  .tag-ps4 {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
+  
+  .tag-ps5 {
+    @apply bg-blue-400 text-white hover:bg-blue-500;
+  }
+  
+  .tag-vita {
+    @apply bg-cyan-500 text-white hover:bg-cyan-600;
+  }
+  
+  .tag-vr {
+    @apply bg-purple-500 text-white hover:bg-purple-600;
+  }
+  
+  .tag-pc {
+    @apply bg-gray-600 text-white hover:bg-gray-700;
   }
 }
 
@@ -87,3 +108,4 @@
 .pulse-animation {
   animation: pulse-glow 2s infinite;
 }
+
