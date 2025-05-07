@@ -1,0 +1,33 @@
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
+
+interface SeeAllButtonProps {
+  to: string;
+  label?: string;
+}
+
+const SeeAllButton: React.FC<SeeAllButtonProps> = ({
+  to,
+  label = 'Ver Todos'
+}) => {
+  return (
+    <div className="flex justify-center mt-8">
+      <Button 
+        variant="outline" 
+        size="lg" 
+        className="group border-primary/60 hover:border-primary hover:bg-primary/20"
+        asChild
+      >
+        <Link to={to}>
+          <span>{label}</span>
+          <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Link>
+      </Button>
+    </div>
+  );
+};
+
+export default SeeAllButton;
