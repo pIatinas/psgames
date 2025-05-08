@@ -1,4 +1,3 @@
-
 export interface Game {
   id: string;
   name: string;
@@ -9,7 +8,7 @@ export interface Game {
   accounts?: Account[];
 }
 
-export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA" | "VR";
+export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA" | "VR" | "PC";
 
 export interface Account {
   id: string;

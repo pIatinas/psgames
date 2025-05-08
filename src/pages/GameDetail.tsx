@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -122,7 +121,7 @@ const GameDetail = () => {
                 <h1 className="text-3xl md:text-4xl font-bold mb-2">{game.name}</h1>
                 
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {game.platform.filter(p => p !== "PC").map(platform => (
+                  {game.platform.map(platform => (
                     <Badge 
                       key={platform} 
                       className="bg-primary/80 hover:bg-primary"
