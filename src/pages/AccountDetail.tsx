@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -13,11 +12,10 @@ import AccountGamesList from '@/components/account/AccountGamesList';
 import AccountSidebar from '@/components/account/AccountSidebar';
 
 const AccountDetail = () => {
-  const { id } = useParams<{ id: string }>();
-  
   // Simular um usuário logado (membro #1)
   const currentMemberId = "1";
   const [isLoggedIn] = React.useState(false);
+  const { id } = useParams<{ id: string }>();
   
   // Encontrar a conta pelo ID
   const account = accounts.find(account => account.id === id);
@@ -78,4 +76,3 @@ const AccountDetail = () => {
 };
 
 export default AccountDetail;
-

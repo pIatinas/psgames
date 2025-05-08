@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -14,11 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Edit, Plus, Trash } from 'lucide-react';
 import { Member, Account } from '@/types';
-import { mockMembers, mockAccounts } from '@/data/mockData';
+import { members, accounts } from '@/data/mockData';
 
 const AdminMembers: React.FC = () => {
-  const [members, setMembers] = useState<Member[]>(mockMembers);
-  const [accounts] = useState<Account[]>(mockAccounts);
+  const [members, setMembers] = useState<Member[]>(members);
+  const [accounts] = useState<Account[]>(accounts);
   const [newMember, setNewMember] = useState<Partial<Member>>({
     name: '',
     email: '',

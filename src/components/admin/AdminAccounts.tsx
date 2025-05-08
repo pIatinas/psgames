@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -14,11 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Edit, Plus, Trash } from 'lucide-react';
 import { Account, Game } from '@/types';
-import { mockAccounts, mockGames } from '@/data/mockData';
+import { accounts, games } from '@/data/mockData';
 
 const AdminAccounts: React.FC = () => {
-  const [accounts, setAccounts] = useState<Account[]>(mockAccounts);
-  const [games] = useState<Game[]>(mockGames);
+  const [accounts, setAccounts] = useState<Account[]>(accounts);
+  const [games] = useState<Game[]>(games);
   const [newAccount, setNewAccount] = useState<Partial<Account>>({
     name: '',
     email: '',
