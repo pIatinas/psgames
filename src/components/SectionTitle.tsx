@@ -4,30 +4,13 @@ import React from 'react';
 interface SectionTitleProps {
   title: string;
   subtitle?: string;
-  align?: 'left' | 'center' | 'right';
-  className?: string;
 }
 
-const SectionTitle: React.FC<SectionTitleProps> = ({
-  title,
-  subtitle,
-  align = 'left',
-  className = ''
-}) => {
-  const textAlign = {
-    left: 'text-left',
-    center: 'text-center',
-    right: 'text-right'
-  };
-
+const SectionTitle: React.FC<SectionTitleProps> = ({ title, subtitle }) => {
   return (
-    <div className={`mb-8 ${textAlign[align]} ${className}`}>
-      <h2 className="text-2xl md:text-3xl font-bold">
-        {title}
-      </h2>
-      {subtitle && (
-        <p className="mt-2 text-muted-foreground">{subtitle}</p>
-      )}
+    <div className="mb-6 text-left">
+      <h2 className="text-2xl md:text-3xl font-bold mb-2 text-pink-500">{title}</h2>
+      {subtitle && <p className="text-sm md:text-base text-muted-foreground">{subtitle}</p>}
     </div>
   );
 };

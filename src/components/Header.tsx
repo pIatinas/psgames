@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { User, LogIn, Search } from 'lucide-react';
+import { User, LogIn, Search, Settings } from 'lucide-react';
 
 const Header: React.FC = () => {
   return (
@@ -31,6 +31,10 @@ const Header: React.FC = () => {
             </Link>
             <Link to="/members" className="text-sm font-medium hover:text-primary transition-colors">
               Membros
+            </Link>
+            <Link to="/admin" className="text-sm font-medium hover:text-pink-500 transition-colors flex items-center">
+              <Settings className="h-4 w-4 mr-1" />
+              Admin
             </Link>
           </nav>
         </div>

@@ -1,54 +1,52 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Game } from '@/types';
-import { Badge } from '@/components/ui/badge';
+import { Game, GamePlatform } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface GameCardProps {
   game: Game;
-  className?: string;
+  getPlatformColor?: (platform: GamePlatform) => string;
 }
 
-const GameCard: React.FC<GameCardProps> = ({ game, className = '' }) => {
-  // Helper function to determine badge class based on platform
-  const getPlatformClass = (platform: string) => {
-    switch (platform) {
-      case 'PS3': return 'tag-ps3';
-      case 'PS4': return 'tag-ps4';
-      case 'PS5': return 'tag-ps5';
-      case 'VITA': return 'tag-vita';
-      case 'VR': return 'tag-vr';
-      case 'PC': return 'tag-pc';
-      default: return '';
-    }
+const GameCard: React.FC<GameCardProps> = ({ game, getPlatformColor }) => {
+  const defaultPlatformColor = (platform: GamePlatform): string => {
+    const colorMap: Record<GamePlatform, string> = {
+      "PS5": "bg-blue-500 text-white",
+      "PS4": "bg-indigo-500 text-white",
+      "PS3": "bg-purple-500 text-white",
+      "PC": "bg-gray-800 text-white",
+      "VITA": "bg-green-500 text-white",
+      "VR": "bg-red-500 text-white"
+    };
+    
+    return colorMap[platform] || "bg-gray-500 text-white";
   };
 
+  const getColor = getPlatformColor || defaultPlatformColor;
+
   return (
-    <Link to={`/games/${game.id}`} className={`block ${className}`}>
-      <Card className="group overflow-hidden transition-all hover:-translate-y-1 hover:neon-border rounded-lg">
-        <div className="relative h-48 overflow-hidden">
+    <Link to={`/games/${game.id}`}>
+      <Card className="overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-md">
+        <div className="relative aspect-[16/9] overflow-hidden">
           <img 
-            src={game.image} 
+            src={game.image || '/placeholder.svg'} 
             alt={game.name}
-            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+            className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-          <div className="absolute bottom-2 left-2 flex flex-wrap gap-2">
-            {game.platform.map((platform) => (
-              <Badge 
-                key={platform} 
-                className={getPlatformClass(platform)}
-              >
-                {platform}
-              </Badge>
-            ))}
-          </div>
         </div>
         <CardContent className="p-3">
-          <h3 className="font-semibold text-base line-clamp-2">{game.name}</h3>
-          <div className="mt-1 text-xs text-muted-foreground">
-            Adicionado: {new Date(game.created_at).toLocaleDateString()}
+          <h3 className="font-semibold text-sm md:text-base line-clamp-1">{game.name}</h3>
+          
+          <div className="flex flex-wrap gap-1 mt-2">
+            {game.platform.map(platform => (
+              <span 
+                key={platform} 
+                className={`text-xs px-2 py-1 rounded-full ${getColor(platform)}`}
+              >
+                {platform}
+              </span>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -57,4 +55,3 @@ const GameCard: React.FC<GameCardProps> = ({ game, className = '' }) => {
 };
 
 export default GameCard;
-

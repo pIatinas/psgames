@@ -11,6 +11,7 @@ import AccountList from "./pages/AccountList";
 import AccountDetail from "./pages/AccountDetail";
 import MemberList from "./pages/MemberList";
 import MemberDetail from "./pages/MemberDetail";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/accounts/:id" element={<AccountDetail />} />
           <Route path="/members" element={<MemberList />} />
           <Route path="/members/:id" element={<MemberDetail />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
