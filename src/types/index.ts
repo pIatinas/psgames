@@ -9,7 +9,7 @@ export interface Game {
   accounts?: Account[];
 }
 
-export type GamePlatform = "PS5" | "PS4" | "PS3" | "PC" | "VITA" | "VR";
+export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA" | "VR";
 
 export interface Account {
   id: string;
@@ -62,4 +62,3 @@ export interface User {
   role: "admin" | "member";
   member?: Member;
 }
-

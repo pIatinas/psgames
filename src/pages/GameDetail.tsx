@@ -1,17 +1,66 @@
 
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SectionTitle from '@/components/SectionTitle';
 import { games, accounts } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, ArrowLeft, Users } from 'lucide-react';
+import { Calendar, ArrowLeft, Users, Trophy } from 'lucide-react';
 import AccountCard from '@/components/AccountCard';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/components/ui/use-toast';
+
+// Interface for trophy data
+interface TrophyInfo {
+  bronze: number;
+  silver: number;
+  gold: number;
+  platinum: number;
+  total: number;
+}
 
 const GameDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [trophyInfo, setTrophyInfo] = useState<TrophyInfo | null>(null);
+  
+  // Check authentication
+  useEffect(() => {
+    if (!currentUser) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa fazer login para ver os detalhes do jogo",
+        variant: "destructive",
+      });
+      navigate('/login');
+    }
+  }, [currentUser, navigate, toast]);
+  
+  // Fetch trophy info
+  useEffect(() => {
+    if (id) {
+      // Simulate fetching trophy data
+      setTimeout(() => {
+        // Generate random trophy counts
+        const bronze = Math.floor(Math.random() * 30) + 10;
+        const silver = Math.floor(Math.random() * 15) + 5;
+        const gold = Math.floor(Math.random() * 10) + 1;
+        const platinum = Math.random() > 0.7 ? 1 : 0;
+        
+        setTrophyInfo({
+          bronze,
+          silver,
+          gold,
+          platinum,
+          total: bronze + silver + gold + platinum
+        });
+      }, 500);
+    }
+  }, [id]);
   
   // Encontrar o jogo pelo ID
   const game = games.find(game => game.id === id);
@@ -21,8 +70,8 @@ const GameDetail = () => {
     account.games?.some(g => g.id === id)
   );
   
-  // Se o jogo não for encontrado
-  if (!game) {
+  // Se o jogo não for encontrado ou usuário não está logado
+  if (!game || !currentUser) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
@@ -61,7 +110,7 @@ const GameDetail = () => {
           
           <div className="absolute bottom-0 left-0 right-0 container py-8">
             <div className="flex items-end gap-6">
-              <div className="hidden md:block w-36 h-48 rounded-lg overflow-hidden neon-border">
+              <div className="hidden md:block w-36 h-48 rounded-lg overflow-hidden shadow-lg">
                 <img 
                   src={game.image} 
                   alt={game.name} 
@@ -73,7 +122,7 @@ const GameDetail = () => {
                 <h1 className="text-3xl md:text-4xl font-bold mb-2">{game.name}</h1>
                 
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {game.platform.map(platform => (
+                  {game.platform.filter(p => p !== "PC").map(platform => (
                     <Badge 
                       key={platform} 
                       className="bg-primary/80 hover:bg-primary"
@@ -99,12 +148,56 @@ const GameDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Descrição */}
+              {/* Trophy info */}
+              {trophyInfo && (
+                <div>
+                  <SectionTitle title="Troféus" />
+                  <div className="grid grid-cols-5 gap-4 mb-4">
+                    <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                      <div className="text-yellow-400 mb-2">
+                        <Trophy className="h-6 w-6 mx-auto" />
+                      </div>
+                      <div className="text-xl font-bold">{trophyInfo.platinum}</div>
+                      <div className="text-xs text-muted-foreground">Platina</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                      <div className="text-yellow-300 mb-2">
+                        <Trophy className="h-6 w-6 mx-auto" />
+                      </div>
+                      <div className="text-xl font-bold">{trophyInfo.gold}</div>
+                      <div className="text-xs text-muted-foreground">Ouro</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                      <div className="text-gray-300 mb-2">
+                        <Trophy className="h-6 w-6 mx-auto" />
+                      </div>
+                      <div className="text-xl font-bold">{trophyInfo.silver}</div>
+                      <div className="text-xs text-muted-foreground">Prata</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                      <div className="text-amber-700 mb-2">
+                        <Trophy className="h-6 w-6 mx-auto" />
+                      </div>
+                      <div className="text-xl font-bold">{trophyInfo.bronze}</div>
+                      <div className="text-xs text-muted-foreground">Bronze</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                      <div className="text-primary mb-2">
+                        <Trophy className="h-6 w-6 mx-auto" />
+                      </div>
+                      <div className="text-xl font-bold">{trophyInfo.total}</div>
+                      <div className="text-xs text-muted-foreground">Total</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Game description */}
               <div>
                 <SectionTitle title="Sobre o Jogo" />
                 <p className="text-muted-foreground">
                   Este é um jogo exclusivo disponível em nosso sistema de compartilhamento.
-                  Você pode acessá-lo através de uma das contas listadas ao lado.
+                  Você pode acessá-lo através de uma das contas listadas abaixo.
                 </p>
               </div>
               
@@ -116,7 +209,7 @@ const GameDetail = () => {
                 />
                 
                 {relatedAccounts.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {relatedAccounts.map(account => (
                       <AccountCard key={account.id} account={account} />
                     ))}
@@ -131,9 +224,9 @@ const GameDetail = () => {
             
             {/* Barra lateral */}
             <div>
-              <div className="glass-card rounded-lg p-6 sticky top-20">
+              <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20">
                 <div className="flex items-center gap-2 mb-6">
-                  <Users className="h-5 w-5 text-secondary" />
+                  <Users className="h-5 w-5" />
                   <h3 className="font-semibold">
                     {relatedAccounts.length} {relatedAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}
                   </h3>
@@ -142,7 +235,7 @@ const GameDetail = () => {
                 {relatedAccounts.length > 0 ? (
                   <Button 
                     size="lg" 
-                    className="w-full bg-primary hover:bg-primary/90" 
+                    className="w-full" 
                     asChild
                   >
                     <Link to={`/accounts/${relatedAccounts[0].id}`}>
