@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -13,10 +14,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Edit, Plus, Trash } from 'lucide-react';
 import { Game, GamePlatform } from '@/types';
-import { games } from '@/data/mockData';
+import { games as gamesData } from '@/data/mockData';
 
 const AdminGames: React.FC = () => {
-  const [games, setGames] = useState<Game[]>(games);
+  const [games, setGames] = useState<Game[]>(gamesData);
   const [newGame, setNewGame] = useState<Partial<Game>>({
     name: '',
     image: '',
