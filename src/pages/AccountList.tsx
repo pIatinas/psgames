@@ -1,54 +1,40 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import React, { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import AccountCard from '@/components/AccountCard';
 import SectionTitle from '@/components/SectionTitle';
-import { accounts, games } from '@/data/mockData';
-import { Search } from 'lucide-react';
+import { accounts } from '@/data/mockData';
+import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/components/ui/use-toast';
+import { Separator } from '@/components/ui/separator';
+import { Account } from '@/types';
 
-const AccountList = () => {
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [selectedPlatform, setSelectedPlatform] = React.useState<GamePlatform | null>(null);
+const AccountList: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGameIds, setSelectedGameIds] = useState<string[]>([]);
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
   
-  // Available platforms
-  const platforms: GamePlatform[] = ['PS5', 'PS4', 'PS3', 'VITA', 'VR'];
+  // Get unique games from accounts
+  const allGames = accounts.flatMap(account => account.games || []);
+  const uniqueGames = [...new Map(allGames.map(game => [game.id, game])).values()];
   
-  // Check authentication
-  React.useEffect(() => {
-    if (!currentUser) {
-      toast({
-        title: "Login necessário",
-        description: "Você precisa fazer login para ver as contas",
-        variant: "destructive",
-      });
-      navigate('/login');
-    }
-  }, [currentUser, navigate, toast]);
-  
+  // Filter accounts based on search and game filters
   const filteredAccounts = accounts.filter(account => {
-    // Filter by search term
-    const matchesSearch = account.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        account.email.toLowerCase().includes(searchTerm.toLowerCase());
+    // Search by email
+    const matchesSearch = account.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filter by platform
-    const matchesPlatform = selectedPlatform 
-      ? account.games?.some(game => game.platform.includes(selectedPlatform))
-      : true;
-    
-    return matchesSearch && matchesPlatform;
+    // Filter by games
+    const matchesGames = selectedGameIds.length === 0 || 
+      (account.games && account.games.some(game => selectedGameIds.includes(game.id)));
+      
+    return matchesSearch && matchesGames;
   });
-
-  if (!currentUser) {
-    return null; // Return nothing if not authenticated
-  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -57,12 +43,12 @@ const AccountList = () => {
       <main className="flex-grow container py-8">
         <SectionTitle 
           title="Contas Disponíveis" 
-          subtitle="Explore nossa coleção de contas com diversos jogos"
+          subtitle="Encontre uma conta com os jogos que você quer jogar"
         />
         
         {/* Filtros */}
-        <div className="mb-8">
-          <div className="relative max-w-md">
+        <div className="mb-8 flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Pesquisar contas..."
@@ -71,69 +57,62 @@ const AccountList = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-        </div>
-        
-        {/* Platform filter */}
-        <div className="mb-8">
-          <select
-            value={selectedPlatform}
-            onChange={(e) => setSelectedPlatform(e.target.value as GamePlatform)}
-            className="w-full p-2 border rounded-md"
-          >
-            <option value="">Todos os jogos</option>
-            {platforms.map(platform => (
-              <option key={platform} value={platform}>{platform}</option>
-            ))}
-          </select>
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Filter className="h-4 w-4" />
+                Filtrar por Jogos
+                {selectedGameIds.length > 0 && (
+                  <span className="ml-2 rounded-full bg-primary w-5 h-5 text-[10px] flex items-center justify-center text-primary-foreground">
+                    {selectedGameIds.length}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <h3 className="font-medium mb-2">Jogos</h3>
+              <Separator className="mb-3" />
+              <div className="max-h-60 overflow-y-auto pr-2">
+                {uniqueGames.map(game => (
+                  <div key={game.id} className="flex items-center space-x-2 mb-2">
+                    <Checkbox
+                      id={`game-${game.id}`}
+                      checked={selectedGameIds.includes(game.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedGameIds([...selectedGameIds, game.id]);
+                        } else {
+                          setSelectedGameIds(selectedGameIds.filter(id => id !== game.id));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`game-${game.id}`} className="text-sm cursor-pointer">
+                      {game.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+              {selectedGameIds.length > 0 && (
+                <div className="mt-2 flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedGameIds([])}
+                  >
+                    Limpar Filtros
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
         
         {/* Grid de contas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredAccounts.map(account => {
-            const usedSlots = [account.slot1, account.slot2].filter(Boolean).length;
-            const availableSlots = 2 - usedSlots;
-            
-            const statusColor = 
-              availableSlots === 2 ? "bg-green-500" : 
-              availableSlots === 1 ? "bg-blue-500" :
-              "bg-red-500";
-              
-            // Get first game image for display
-            const firstGame = account.games && account.games.length > 0 ? account.games[0] : null;
-            
-            return (
-              <Link to={`/accounts/${account.id}`} key={account.id}>
-                <Card className="overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-md">
-                  <div className="relative">
-                    {/* Status indicator */}
-                    <div className={`absolute top-2 right-2 w-4 h-4 rounded-full ${statusColor} z-10`} />
-                    
-                    {/* Game image */}
-                    <div className="aspect-[16/9] overflow-hidden">
-                      <img 
-                        src={firstGame?.image || '/placeholder.svg'} 
-                        alt="Game Cover"
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    {/* Game info instead of account email */}
-                    <div className="text-sm text-muted-foreground">
-                      {account.games?.length || 0} jogos disponíveis
-                    </div>
-                    
-                    {/* Show games list */}
-                    <div className="mt-1">
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {account.games?.map(game => game.name).join(', ') || "Sem jogos"}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredAccounts.map(account => (
+            <AccountCard key={account.id} account={account} />
+          ))}
         </div>
         
         {/* Mensagem quando não há contas */}
