@@ -6,13 +6,13 @@
 @layer base {
   :root {
     --background: 240 10% 3.9%;
-    --foreground: 328 100% 85%;
+    --foreground: 0 0% 98%;
     
     --card: 240 10% 3.9%;
-    --card-foreground: 328 100% 85%;
+    --card-foreground: 0 0% 98%;
     
     --popover: 240 10% 3.9%;
-    --popover-foreground: 328 100% 85%;
+    --popover-foreground: 0 0% 98%;
     
     --primary: 328 100% 45%;
     --primary-foreground: 0 0% 100%;
@@ -21,7 +21,7 @@
     --secondary-foreground: 0 0% 98%;
     
     --muted: 240 5% 15%;
-    --muted-foreground: 328 100% 75%;
+    --muted-foreground: 0 0% 80%;
     
     --accent: 267 100% 50%;
     --accent-foreground: 0 0% 98%;
@@ -93,6 +93,10 @@
   .tag-pc {
     @apply bg-gray-600 text-white hover:bg-gray-700;
   }
+
+  .text-gradient {
+    @apply bg-gradient-to-br from-white via-white/90 to-white/70 bg-clip-text text-transparent;
+  }
 }
 
 /* Animações personalizadas */
@@ -108,4 +112,3 @@
 .pulse-animation {
   animation: pulse-glow 2s infinite;
 }
-

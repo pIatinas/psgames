@@ -7,7 +7,7 @@ import SectionTitle from '@/components/SectionTitle';
 import { games, accounts } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, ArrowLeft, Users, Trophy } from 'lucide-react';
+import { Calendar, ArrowLeft, Trophy } from 'lucide-react';
 import AccountCard from '@/components/AccountCard';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -62,8 +62,8 @@ const GameDetail = () => {
         <Header />
         
         <main className="flex-grow container py-16 flex flex-col items-center justify-center">
-          <h2 className="text-2xl font-bold mb-4 text-foreground">Jogo não encontrado</h2>
-          <p className="text-muted-foreground mb-6">
+          <h2 className="text-2xl font-bold mb-4 text-white">Jogo não encontrado</h2>
+          <p className="text-white mb-6">
             Não foi possível encontrar o jogo solicitado.
           </p>
           <Button asChild>
@@ -104,7 +104,7 @@ const GameDetail = () => {
               </div>
               
               <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">{game.name}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">{game.name}</h1>
                 
                 <div className="flex flex-wrap gap-2 mb-3">
                   {game.platform.filter(p => p !== "PC").map(platform => (
@@ -117,7 +117,7 @@ const GameDetail = () => {
                   ))}
                 </div>
                 
-                <div className="flex items-center text-sm text-muted-foreground">
+                <div className="flex items-center text-sm text-white">
                   <Calendar className="h-4 w-4 mr-1" />
                   <span>
                     Adicionado em {new Date(game.created_at).toLocaleDateString()}
@@ -130,9 +130,9 @@ const GameDetail = () => {
         
         {/* Conteúdo da página */}
         <div className="container py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-8">
             {/* Coluna principal */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="space-y-8">
               {/* Trophy info */}
               {trophyInfo && (
                 <div>
@@ -142,36 +142,36 @@ const GameDetail = () => {
                       <div className="text-yellow-400 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold text-foreground">{trophyInfo.platinum}</div>
-                      <div className="text-xs text-muted-foreground">Platina</div>
+                      <div className="text-xl font-bold text-white">{trophyInfo.platinum}</div>
+                      <div className="text-xs text-gray-300">Platina</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-yellow-300 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold text-foreground">{trophyInfo.gold}</div>
-                      <div className="text-xs text-muted-foreground">Ouro</div>
+                      <div className="text-xl font-bold text-white">{trophyInfo.gold}</div>
+                      <div className="text-xs text-gray-300">Ouro</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-gray-300 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold text-foreground">{trophyInfo.silver}</div>
-                      <div className="text-xs text-muted-foreground">Prata</div>
+                      <div className="text-xl font-bold text-white">{trophyInfo.silver}</div>
+                      <div className="text-xs text-gray-300">Prata</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-amber-700 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold text-foreground">{trophyInfo.bronze}</div>
-                      <div className="text-xs text-muted-foreground">Bronze</div>
+                      <div className="text-xl font-bold text-white">{trophyInfo.bronze}</div>
+                      <div className="text-xs text-gray-300">Bronze</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-primary mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold text-foreground">{trophyInfo.total}</div>
-                      <div className="text-xs text-muted-foreground">Total</div>
+                      <div className="text-xl font-bold text-white">{trophyInfo.total}</div>
+                      <div className="text-xs text-gray-300">Total</div>
                     </div>
                   </div>
                 </div>
@@ -180,7 +180,7 @@ const GameDetail = () => {
               {/* Game description */}
               <div>
                 <SectionTitle title="Sobre o Jogo" />
-                <p className="text-muted-foreground">
+                <p className="text-white">
                   Este é um jogo exclusivo disponível em nosso sistema de compartilhamento.
                   Você pode acessá-lo através de uma das contas listadas abaixo.
                 </p>
@@ -200,47 +200,10 @@ const GameDetail = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">
+                  <p className="text-white">
                     Nenhuma conta possui este jogo no momento.
                   </p>
                 )}
-              </div>
-            </div>
-            
-            {/* Barra lateral */}
-            <div>
-              <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20">
-                <div className="flex items-center gap-2 mb-6">
-                  <Users className="h-5 w-5" />
-                  <h3 className="font-semibold text-foreground">
-                    {relatedAccounts.length} {relatedAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}
-                  </h3>
-                </div>
-                
-                {relatedAccounts.length > 0 ? (
-                  <Button 
-                    size="lg" 
-                    className="w-full" 
-                    asChild
-                  >
-                    <Link to={`/accounts/${relatedAccounts[0].id}`}>
-                      Ver Conta Disponível
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button 
-                    size="lg" 
-                    className="w-full" 
-                    variant="outline" 
-                    disabled
-                  >
-                    Sem Contas Disponíveis
-                  </Button>
-                )}
-                
-                <div className="mt-4 text-xs text-muted-foreground text-center">
-                  Para jogar este título, você deve ser um membro aprovado.
-                </div>
               </div>
             </div>
           </div>

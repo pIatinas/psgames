@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -18,6 +19,7 @@ import { games as gamesData, accounts as accountsData } from '@/data/mockData';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { enrichGameWithExternalInfo } from '@/services/gameInfoService';
 
 const AdminGames: React.FC = () => {
   const { currentUser } = useAuth();
@@ -34,6 +36,7 @@ const AdminGames: React.FC = () => {
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Redirect if not admin
   React.useEffect(() => {
@@ -79,69 +82,94 @@ const AdminGames: React.FC = () => {
     }
   };
 
-  const handleSaveGame = () => {
-    if (isEditing && newGame.id) {
-      // Update existing game
-      const updatedGame = {
-        ...games.find(game => game.id === newGame.id),
-        ...newGame
-      } as Game;
+  const handleSaveGame = async () => {
+    setLoading(true);
+    try {
+      // Enriquecer o jogo com informações externas
+      const enrichedGame = await enrichGameWithExternalInfo(newGame);
+      
+      if (isEditing && newGame.id) {
+        // Update existing game
+        const updatedGame = {
+          ...games.find(game => game.id === newGame.id),
+          ...enrichedGame
+        } as Game;
 
-      // Link game to selected accounts
-      const updatedAccounts = accounts.map(account => {
-        if (selectedAccounts.includes(account.id)) {
-          // Add game to account if not already there
-          const existingGames = account.games || [];
-          if (!existingGames.find(g => g.id === updatedGame.id)) {
+        // Link game to selected accounts
+        const updatedAccounts = accounts.map(account => {
+          if (selectedAccounts.includes(account.id)) {
+            // Add game to account if not already there
+            const existingGames = account.games || [];
+            if (!existingGames.find(g => g.id === updatedGame.id)) {
+              return {
+                ...account,
+                games: [...existingGames, updatedGame]
+              };
+            }
+          } else {
+            // Remove game from account if previously linked
+            if (account.games?.some(g => g.id === updatedGame.id)) {
+              return {
+                ...account,
+                games: account.games.filter(g => g.id !== updatedGame.id)
+              };
+            }
+          }
+          return account;
+        });
+
+        setGames(games.map(game => 
+          game.id === newGame.id ? updatedGame : game
+        ));
+        setAccounts(updatedAccounts);
+        
+        toast({
+          title: "Jogo atualizado",
+          description: "O jogo foi atualizado com sucesso.",
+        });
+      } else {
+        // Add new game
+        const gameToAdd = {
+          ...enrichedGame,
+          id: `game-${Date.now()}`,
+          created_at: new Date(),
+        } as Game;
+
+        // Link game to selected accounts
+        const updatedAccounts = accounts.map(account => {
+          if (selectedAccounts.includes(account.id)) {
             return {
               ...account,
-              games: [...existingGames, updatedGame]
+              games: [...(account.games || []), gameToAdd]
             };
           }
-        } else {
-          // Remove game from account if previously linked
-          if (account.games?.some(g => g.id === updatedGame.id)) {
-            return {
-              ...account,
-              games: account.games.filter(g => g.id !== updatedGame.id)
-            };
-          }
-        }
-        return account;
+          return account;
+        });
+
+        setGames([...games, gameToAdd]);
+        setAccounts(updatedAccounts);
+        
+        toast({
+          title: "Jogo adicionado",
+          description: "O jogo foi adicionado com sucesso e informações externas foram buscadas.",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao salvar jogo:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar o jogo.",
+        variant: "destructive",
       });
-
-      setGames(games.map(game => 
-        game.id === newGame.id ? updatedGame : game
-      ));
-      setAccounts(updatedAccounts);
-    } else {
-      // Add new game
-      const gameToAdd = {
-        ...newGame,
-        id: `game-${Date.now()}`,
-        created_at: new Date(),
-      } as Game;
-
-      // Link game to selected accounts
-      const updatedAccounts = accounts.map(account => {
-        if (selectedAccounts.includes(account.id)) {
-          return {
-            ...account,
-            games: [...(account.games || []), gameToAdd]
-          };
-        }
-        return account;
-      });
-
-      setGames([...games, gameToAdd]);
-      setAccounts(updatedAccounts);
+    } finally {
+      setLoading(false);
+      
+      // Reset form
+      setNewGame({ name: '', image: '', banner: '', platform: [] });
+      setSelectedAccounts([]);
+      setIsEditing(false);
+      setOpen(false);
     }
-    
-    // Reset form
-    setNewGame({ name: '', image: '', banner: '', platform: [] });
-    setSelectedAccounts([]);
-    setIsEditing(false);
-    setOpen(false);
   };
 
   const handleEditGame = (game: Game) => {
@@ -170,6 +198,11 @@ const AdminGames: React.FC = () => {
 
     setGames(games.filter(game => game.id !== id));
     setAccounts(updatedAccounts);
+    
+    toast({
+      title: "Jogo excluído",
+      description: "O jogo foi excluído com sucesso.",
+    });
   };
 
   // Return null if not authenticated or loading
@@ -180,7 +213,7 @@ const AdminGames: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Gerenciar Jogos</h2>
+        <h2 className="text-2xl font-bold text-white">Gerenciar Jogos</h2>
         
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -191,42 +224,45 @@ const AdminGames: React.FC = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{isEditing ? 'Editar Jogo' : 'Adicionar Novo Jogo'}</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-white">{isEditing ? 'Editar Jogo' : 'Adicionar Novo Jogo'}</DialogTitle>
+              <DialogDescription className="text-gray-300">
                 Preencha os detalhes do jogo abaixo.
               </DialogDescription>
             </DialogHeader>
             
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Nome</Label>
+                <Label htmlFor="name" className="text-white">Nome</Label>
                 <Input 
                   id="name" 
                   value={newGame.name} 
                   onChange={(e) => setNewGame({...newGame, name: e.target.value})}
+                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="image">URL da Imagem</Label>
+                <Label htmlFor="image" className="text-white">URL da Imagem</Label>
                 <Input 
                   id="image" 
                   value={newGame.image} 
                   onChange={(e) => setNewGame({...newGame, image: e.target.value})}
+                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="banner">URL do Banner</Label>
+                <Label htmlFor="banner" className="text-white">URL do Banner</Label>
                 <Input 
                   id="banner" 
                   value={newGame.banner} 
                   onChange={(e) => setNewGame({...newGame, banner: e.target.value})}
+                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label>Plataformas</Label>
+                <Label className="text-white">Plataformas</Label>
                 <div className="flex flex-wrap gap-2">
                   {platformOptions.map(platform => (
                     <Button
@@ -243,7 +279,7 @@ const AdminGames: React.FC = () => {
               </div>
               
               <div className="grid gap-2">
-                <Label>Contas Vinculadas</Label>
+                <Label className="text-white">Contas Vinculadas</Label>
                 <div className="max-h-48 overflow-y-auto border rounded-md p-2">
                   {accounts.map(account => (
                     <div key={account.id} className="flex items-center space-x-2 py-1">
@@ -252,7 +288,7 @@ const AdminGames: React.FC = () => {
                         checked={selectedAccounts.includes(account.id)}
                         onCheckedChange={() => handleAccountToggle(account.id)}
                       />
-                      <Label htmlFor={`account-${account.id}`} className="cursor-pointer">
+                      <Label htmlFor={`account-${account.id}`} className="cursor-pointer text-white">
                         {account.email}
                       </Label>
                     </div>
@@ -270,7 +306,9 @@ const AdminGames: React.FC = () => {
               }}>
                 Cancelar
               </Button>
-              <Button onClick={handleSaveGame}>Salvar</Button>
+              <Button onClick={handleSaveGame} disabled={loading}>
+                {loading ? "Buscando informações..." : "Salvar"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -280,11 +318,11 @@ const AdminGames: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Plataformas</TableHead>
-              <TableHead>Contas</TableHead>
-              <TableHead>Data de Criação</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="text-white">Nome</TableHead>
+              <TableHead className="text-white">Plataformas</TableHead>
+              <TableHead className="text-white">Contas</TableHead>
+              <TableHead className="text-white">Data de Criação</TableHead>
+              <TableHead className="text-right text-white">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -296,7 +334,7 @@ const AdminGames: React.FC = () => {
               
               return (
                 <TableRow key={game.id}>
-                  <TableCell className="font-medium">{game.name}</TableCell>
+                  <TableCell className="font-medium text-white">{game.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {game.platform.map(platform => {
@@ -326,7 +364,7 @@ const AdminGames: React.FC = () => {
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-muted-foreground">Sem contas</span>
+                        <span className="text-xs text-gray-300">Sem contas</span>
                       )}
                       {gameAccounts.length > 3 && (
                         <span className="px-2 py-1 text-xs bg-secondary rounded-full">
@@ -335,7 +373,7 @@ const AdminGames: React.FC = () => {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{new Date(game.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell className="text-white">{new Date(game.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" size="icon" onClick={() => handleEditGame(game)}>
