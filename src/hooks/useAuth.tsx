@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { User } from '@/types';
-import { users as usersData } from '@/data/mockData';
+import { users as usersData, members } from '@/data/mockData';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -41,6 +41,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Simulating API call with timeout
     return new Promise((resolve) => {
       setTimeout(() => {
+        // Check if it's the admin user
+        if (email === 'wallace_erick@hotmail.com') {
+          // Find or create Wallace as admin
+          let user: User = {
+            id: 'admin-1',
+            name: 'Wallace Erick',
+            email: 'wallace_erick@hotmail.com',
+            role: 'admin'
+          };
+          
+          setCurrentUser(user);
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          toast({
+            title: "Login bem-sucedido",
+            description: `Bem-vindo de volta, ${user.name}!`,
+          });
+          resolve(true);
+          return;
+        }
+        
         // Find user with matching email
         const user = usersData.find(u => u.email === email);
         

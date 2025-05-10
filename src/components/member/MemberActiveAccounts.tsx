@@ -1,17 +1,11 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Account } from '@/types';
+import { Account, SlotOccupation } from '@/types';
 import SectionTitle from '@/components/SectionTitle';
-import { Badge } from '@/components/ui/badge';
+import { CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface MemberActiveAccountsProps {
   accounts: Account[];
@@ -19,71 +13,88 @@ interface MemberActiveAccountsProps {
 }
 
 const MemberActiveAccounts: React.FC<MemberActiveAccountsProps> = ({ accounts, memberId }) => {
-  const activeAccounts = accounts.filter(account => 
-    (account.slot1 && account.slot1.member.id === memberId && !account.slot1.left_at) ||
-    (account.slot2 && account.slot2.member.id === memberId && !account.slot2.left_at)
-  );
+  // Filter accounts where member is using a slot
+  const activeAccounts = accounts.filter(account => {
+    return (
+      (account.slot1 && account.slot1.member.id === memberId) ||
+      (account.slot2 && account.slot2.member.id === memberId)
+    );
+  });
+
+  // Get slot information for a specific account
+  const getMemberSlot = (account: Account): SlotOccupation | undefined => {
+    if (account.slot1?.member.id === memberId) {
+      return account.slot1;
+    } else if (account.slot2?.member.id === memberId) {
+      return account.slot2;
+    }
+    return undefined;
+  };
 
   return (
     <div>
       <SectionTitle 
-        title="Contas em Uso" 
-        subtitle={
-          activeAccounts.length > 0
-            ? `${activeAccounts.length} ${activeAccounts.length === 1 ? 'conta ativa' : 'contas ativas'}`
-            : "Nenhuma conta em uso no momento"
-        }
+        title="Contas Ativas" 
+        subtitle={`${activeAccounts.length} ${activeAccounts.length === 1 ? 'conta em uso' : 'contas em uso'}`}
       />
       
       {activeAccounts.length > 0 ? (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {activeAccounts.map(account => {
-            // Determinar qual slot este membro está usando
-            const slotNumber = 
-              (account.slot1 && account.slot1.member.id === memberId) ? 1 :
-              (account.slot2 && account.slot2.member.id === memberId) ? 2 : null;
-            
-            // Obter o timestamp de quando o membro entrou
-            const enteredAt = slotNumber === 1 ? account.slot1?.entered_at : account.slot2?.entered_at;
+            const slot = getMemberSlot(account);
+            const slotNumber = account.slot1?.member.id === memberId ? 1 : 2;
+            const gameCount = account.games?.length || 0;
             
             return (
-              <Card key={account.id} className="overflow-hidden">
-                <CardHeader className="bg-muted/30 pb-4">
-                  <CardTitle className="flex items-center justify-between">
-                    {account.name}
-                    <Badge>Slot {slotNumber}</Badge>
-                  </CardTitle>
-                  <CardDescription>
-                    {enteredAt && `Em uso desde ${new Date(enteredAt).toLocaleTimeString()}`}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="py-4">
-                  <div className="flex justify-between items-center">
+              <div 
+                key={account.id} 
+                className="border rounded-lg overflow-hidden flex flex-col"
+              >
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
                     <div>
-                      <div className="text-sm font-medium">Jogos disponíveis</div>
-                      <div className="text-sm text-muted-foreground">
-                        {account.games?.length || 0} jogos
-                      </div>
+                      <h3 className="font-semibold text-foreground">
+                        {account.email.split('@')[0]}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Slot {slotNumber} • {gameCount} {gameCount === 1 ? 'jogo' : 'jogos'}
+                      </p>
                     </div>
-                    <Button asChild>
-                      <Link to={`/accounts/${account.id}`}>
-                        Ver Detalhes
-                      </Link>
-                    </Button>
+                    <Badge variant="outline">
+                      {new Date(slot?.entered_at || '').toLocaleDateString()}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
+                  
+                  <div className="flex items-center text-xs text-muted-foreground mt-2">
+                    <CalendarClock className="h-3 w-3 mr-1" />
+                    <span>
+                      Ativada em {new Date(slot?.entered_at || '').toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="mt-auto p-4 pt-0">
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    size="sm" 
+                    asChild
+                  >
+                    <Link to={`/accounts/${account.id}`}>
+                      Ver Detalhes
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             );
           })}
         </div>
       ) : (
-        <Card className="bg-muted/20">
-          <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">
-              Este membro não está utilizando nenhuma conta no momento.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="text-center py-8 px-4 border rounded-lg">
+          <p className="text-muted-foreground">
+            Nenhuma conta ativa
+          </p>
+        </div>
       )}
     </div>
   );

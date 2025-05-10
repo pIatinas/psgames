@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
@@ -11,39 +10,20 @@ import { GamePlatform } from '@/types';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/components/ui/use-toast';
 
 const GameList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedPlatform, setSelectedPlatform] = React.useState<GamePlatform | null>(null);
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
   
-  // Available platforms (without PC)
+  // Available platforms (except PC)
   const platforms: GamePlatform[] = ['PS5', 'PS4', 'PS3', 'VITA', 'VR'];
-  
-  // Check authentication
-  React.useEffect(() => {
-    if (!currentUser) {
-      toast({
-        title: "Login necessário",
-        description: "Você precisa fazer login para ver os jogos",
-        variant: "destructive",
-      });
-      navigate('/login');
-    }
-  }, [currentUser, navigate, toast]);
   
   const filteredGames = games.filter(game => {
     const matchesSearch = game.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlatform = selectedPlatform ? game.platform.includes(selectedPlatform) : true;
     return matchesSearch && matchesPlatform;
   });
-
-  if (!currentUser) {
-    return null; // Return nothing if not authenticated
-  }
 
   return (
     <div className="flex flex-col min-h-screen">

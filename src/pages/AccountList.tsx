@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -14,9 +13,13 @@ import { useToast } from '@/components/ui/use-toast';
 
 const AccountList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [selectedPlatform, setSelectedPlatform] = React.useState<GamePlatform | null>(null);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Available platforms
+  const platforms: GamePlatform[] = ['PS5', 'PS4', 'PS3', 'VITA', 'VR'];
   
   // Check authentication
   React.useEffect(() => {
@@ -31,7 +34,16 @@ const AccountList = () => {
   }, [currentUser, navigate, toast]);
   
   const filteredAccounts = accounts.filter(account => {
-    return account.email.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filter by search term
+    const matchesSearch = account.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                        account.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter by platform
+    const matchesPlatform = selectedPlatform 
+      ? account.games?.some(game => game.platform.includes(selectedPlatform))
+      : true;
+    
+    return matchesSearch && matchesPlatform;
   });
 
   if (!currentUser) {
@@ -59,6 +71,20 @@ const AccountList = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+        </div>
+        
+        {/* Platform filter */}
+        <div className="mb-8">
+          <select
+            value={selectedPlatform}
+            onChange={(e) => setSelectedPlatform(e.target.value as GamePlatform)}
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="">Todos os jogos</option>
+            {platforms.map(platform => (
+              <option key={platform} value={platform}>{platform}</option>
+            ))}
+          </select>
         </div>
         
         {/* Grid de contas */}

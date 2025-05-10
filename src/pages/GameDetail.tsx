@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SectionTitle from '@/components/SectionTitle';
@@ -9,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Calendar, ArrowLeft, Users, Trophy } from 'lucide-react';
 import AccountCard from '@/components/AccountCard';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/components/ui/use-toast';
 
 // Interface for trophy data
 interface TrophyInfo {
@@ -23,21 +23,7 @@ interface TrophyInfo {
 const GameDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [trophyInfo, setTrophyInfo] = useState<TrophyInfo | null>(null);
-  
-  // Check authentication
-  useEffect(() => {
-    if (!currentUser) {
-      toast({
-        title: "Login necessário",
-        description: "Você precisa fazer login para ver os detalhes do jogo",
-        variant: "destructive",
-      });
-      navigate('/login');
-    }
-  }, [currentUser, navigate, toast]);
   
   // Fetch trophy info
   useEffect(() => {
@@ -69,14 +55,14 @@ const GameDetail = () => {
     account.games?.some(g => g.id === id)
   );
   
-  // Se o jogo não for encontrado ou usuário não está logado
-  if (!game || !currentUser) {
+  // Se o jogo não for encontrado
+  if (!game) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
         
         <main className="flex-grow container py-16 flex flex-col items-center justify-center">
-          <h2 className="text-2xl font-bold mb-4">Jogo não encontrado</h2>
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Jogo não encontrado</h2>
           <p className="text-muted-foreground mb-6">
             Não foi possível encontrar o jogo solicitado.
           </p>
@@ -118,10 +104,10 @@ const GameDetail = () => {
               </div>
               
               <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">{game.name}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">{game.name}</h1>
                 
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {game.platform.map(platform => (
+                  {game.platform.filter(p => p !== "PC").map(platform => (
                     <Badge 
                       key={platform} 
                       className="bg-primary/80 hover:bg-primary"
@@ -156,35 +142,35 @@ const GameDetail = () => {
                       <div className="text-yellow-400 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold">{trophyInfo.platinum}</div>
+                      <div className="text-xl font-bold text-foreground">{trophyInfo.platinum}</div>
                       <div className="text-xs text-muted-foreground">Platina</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-yellow-300 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold">{trophyInfo.gold}</div>
+                      <div className="text-xl font-bold text-foreground">{trophyInfo.gold}</div>
                       <div className="text-xs text-muted-foreground">Ouro</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-gray-300 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold">{trophyInfo.silver}</div>
+                      <div className="text-xl font-bold text-foreground">{trophyInfo.silver}</div>
                       <div className="text-xs text-muted-foreground">Prata</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-amber-700 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold">{trophyInfo.bronze}</div>
+                      <div className="text-xl font-bold text-foreground">{trophyInfo.bronze}</div>
                       <div className="text-xs text-muted-foreground">Bronze</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-primary mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
-                      <div className="text-xl font-bold">{trophyInfo.total}</div>
+                      <div className="text-xl font-bold text-foreground">{trophyInfo.total}</div>
                       <div className="text-xs text-muted-foreground">Total</div>
                     </div>
                   </div>
@@ -226,7 +212,7 @@ const GameDetail = () => {
               <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20">
                 <div className="flex items-center gap-2 mb-6">
                   <Users className="h-5 w-5" />
-                  <h3 className="font-semibold">
+                  <h3 className="font-semibold text-foreground">
                     {relatedAccounts.length} {relatedAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}
                   </h3>
                 </div>

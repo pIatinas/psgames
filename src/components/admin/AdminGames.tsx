@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -55,7 +54,7 @@ const AdminGames: React.FC = () => {
     }
   }, [currentUser, navigate, toast]);
 
-  const platformOptions: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA", "VR"];
+  const platformOptions: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA", "VR", "PC"];
 
   const handlePlatformToggle = (platform: GamePlatform) => {
     const platforms = [...(newGame.platform || [])];
@@ -305,6 +304,7 @@ const AdminGames: React.FC = () => {
                           "PS5": "bg-blue-500 text-white",
                           "PS4": "bg-indigo-500 text-white",
                           "PS3": "bg-purple-500 text-white",
+                          "PC": "bg-gray-800 text-white",
                           "VITA": "bg-green-500 text-white",
                           "VR": "bg-red-500 text-white"
                         };

@@ -27,25 +27,13 @@ const AccountDetail = () => {
   // Encontrar a conta pelo ID
   const account = accounts.find(account => account.id === id);
   
-  // Check authentication
-  React.useEffect(() => {
-    if (!currentUser) {
-      toast({
-        title: "Login necessário",
-        description: "Você precisa fazer login para ver os detalhes da conta",
-        variant: "destructive",
-      });
-      navigate('/login');
-    }
-  }, [currentUser, navigate, toast]);
-  
-  // Se a conta não for encontrada ou usuário não está logado
-  if (!account || !currentUser) {
+  // Se a conta não for encontrada
+  if (!account) {
     return <AccountNotFound />;
   }
 
   // Verificar se o membro atual está usando um slot nesta conta
-  const isUsingSlot = currentUser.member && (
+  const isUsingSlot = currentUser?.member && (
     (account.slot1 && account.slot1.member.id === currentUser.member.id) || 
     (account.slot2 && account.slot2.member.id === currentUser.member.id)
   );
@@ -57,6 +45,16 @@ const AccountDetail = () => {
   const hasAvailableSlot = availableSlots > 0;
   
   const handleUseAccount = () => {
+    if (!currentUser || !currentUser.member) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa fazer login para utilizar esta conta",
+        variant: "destructive",
+      });
+      navigate('/login');
+      return;
+    }
+    
     // Find first available slot
     const slotNumber = !account.slot1 ? 1 : !account.slot2 ? 2 : 0;
     
@@ -85,7 +83,7 @@ const AccountDetail = () => {
   };
   
   const handleReleaseAccount = () => {
-    if (currentUser.member) {
+    if (currentUser?.member) {
       // Remove member from slot
       if (account.slot1 && account.slot1.member.id === currentUser.member.id) {
         account.slot1 = undefined;
@@ -134,9 +132,6 @@ const AccountDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Informações da conta */}
-              <AccountDetailsCard account={account} usedBy={getSlotUsers()} />
-              
               {/* Jogos da conta */}
               <AccountGamesList games={account.games} />
             </div>
@@ -145,22 +140,22 @@ const AccountDetail = () => {
             <div>
               <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20 space-y-6">
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Status da Conta</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-foreground">Status da Conta</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className={`p-3 rounded-lg ${!account.slot1 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                         <div className="text-lg font-bold">Slot 1</div>
-                        <div className="text-sm">{account.slot1 ? 'Em uso' : 'Disponível'}</div>
+                        <div className="text-sm">{account.slot1 ? account.slot1.member.name : 'Disponível'}</div>
                       </div>
                       <div className={`p-3 rounded-lg ${!account.slot2 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                         <div className="text-lg font-bold">Slot 2</div>
-                        <div className="text-sm">{account.slot2 ? 'Em uso' : 'Disponível'}</div>
+                        <div className="text-sm">{account.slot2 ? account.slot2.member.name : 'Disponível'}</div>
                       </div>
                     </div>
                     
                     {(account.slot1 || account.slot2) && (
                       <div>
-                        <div className="text-sm font-medium">Em uso por:</div>
+                        <div className="text-sm font-medium text-foreground">Em uso por:</div>
                         <div className="text-sm">{getSlotUsers()}</div>
                       </div>
                     )}
@@ -181,9 +176,9 @@ const AccountDetail = () => {
                     size="lg" 
                     className="w-full" 
                     onClick={handleUseAccount}
-                    disabled={!hasAvailableSlot}
+                    disabled={!hasAvailableSlot || !currentUser}
                   >
-                    {hasAvailableSlot ? 'Utilizar' : 'Sem Slots Disponíveis'}
+                    {!currentUser ? 'Entre para utilizar' : hasAvailableSlot ? 'Utilizar' : 'Sem Slots Disponíveis'}
                   </Button>
                 )}
                 
@@ -228,16 +223,6 @@ const AccountDetail = () => {
               <div>
                 <div className="font-medium">Código de Acesso</div>
                 <div className="p-2 bg-muted rounded-md">{account.code}</div>
-              </div>
-              <div>
-                <div className="font-medium">QR Code</div>
-                <div className="p-2 bg-muted rounded-md flex justify-center">
-                  <img 
-                    src={account.qrcode} 
-                    alt="QR Code"
-                    className="w-32 h-32 object-contain"
-                  />
-                </div>
               </div>
             </div>
           </div>

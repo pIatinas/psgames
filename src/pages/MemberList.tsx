@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -17,20 +16,6 @@ const MemberList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [showApprovedOnly, setShowApprovedOnly] = React.useState(true);
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  // Check authentication
-  React.useEffect(() => {
-    if (!currentUser) {
-      toast({
-        title: "Login necessário",
-        description: "Você precisa fazer login para ver os membros",
-        variant: "destructive",
-      });
-      navigate('/login');
-    }
-  }, [currentUser, navigate, toast]);
   
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -38,10 +23,6 @@ const MemberList = () => {
     const matchesApproval = showApprovedOnly ? member.isApproved : true;
     return matchesSearch && matchesApproval;
   });
-
-  if (!currentUser) {
-    return null; // Return nothing if not authenticated
-  }
 
   return (
     <div className="flex flex-col min-h-screen">
