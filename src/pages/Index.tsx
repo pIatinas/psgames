@@ -3,7 +3,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import HeroSection from '@/components/HeroSection';
 import GameCard from '@/components/GameCard';
 import AccountCard from '@/components/AccountCard';
 import MemberCard from '@/components/MemberCard';
@@ -21,8 +20,6 @@ const Index = () => {
       <Header />
 
       <main className="flex-grow">
-        <HeroSection games={recentGames.slice(0, 3)} />
-        
         {/* Seção de Jogos Recentes */}
         <section className="py-16 container">
           <SectionTitle 
@@ -62,8 +59,8 @@ const Index = () => {
         {/* Seção de Membros */}
         <section className="py-16 container">
           <SectionTitle 
-            title="Nossa Comunidade" 
-            subtitle="Conheça os membros da nossa comunidade de jogadores"
+            title="Nosso Grupo" 
+            subtitle="Conheça os membros do nosso grupo de jogadores"
           />
           
           {/* Grid de membros */}

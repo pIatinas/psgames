@@ -1,13 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { accounts } from '@/data/mockData';
 import AccountNotFound from '@/components/account/AccountNotFound';
-import AccountDetailsCard from '@/components/account/AccountDetailsCard';
 import AccountGamesList from '@/components/account/AccountGamesList';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
@@ -22,7 +21,7 @@ const AccountDetail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id } = useParams<{ id: string }>();
-  const [openCredentialsDialog, setOpenCredentialsDialog] = useState(false);
+  const [openCredentialsDialog, setOpenCredentialsDialog] = React.useState(false);
   
   // Encontrar a conta pelo ID
   const account = accounts.find(account => account.id === id);
@@ -42,9 +41,8 @@ const AccountDetail = () => {
   const availableSlots = 2 - 
     (account.slot1 ? 1 : 0) - 
     (account.slot2 ? 1 : 0);
-  const hasAvailableSlot = availableSlots > 0;
   
-  const handleUseAccount = () => {
+  const handleUseSlot = (slotNumber: 1 | 2) => {
     if (!currentUser || !currentUser.member) {
       toast({
         title: "Login necessário",
@@ -55,31 +53,26 @@ const AccountDetail = () => {
       return;
     }
     
-    // Find first available slot
-    const slotNumber = !account.slot1 ? 1 : !account.slot2 ? 2 : 0;
-    
-    if (slotNumber && currentUser.member) {
-      // Update account with new slot
-      if (slotNumber === 1) {
-        account.slot1 = {
-          member: currentUser.member,
-          entered_at: new Date()
-        };
-      } else {
-        account.slot2 = {
-          member: currentUser.member,
-          entered_at: new Date()
-        };
-      }
-      
-      // Show credentials dialog
-      setOpenCredentialsDialog(true);
-      
-      toast({
-        title: "Conta ativada",
-        description: "Você agora está utilizando esta conta.",
-      });
+    // Update account with new slot
+    if (slotNumber === 1) {
+      account.slot1 = {
+        member: currentUser.member,
+        entered_at: new Date()
+      };
+    } else {
+      account.slot2 = {
+        member: currentUser.member,
+        entered_at: new Date()
+      };
     }
+    
+    // Show credentials dialog
+    setOpenCredentialsDialog(true);
+    
+    toast({
+      title: "Conta ativada",
+      description: "Você agora está utilizando esta conta.",
+    });
   };
   
   const handleReleaseAccount = () => {
@@ -97,17 +90,6 @@ const AccountDetail = () => {
         description: "Você devolveu a conta com sucesso.",
       });
     }
-  };
-  
-  const getSlotUsers = () => {
-    const users = [];
-    if (account.slot1) {
-      users.push(account.slot1.member.name);
-    }
-    if (account.slot2) {
-      users.push(account.slot2.member.name);
-    }
-    return users.join(', ');
   };
 
   return (
@@ -139,30 +121,61 @@ const AccountDetail = () => {
             {/* Barra lateral */}
             <div>
               <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20 space-y-6">
+                {account.image && (
+                  <div className="mb-4 flex justify-center">
+                    <div className="w-32 h-32 rounded-lg overflow-hidden border border-gray-700">
+                      <img 
+                        src={account.image} 
+                        alt="Account" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+                
                 <div>
                   <h3 className="font-semibold text-lg mb-2 text-foreground">Status da Conta</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className={`p-3 rounded-lg ${!account.slot1 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                         <div className="text-lg font-bold">Slot 1</div>
-                        <div className="text-sm">{account.slot1 ? account.slot1.member.name : 'Disponível'}</div>
+                        <div className="text-sm">
+                          {!account.slot1 ? (
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleUseSlot(1)} 
+                              disabled={!currentUser}
+                              className="mt-1"
+                            >
+                              Utilizar
+                            </Button>
+                          ) : (
+                            account.slot1.member.name
+                          )}
+                        </div>
                       </div>
                       <div className={`p-3 rounded-lg ${!account.slot2 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                         <div className="text-lg font-bold">Slot 2</div>
-                        <div className="text-sm">{account.slot2 ? account.slot2.member.name : 'Disponível'}</div>
+                        <div className="text-sm">
+                          {!account.slot2 ? (
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleUseSlot(2)} 
+                              disabled={!currentUser}
+                              className="mt-1"
+                            >
+                              Utilizar
+                            </Button>
+                          ) : (
+                            account.slot2.member.name
+                          )}
+                        </div>
                       </div>
                     </div>
-                    
-                    {(account.slot1 || account.slot2) && (
-                      <div>
-                        <div className="text-sm font-medium text-foreground">Em uso por:</div>
-                        <div className="text-sm">{getSlotUsers()}</div>
-                      </div>
-                    )}
                   </div>
                 </div>
                 
-                {isUsingSlot ? (
+                {isUsingSlot && (
                   <Button 
                     size="lg" 
                     variant="destructive" 
@@ -170,15 +183,6 @@ const AccountDetail = () => {
                     onClick={handleReleaseAccount}
                   >
                     Devolver
-                  </Button>
-                ) : (
-                  <Button 
-                    size="lg" 
-                    className="w-full" 
-                    onClick={handleUseAccount}
-                    disabled={!hasAvailableSlot || !currentUser}
-                  >
-                    {!currentUser ? 'Entre para utilizar' : hasAvailableSlot ? 'Utilizar' : 'Sem Slots Disponíveis'}
                   </Button>
                 )}
                 

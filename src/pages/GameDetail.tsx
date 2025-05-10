@@ -4,12 +4,12 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SectionTitle from '@/components/SectionTitle';
-import { games, accounts } from '@/data/mockData';
+import { games } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, ArrowLeft, Trophy } from 'lucide-react';
-import AccountCard from '@/components/AccountCard';
 import { useAuth } from '@/hooks/useAuth';
+import { fetchGameInfo } from '@/services/gameInfoService';
 
 // Interface for trophy data
 interface TrophyInfo {
@@ -24,36 +24,30 @@ const GameDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { currentUser } = useAuth();
   const [trophyInfo, setTrophyInfo] = useState<TrophyInfo | null>(null);
-  
-  // Fetch trophy info
-  useEffect(() => {
-    if (id) {
-      // Simulate fetching trophy data
-      setTimeout(() => {
-        // Generate random trophy counts
-        const bronze = Math.floor(Math.random() * 30) + 10;
-        const silver = Math.floor(Math.random() * 15) + 5;
-        const gold = Math.floor(Math.random() * 10) + 1;
-        const platinum = Math.random() > 0.7 ? 1 : 0;
-        
-        setTrophyInfo({
-          bronze,
-          silver,
-          gold,
-          platinum,
-          total: bronze + silver + gold + platinum
-        });
-      }, 500);
-    }
-  }, [id]);
+  const [gameDetails, setGameDetails] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
   // Encontrar o jogo pelo ID
   const game = games.find(game => game.id === id);
   
-  // Encontrar contas que possuem esse jogo
-  const relatedAccounts = accounts.filter(account => 
-    account.games?.some(g => g.id === id)
-  );
+  // Fetch trophy info and game details
+  useEffect(() => {
+    if (game) {
+      const fetchDetails = async () => {
+        try {
+          const details = await fetchGameInfo(game);
+          setTrophyInfo(details.trophyInfo || null);
+          setGameDetails(details);
+        } catch (error) {
+          console.error("Error fetching game details:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchDetails();
+    }
+  }, [game]);
   
   // Se o jogo não for encontrado
   if (!game) {
@@ -107,7 +101,7 @@ const GameDetail = () => {
                 <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">{game.name}</h1>
                 
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {game.platform.filter(p => p !== "PC").map(platform => (
+                  {game.platform.map(platform => (
                     <Badge 
                       key={platform} 
                       className="bg-primary/80 hover:bg-primary"
@@ -181,28 +175,45 @@ const GameDetail = () => {
               <div>
                 <SectionTitle title="Sobre o Jogo" />
                 <p className="text-white">
-                  Este é um jogo exclusivo disponível em nosso sistema de compartilhamento.
-                  Você pode acessá-lo através de uma das contas listadas abaixo.
+                  {gameDetails?.description || 
+                    "Este é um jogo exclusivo disponível em nosso sistema de compartilhamento."}
                 </p>
-              </div>
-              
-              {/* Contas que possuem o jogo */}
-              <div>
-                <SectionTitle 
-                  title="Contas com este Jogo" 
-                  subtitle={`${relatedAccounts.length} ${relatedAccounts.length === 1 ? 'conta possui' : 'contas possuem'} este jogo`}
-                />
                 
-                {relatedAccounts.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {relatedAccounts.map(account => (
-                      <AccountCard key={account.id} account={account} />
-                    ))}
+                {/* Additional game info */}
+                {gameDetails && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    {gameDetails.developer && (
+                      <div className="p-4 bg-gray-800/20 rounded-lg">
+                        <div className="text-sm font-medium text-muted-foreground">Desenvolvedor</div>
+                        <div className="text-white">{gameDetails.developer}</div>
+                      </div>
+                    )}
+                    {gameDetails.genre && (
+                      <div className="p-4 bg-gray-800/20 rounded-lg">
+                        <div className="text-sm font-medium text-muted-foreground">Gênero</div>
+                        <div className="text-white">{gameDetails.genre}</div>
+                      </div>
+                    )}
+                    {gameDetails.releaseDate && (
+                      <div className="p-4 bg-gray-800/20 rounded-lg">
+                        <div className="text-sm font-medium text-muted-foreground">Data de Lançamento</div>
+                        <div className="text-white">{new Date(gameDetails.releaseDate).toLocaleDateString()}</div>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-white">
-                    Nenhuma conta possui este jogo no momento.
-                  </p>
+                )}
+                
+                {gameDetails?.referenceLink && (
+                  <div className="mt-4">
+                    <a 
+                      href={gameDetails.referenceLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      Ver mais informações sobre este jogo
+                    </a>
+                  </div>
                 )}
               </div>
             </div>

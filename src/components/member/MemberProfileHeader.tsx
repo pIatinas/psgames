@@ -27,7 +27,7 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({ member }) => 
       </Avatar>
       
       <div className="flex-1 text-center md:text-left">
-        <h1 className="text-3xl font-bold mb-2">{member.name}</h1>
+        <h1 className="text-3xl font-bold mb-2 text-white">{member.name}</h1>
         
         <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
           <Badge className={member.isApproved ? 'bg-green-500 hover:bg-green-600' : 'bg-amber-500 hover:bg-amber-600'}>

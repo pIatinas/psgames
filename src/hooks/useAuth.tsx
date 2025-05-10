@@ -7,7 +7,7 @@ import { users as usersData, members } from '@/data/mockData';
 interface AuthContextType {
   currentUser: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (emailOrPsn: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -37,12 +37,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (emailOrPsn: string, password: string): Promise<boolean> => {
     // Simulating API call with timeout
     return new Promise((resolve) => {
       setTimeout(() => {
         // Check if it's the admin user
-        if (email === 'wallace_erick@hotmail.com') {
+        if (emailOrPsn === 'wallace_erick@hotmail.com') {
           // Find or create Wallace as admin
           let user: User = {
             id: 'admin-1',
@@ -61,8 +61,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
-        // Find user with matching email
-        const user = usersData.find(u => u.email === email);
+        // Find user with matching email or PSN ID
+        const user = usersData.find(u => 
+          u.email === emailOrPsn || 
+          (u.member && u.member.psn_id === emailOrPsn)
+        );
         
         // For members, check password as well
         if (user && user.role === 'member') {

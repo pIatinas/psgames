@@ -17,31 +17,52 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, className = '' }) =>
   
   return (
     <Link to={`/accounts/${account.id}`} className={`block ${className}`}>
-      <Card className="group overflow-hidden transition-all hover:-translate-y-1 hover:neon-blue-border rounded-lg">
-        <div className="relative p-4 bg-muted/50 flex justify-center items-center">
-          <div className="w-16 h-16 flex items-center justify-center rounded-full bg-secondary/20 text-secondary">
-            <svg 
-              className="h-8 w-8" 
-              viewBox="0 0 24 24" 
-              fill="currentColor"
-            >
-              <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm-.5 5v6H5v2h6.5v6h1v-6H19v-2h-6.5V5h-1z" />
-            </svg>
-          </div>
-          <div className="absolute top-2 right-2 flex items-center gap-1 text-xs">
+      <Card className="group overflow-hidden transition-all hover:-translate-y-1 hover:neon-blue-border rounded-lg h-full">
+        <div className="relative aspect-square bg-muted/50 flex justify-center items-center">
+          {account.image ? (
+            <img 
+              src={account.image} 
+              alt={account.email} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-secondary/20 text-secondary">
+              <svg 
+                className="h-8 w-8" 
+                viewBox="0 0 24 24" 
+                fill="currentColor"
+              >
+                <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm-.5 5v6H5v2h6.5v6h1v-6H19v-2h-6.5V5h-1z" />
+              </svg>
+            </div>
+          )}
+          <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 px-2 py-1 rounded-full text-xs">
             <User className="h-3.5 w-3.5 text-secondary" />
-            <span className="font-medium">{usedSlots}/{totalSlots}</span>
+            <span className="font-medium text-white">{usedSlots}/{totalSlots}</span>
           </div>
         </div>
         <CardContent className="p-3">
-          <h3 className="font-semibold text-base line-clamp-1">{account.email}</h3>
-          <p className="text-xs text-muted-foreground mt-1">
+          <div className="text-sm text-foreground mt-1">
             {account.games ? `${account.games.length} jogos` : "Sem jogos"}
-          </p>
+          </div>
           {account.games && account.games.length > 0 && (
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+            <div className="text-xs text-muted-foreground mt-1">
               {account.games.map(game => game.name).join(', ')}
-            </p>
+            </div>
+          )}
+          {(account.slot1 || account.slot2) && (
+            <div className="text-xs mt-2 space-y-1">
+              {account.slot1 && (
+                <div className="bg-red-500/20 text-red-500 rounded px-2 py-1">
+                  Slot 1: {account.slot1.member.name}
+                </div>
+              )}
+              {account.slot2 && (
+                <div className="bg-red-500/20 text-red-500 rounded px-2 py-1">
+                  Slot 2: {account.slot2.member.name}
+                </div>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -50,4 +71,3 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, className = '' }) =>
 };
 
 export default AccountCard;
-

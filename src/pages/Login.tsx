@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
-import { LogIn } from 'lucide-react';
+import { LogIn, Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login, currentUser } = useAuth();
   const navigate = useNavigate();
@@ -64,12 +65,12 @@ const Login: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Email
+                  Email ou PSN ID
                 </label>
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="email@example.com"
+                  type="text"
+                  placeholder="email@example.com ou PSN ID"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
@@ -85,13 +86,23 @@ const Login: React.FC = () => {
                     Esqueceu a senha?
                   </Link>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    className="pr-10"
+                  />
+                  <button 
+                    type="button" 
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               
               <Button type="submit" className="w-full" disabled={isLoading}>
@@ -116,7 +127,7 @@ const Login: React.FC = () => {
             
             <div className="text-xs text-center text-muted-foreground mt-4">
               <p>Credenciais para teste:</p>
-              <p>Admin: admin@example.com / admin</p>
+              <p>Admin: wallace_erick@hotmail.com / admin</p>
               <p>Membro: joao@example.com / senha123</p>
             </div>
           </CardFooter>
