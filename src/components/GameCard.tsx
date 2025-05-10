@@ -15,7 +15,6 @@ const GameCard: React.FC<GameCardProps> = ({ game, getPlatformColor }) => {
       "PS5": "bg-blue-500 text-white",
       "PS4": "bg-indigo-500 text-white",
       "PS3": "bg-purple-500 text-white",
-      "PC": "bg-gray-800 text-white",
       "VITA": "bg-green-500 text-white",
       "VR": "bg-red-500 text-white"
     };
@@ -36,7 +35,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, getPlatformColor }) => {
           />
         </div>
         <CardContent className="p-3">
-          <h3 className="font-semibold text-sm md:text-base line-clamp-1">{game.name}</h3>
+          <h3 className="font-semibold text-sm md:text-base line-clamp-1 text-white">{game.name}</h3>
           
           <div className="flex flex-wrap gap-1 mt-2">
             {game.platform.map(platform => (

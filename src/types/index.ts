@@ -1,3 +1,4 @@
+
 export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA" | "VR";
 
 export interface Game {
@@ -36,6 +37,11 @@ export interface Payment {
   paid_at: Date;
 }
 
+export interface SlotOccupation {
+  member: Member;
+  entered_at: Date;
+}
+
 export interface Account {
   id: string;
   email: string;
@@ -45,14 +51,8 @@ export interface Account {
   qrcode?: string;
   image?: string;
   games?: Game[];
-  slot1?: {
-    member: Member;
-    entered_at: Date;
-  };
-  slot2?: {
-    member: Member;
-    entered_at: Date;
-  };
+  slot1?: SlotOccupation;
+  slot2?: SlotOccupation;
 }
 
 export interface User {

@@ -15,7 +15,6 @@ const AccountGamesList: React.FC<AccountGamesListProps> = ({ games }) => {
       "PS5": "bg-blue-500 text-white",
       "PS4": "bg-indigo-500 text-white",
       "PS3": "bg-purple-500 text-white", 
-      "PC": "bg-gray-800 text-white",
       "VITA": "bg-green-500 text-white",
       "VR": "bg-red-500 text-white"
     };

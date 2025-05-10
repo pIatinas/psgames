@@ -27,12 +27,11 @@ const AdminAccounts: React.FC = () => {
   const [accounts, setAccounts] = useState<Account[]>(accountsData);
   const [games, setGames] = useState<Game[]>(gamesData);
   const [newAccount, setNewAccount] = useState<Partial<Account>>({
-    name: '',
     email: '',
     password: '',
     code: '',
     qrcode: '',
-    response: '',
+    image: '',
   });
   const [selectedGames, setSelectedGames] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -84,14 +83,13 @@ const AdminAccounts: React.FC = () => {
         ...newAccount,
         id: `account-${Date.now()}`,
         created_at: new Date(),
-        birthday: new Date(),
         games: linkedGames
       } as Account;
       setAccounts([...accounts, accountToAdd]);
     }
     
     // Reset form
-    setNewAccount({ name: '', email: '', password: '', code: '', qrcode: '', response: '' });
+    setNewAccount({ email: '', password: '', code: '', qrcode: '', image: '' });
     setSelectedGames([]);
     setIsEditing(false);
     setOpen(false);
@@ -116,7 +114,7 @@ const AdminAccounts: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Gerenciar Contas</h2>
+        <h2 className="text-2xl font-bold text-white">Gerenciar Contas</h2>
         
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -127,71 +125,67 @@ const AdminAccounts: React.FC = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{isEditing ? 'Editar Conta' : 'Adicionar Nova Conta'}</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-white">{isEditing ? 'Editar Conta' : 'Adicionar Nova Conta'}</DialogTitle>
+              <DialogDescription className="text-white">
                 Preencha os detalhes da conta abaixo.
               </DialogDescription>
             </DialogHeader>
             
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input 
-                  id="name" 
-                  value={newAccount.name || ''} 
-                  onChange={(e) => setNewAccount({...newAccount, name: e.target.value})}
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-white">Email</Label>
                 <Input 
                   id="email" 
                   type="email"
                   value={newAccount.email || ''} 
                   onChange={(e) => setNewAccount({...newAccount, email: e.target.value})}
+                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password" className="text-white">Senha</Label>
                 <Input 
                   id="password" 
                   type="password"
                   value={newAccount.password || ''} 
                   onChange={(e) => setNewAccount({...newAccount, password: e.target.value})}
+                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="code">Código</Label>
+                <Label htmlFor="code" className="text-white">Código</Label>
                 <Input 
                   id="code" 
                   value={newAccount.code || ''} 
                   onChange={(e) => setNewAccount({...newAccount, code: e.target.value})}
+                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="qrcode">QR Code URL</Label>
+                <Label htmlFor="qrcode" className="text-white">QR Code URL</Label>
                 <Input 
                   id="qrcode" 
                   value={newAccount.qrcode || ''} 
                   onChange={(e) => setNewAccount({...newAccount, qrcode: e.target.value})}
+                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="response">Resposta Secreta</Label>
+                <Label htmlFor="image" className="text-white">Imagem URL</Label>
                 <Input 
-                  id="response" 
-                  value={newAccount.response || ''} 
-                  onChange={(e) => setNewAccount({...newAccount, response: e.target.value})}
+                  id="image" 
+                  value={newAccount.image || ''} 
+                  onChange={(e) => setNewAccount({...newAccount, image: e.target.value})}
+                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label>Jogos Vinculados</Label>
+                <Label className="text-white">Jogos Vinculados</Label>
                 <div className="max-h-48 overflow-y-auto border rounded-md p-2">
                   {games.map(game => (
                     <div key={game.id} className="flex items-center space-x-2 py-1">
@@ -200,7 +194,7 @@ const AdminAccounts: React.FC = () => {
                         checked={selectedGames.includes(game.id)}
                         onCheckedChange={() => handleGameToggle(game.id)}
                       />
-                      <Label htmlFor={`game-${game.id}`} className="cursor-pointer">
+                      <Label htmlFor={`game-${game.id}`} className="cursor-pointer text-white">
                         {game.name}
                       </Label>
                     </div>
@@ -212,7 +206,7 @@ const AdminAccounts: React.FC = () => {
             <DialogFooter>
               <Button variant="outline" onClick={() => {
                 setOpen(false);
-                setNewAccount({ name: '', email: '', password: '', code: '', qrcode: '', response: '' });
+                setNewAccount({ email: '', password: '', code: '', qrcode: '', image: '' });
                 setSelectedGames([]);
                 setIsEditing(false);
               }}>
@@ -228,11 +222,11 @@ const AdminAccounts: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Jogos</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Data de Criação</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="text-white">Email</TableHead>
+              <TableHead className="text-white">Jogos</TableHead>
+              <TableHead className="text-white">Status</TableHead>
+              <TableHead className="text-white">Data de Criação</TableHead>
+              <TableHead className="text-right text-white">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -244,16 +238,16 @@ const AdminAccounts: React.FC = () => {
               
               return (
                 <TableRow key={account.id}>
-                  <TableCell className="font-medium">{account.email}</TableCell>
+                  <TableCell className="font-medium text-white">{account.email}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {account.games?.slice(0, 3).map(game => (
-                        <span key={game.id} className="px-2 py-1 text-xs bg-secondary rounded-full">
+                        <span key={game.id} className="px-2 py-1 text-xs bg-secondary rounded-full text-white">
                           {game.name}
                         </span>
                       ))}
                       {account.games && account.games.length > 3 && (
-                        <span className="px-2 py-1 text-xs bg-secondary rounded-full">
+                        <span className="px-2 py-1 text-xs bg-secondary rounded-full text-white">
                           +{account.games.length - 3} mais
                         </span>
                       )}
@@ -271,7 +265,7 @@ const AdminAccounts: React.FC = () => {
                       {availableSlots} {availableSlots === 1 ? 'slot disponível' : 'slots disponíveis'}
                     </span>
                   </TableCell>
-                  <TableCell>{new Date(account.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell className="text-white">{new Date(account.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" size="icon" onClick={() => handleEditAccount(account)}>

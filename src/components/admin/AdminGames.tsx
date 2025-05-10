@@ -31,7 +31,8 @@ const AdminGames: React.FC = () => {
     name: '',
     image: '',
     banner: '',
-    platform: []
+    platform: [],
+    referenceLink: ''
   });
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -57,7 +58,7 @@ const AdminGames: React.FC = () => {
     }
   }, [currentUser, navigate, toast]);
 
-  const platformOptions: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA", "VR", "PC"];
+  const platformOptions: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA", "VR"];
 
   const handlePlatformToggle = (platform: GamePlatform) => {
     const platforms = [...(newGame.platform || [])];
@@ -165,7 +166,7 @@ const AdminGames: React.FC = () => {
       setLoading(false);
       
       // Reset form
-      setNewGame({ name: '', image: '', banner: '', platform: [] });
+      setNewGame({ name: '', image: '', banner: '', platform: [], referenceLink: '' });
       setSelectedAccounts([]);
       setIsEditing(false);
       setOpen(false);
@@ -225,7 +226,7 @@ const AdminGames: React.FC = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="text-white">{isEditing ? 'Editar Jogo' : 'Adicionar Novo Jogo'}</DialogTitle>
-              <DialogDescription className="text-gray-300">
+              <DialogDescription className="text-white">
                 Preencha os detalhes do jogo abaixo.
               </DialogDescription>
             </DialogHeader>
@@ -258,6 +259,17 @@ const AdminGames: React.FC = () => {
                   value={newGame.banner} 
                   onChange={(e) => setNewGame({...newGame, banner: e.target.value})}
                   className="text-white"
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="referenceLink" className="text-white">Link de Referência</Label>
+                <Input 
+                  id="referenceLink" 
+                  value={newGame.referenceLink || ''} 
+                  onChange={(e) => setNewGame({...newGame, referenceLink: e.target.value})}
+                  className="text-white"
+                  placeholder="https://www.psnprofiles.com/game/xxxx"
                 />
               </div>
               
@@ -300,7 +312,7 @@ const AdminGames: React.FC = () => {
             <DialogFooter>
               <Button variant="outline" onClick={() => {
                 setOpen(false);
-                setNewGame({ name: '', image: '', banner: '', platform: [] });
+                setNewGame({ name: '', image: '', banner: '', platform: [], referenceLink: '' });
                 setSelectedAccounts([]);
                 setIsEditing(false);
               }}>
@@ -342,7 +354,6 @@ const AdminGames: React.FC = () => {
                           "PS5": "bg-blue-500 text-white",
                           "PS4": "bg-indigo-500 text-white",
                           "PS3": "bg-purple-500 text-white",
-                          "PC": "bg-gray-800 text-white",
                           "VITA": "bg-green-500 text-white",
                           "VR": "bg-red-500 text-white"
                         };
@@ -359,15 +370,15 @@ const AdminGames: React.FC = () => {
                     <div className="flex flex-wrap gap-1">
                       {gameAccounts.length > 0 ? (
                         gameAccounts.slice(0, 3).map(account => (
-                          <span key={account.id} className="px-2 py-1 text-xs bg-secondary rounded-full">
+                          <span key={account.id} className="px-2 py-1 text-xs bg-secondary rounded-full text-white">
                             {account.email}
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-gray-300">Sem contas</span>
+                        <span className="text-xs text-white">Sem contas</span>
                       )}
                       {gameAccounts.length > 3 && (
-                        <span className="px-2 py-1 text-xs bg-secondary rounded-full">
+                        <span className="px-2 py-1 text-xs bg-secondary rounded-full text-white">
                           +{gameAccounts.length - 3} mais
                         </span>
                       )}
