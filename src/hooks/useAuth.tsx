@@ -9,6 +9,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (emailOrPsn: string, password: string) => Promise<boolean>;
   logout: () => void;
+  updateCurrentUser?: (updatedUser: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -36,6 +37,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setIsLoading(false);
   }, []);
+
+  const updateCurrentUser = (updatedUser: User) => {
+    setCurrentUser(updatedUser);
+    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+  };
 
   const login = async (emailOrPsn: string, password: string): Promise<boolean> => {
     // Simulating API call with timeout
@@ -116,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ currentUser, isLoading, login, logout, updateCurrentUser }}>
       {children}
     </AuthContext.Provider>
   );

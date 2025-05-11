@@ -4,12 +4,13 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SectionTitle from '@/components/SectionTitle';
-import { games } from '@/data/mockData';
+import { games, accounts } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, ArrowLeft, Trophy } from 'lucide-react';
+import { Calendar, ArrowLeft, Trophy, Check, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchGameInfo } from '@/services/gameInfoService';
+import { Account } from '@/types';
 
 // Interface for trophy data
 interface TrophyInfo {
@@ -29,6 +30,11 @@ const GameDetail = () => {
   
   // Encontrar o jogo pelo ID
   const game = games.find(game => game.id === id);
+  
+  // Find accounts that have this game
+  const gameAccounts = accounts.filter(account => 
+    account.games?.some(g => g.id === id)
+  );
   
   // Fetch trophy info and game details
   useEffect(() => {
@@ -104,7 +110,7 @@ const GameDetail = () => {
                   {game.platform.map(platform => (
                     <Badge 
                       key={platform} 
-                      className="bg-primary/80 hover:bg-primary"
+                      className="bg-primary/80 hover:bg-primary text-white"
                     >
                       {platform}
                     </Badge>
@@ -124,9 +130,9 @@ const GameDetail = () => {
         
         {/* Conteúdo da página */}
         <div className="container py-8">
-          <div className="grid grid-cols-1 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal */}
-            <div className="space-y-8">
+            <div className="lg:col-span-2 space-y-8">
               {/* Trophy info */}
               {trophyInfo && (
                 <div>
@@ -137,35 +143,35 @@ const GameDetail = () => {
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
                       <div className="text-xl font-bold text-white">{trophyInfo.platinum}</div>
-                      <div className="text-xs text-gray-300">Platina</div>
+                      <div className="text-xs text-white">Platina</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-yellow-300 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
                       <div className="text-xl font-bold text-white">{trophyInfo.gold}</div>
-                      <div className="text-xs text-gray-300">Ouro</div>
+                      <div className="text-xs text-white">Ouro</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-gray-300 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
                       <div className="text-xl font-bold text-white">{trophyInfo.silver}</div>
-                      <div className="text-xs text-gray-300">Prata</div>
+                      <div className="text-xs text-white">Prata</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-amber-700 mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
                       <div className="text-xl font-bold text-white">{trophyInfo.bronze}</div>
-                      <div className="text-xs text-gray-300">Bronze</div>
+                      <div className="text-xs text-white">Bronze</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-4 text-center">
                       <div className="text-primary mb-2">
                         <Trophy className="h-6 w-6 mx-auto" />
                       </div>
                       <div className="text-xl font-bold text-white">{trophyInfo.total}</div>
-                      <div className="text-xs text-gray-300">Total</div>
+                      <div className="text-xs text-white">Total</div>
                     </div>
                   </div>
                 </div>
@@ -184,29 +190,29 @@ const GameDetail = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                     {gameDetails.developer && (
                       <div className="p-4 bg-gray-800/20 rounded-lg">
-                        <div className="text-sm font-medium text-muted-foreground">Desenvolvedor</div>
+                        <div className="text-sm font-medium text-white">Desenvolvedor</div>
                         <div className="text-white">{gameDetails.developer}</div>
                       </div>
                     )}
                     {gameDetails.genre && (
                       <div className="p-4 bg-gray-800/20 rounded-lg">
-                        <div className="text-sm font-medium text-muted-foreground">Gênero</div>
+                        <div className="text-sm font-medium text-white">Gênero</div>
                         <div className="text-white">{gameDetails.genre}</div>
                       </div>
                     )}
                     {gameDetails.releaseDate && (
                       <div className="p-4 bg-gray-800/20 rounded-lg">
-                        <div className="text-sm font-medium text-muted-foreground">Data de Lançamento</div>
+                        <div className="text-sm font-medium text-white">Data de Lançamento</div>
                         <div className="text-white">{new Date(gameDetails.releaseDate).toLocaleDateString()}</div>
                       </div>
                     )}
                   </div>
                 )}
                 
-                {gameDetails?.referenceLink && (
+                {game.referenceLink && (
                   <div className="mt-4">
                     <a 
-                      href={gameDetails.referenceLink} 
+                      href={game.referenceLink} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-primary hover:underline"
@@ -216,12 +222,68 @@ const GameDetail = () => {
                   </div>
                 )}
               </div>
+              
+              {/* Accounts with this game */}
+              <div>
+                <SectionTitle 
+                  title="Contas com este Jogo" 
+                  subtitle={`${gameAccounts.length} ${gameAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}`}
+                />
+                
+                {gameAccounts.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {gameAccounts.map(account => (
+                      <AccountCard key={account.id} account={account} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-white">Nenhuma conta encontrada com este jogo.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </main>
 
       <Footer />
+    </div>
+  );
+};
+
+// Simple account card component for game detail page
+const AccountCard = ({ account }: { account: Account }) => {
+  return (
+    <div className="border rounded-lg p-4">
+      <div className="flex justify-between mb-2">
+        <h3 className="font-medium text-white">
+          {account.email.split('@')[0]}
+        </h3>
+        <Badge variant="outline" className="text-white">
+          {account.games?.length || 0} jogos
+        </Badge>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <div className={`p-2 rounded text-center ${!account.slot1 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+          <div className="text-xs">Slot 1</div>
+          <div className="flex justify-center mt-1">
+            {!account.slot1 ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          </div>
+        </div>
+        
+        <div className={`p-2 rounded text-center ${!account.slot2 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+          <div className="text-xs">Slot 2</div>
+          <div className="flex justify-center mt-1">
+            {!account.slot2 ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          </div>
+        </div>
+      </div>
+      
+      <div className="mt-4">
+        <Button variant="outline" className="w-full" asChild>
+          <Link to={`/accounts/${account.id}`}>Ver Detalhes</Link>
+        </Button>
+      </div>
     </div>
   );
 };

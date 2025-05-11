@@ -34,21 +34,21 @@ const Header: React.FC = () => {
                 <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm-.5 5v6H5v2h6.5v6h1v-6H19v-2h-6.5V5h-1z" />
               </svg>
             </div>
-            <span className="text-xl font-bold">PSGames</span>
+            <span className="text-xl font-bold text-white">PSGames</span>
           </Link>
           
           <nav className="hidden md:flex items-center ml-6 space-x-4">
-            <Link to="/games" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link to="/games" className="text-sm font-medium text-white hover:text-primary transition-colors">
               Jogos
             </Link>
-            <Link to="/accounts" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link to="/accounts" className="text-sm font-medium text-white hover:text-primary transition-colors">
               Contas
             </Link>
-            <Link to="/members" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link to="/members" className="text-sm font-medium text-white hover:text-primary transition-colors">
               Membros
             </Link>
             {currentUser && currentUser.role === 'admin' && (
-              <Link to="/admin" className="text-sm font-medium transition-colors flex items-center">
+              <Link to="/admin" className="text-sm font-medium text-white transition-colors flex items-center">
                 <Settings className="h-4 w-4 mr-1" />
                 Admin
               </Link>
@@ -57,14 +57,14 @@ const Header: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" className="relative text-foreground/60 hover:text-primary">
+          <Button variant="ghost" size="icon" className="relative text-white hover:text-primary">
             <Search className="h-5 w-5" />
           </Button>
           
           {currentUser ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2 flex items-center">
+                <Button variant="outline" className="gap-2 flex items-center text-white">
                   <Avatar className="h-6 w-6">
                     <AvatarImage src={currentUser.member?.profile_image} />
                     <AvatarFallback>{getUserInitials()}</AvatarFallback>
@@ -73,8 +73,12 @@ const Header: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>Meu Perfil</DropdownMenuItem>
-                <DropdownMenuItem>Minhas Contas</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Meu Perfil</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/my-accounts">Minhas Contas</Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -84,7 +88,7 @@ const Header: React.FC = () => {
             </DropdownMenu>
           ) : (
             <>
-              <Button variant="outline" className="hidden md:flex" asChild>
+              <Button variant="outline" className="hidden md:flex text-white" asChild>
                 <Link to="/login">
                   <LogIn className="mr-2 h-4 w-4" />
                   Entrar

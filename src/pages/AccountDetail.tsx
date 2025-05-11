@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye } from 'lucide-react';
+import { ArrowLeft, Eye, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -101,7 +101,7 @@ const AccountDetail = () => {
           <div className="flex items-center mb-8">
             <Button 
               variant="ghost" 
-              className="mr-4 text-muted-foreground hover:text-foreground"
+              className="mr-4 text-white hover:text-foreground"
               asChild
             >
               <Link to="/accounts">
@@ -134,18 +134,25 @@ const AccountDetail = () => {
                 )}
                 
                 <div>
-                  <h3 className="font-semibold text-lg mb-2 text-foreground">Status da Conta</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-white">Status da Conta</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className={`p-3 rounded-lg ${!account.slot1 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                         <div className="text-lg font-bold">Slot 1</div>
-                        <div className="text-sm">
+                        <div className="flex items-center justify-center mt-2">
+                          {!account.slot1 ? (
+                            <Check className="h-5 w-5" />
+                          ) : (
+                            <X className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div className="text-sm mt-2">
                           {!account.slot1 ? (
                             <Button 
                               size="sm" 
                               onClick={() => handleUseSlot(1)} 
                               disabled={!currentUser}
-                              className="mt-1"
+                              className="w-full"
                             >
                               Utilizar
                             </Button>
@@ -156,13 +163,20 @@ const AccountDetail = () => {
                       </div>
                       <div className={`p-3 rounded-lg ${!account.slot2 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                         <div className="text-lg font-bold">Slot 2</div>
-                        <div className="text-sm">
+                        <div className="flex items-center justify-center mt-2">
+                          {!account.slot2 ? (
+                            <Check className="h-5 w-5" />
+                          ) : (
+                            <X className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div className="text-sm mt-2">
                           {!account.slot2 ? (
                             <Button 
                               size="sm" 
                               onClick={() => handleUseSlot(2)} 
                               disabled={!currentUser}
-                              className="mt-1"
+                              className="w-full"
                             >
                               Utilizar
                             </Button>
@@ -186,7 +200,7 @@ const AccountDetail = () => {
                   </Button>
                 )}
                 
-                <div className="mt-4 text-xs text-muted-foreground text-center">
+                <div className="mt-4 text-xs text-white text-center">
                   Para utilizar esta conta, você deve ser um membro aprovado.
                 </div>
               </div>

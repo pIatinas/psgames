@@ -11,7 +11,7 @@ import SeeAllButton from '@/components/SeeAllButton';
 import { getRecentGames, getRecentAccounts, members } from '@/data/mockData';
 
 const Index = () => {
-  const recentGames = getRecentGames();
+  const recentGames = getRecentGames().slice(0, 8); // Only get 8 games (for 4x2 layout)
   const recentAccounts = getRecentAccounts();
   const recentMembers = members.filter(member => member.isApproved).slice(0, 6);
 
@@ -27,8 +27,8 @@ const Index = () => {
             subtitle="Os últimos jogos adicionados à nossa biblioteca"
           />
           
-          {/* Grid de jogos */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* Grid de jogos - 4 por linha, 2 linhas */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {recentGames.map(game => (
               <GameCard key={game.id} game={game} />
             ))}

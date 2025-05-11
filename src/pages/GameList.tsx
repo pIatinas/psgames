@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
@@ -11,12 +11,12 @@ import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 
-const GameList = () => {
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [selectedPlatform, setSelectedPlatform] = React.useState<GamePlatform | null>(null);
+const GameList: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPlatform, setSelectedPlatform] = useState<GamePlatform | null>(null);
   const { currentUser } = useAuth();
   
-  // Available platforms (except PC)
+  // Available platforms 
   const platforms: GamePlatform[] = ['PS5', 'PS4', 'PS3', 'VITA', 'VR'];
   
   const filteredGames = games.filter(game => {
@@ -52,7 +52,7 @@ const GameList = () => {
               <Badge 
                 key={platform}
                 variant={selectedPlatform === platform ? "default" : "outline"}
-                className={`cursor-pointer ${selectedPlatform === platform ? 'bg-primary hover:bg-primary/90' : 'hover:bg-primary/10'}`}
+                className={`cursor-pointer ${selectedPlatform === platform ? 'bg-primary hover:bg-primary/90' : 'hover:bg-primary/10'} text-white`}
                 onClick={() => setSelectedPlatform(prev => prev === platform ? null : platform)}
               >
                 {platform}
@@ -61,8 +61,8 @@ const GameList = () => {
           </div>
         </div>
         
-        {/* Grid de jogos - 2 por linha */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {/* Grid de jogos - 4 por linha */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {filteredGames.map(game => (
             <GameCard key={game.id} game={game} />
           ))}
@@ -71,7 +71,7 @@ const GameList = () => {
         {/* Mensagem quando não há jogos */}
         {filteredGames.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-white">
               Nenhum jogo encontrado com os filtros atuais.
             </p>
           </div>

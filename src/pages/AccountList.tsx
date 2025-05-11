@@ -27,13 +27,18 @@ const AccountList: React.FC = () => {
   // Filter accounts based on search and game filters
   const filteredAccounts = accounts.filter(account => {
     // Search by email
-    const matchesSearch = account.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesEmail = account.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Search by game name
+    const hasMatchingGame = account.games?.some(game => 
+      game.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     
     // Filter by games
     const matchesGames = selectedGameIds.length === 0 || 
       (account.games && account.games.some(game => selectedGameIds.includes(game.id)));
       
-    return matchesSearch && matchesGames;
+    return (matchesEmail || hasMatchingGame) && matchesGames;
   });
 
   return (
@@ -51,7 +56,7 @@ const AccountList: React.FC = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Pesquisar contas..."
+              placeholder="Pesquisar contas ou jogos..."
               className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -60,7 +65,7 @@ const AccountList: React.FC = () => {
           
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2 text-white">
                 <Filter className="h-4 w-4" />
                 Filtrar por Jogos
                 {selectedGameIds.length > 0 && (
@@ -118,7 +123,7 @@ const AccountList: React.FC = () => {
         {/* Mensagem quando não há contas */}
         {filteredAccounts.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-white">
               Nenhuma conta encontrada com os filtros atuais.
             </p>
           </div>

@@ -8,6 +8,8 @@ import AccountList from './pages/AccountList';
 import AccountDetail from './pages/AccountDetail';
 import MemberList from './pages/MemberList';
 import MemberDetail from './pages/MemberDetail';
+import MyProfile from './pages/MyProfile';
+import MyAccounts from './pages/MyAccounts';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Admin from './pages/Admin';
@@ -29,6 +31,8 @@ function App() {
           <Route path="/accounts/:id" element={<AccountDetail />} />
           <Route path="/members" element={<MemberList />} />
           <Route path="/members/:id" element={<MemberDetail />} />
+          <Route path="/profile" element={<MyProfile />} />
+          <Route path="/my-accounts" element={<MyAccounts />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/admin" element={<Admin />} />
