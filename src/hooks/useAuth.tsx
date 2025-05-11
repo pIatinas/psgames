@@ -2,7 +2,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { User } from '@/types';
-import { users as usersData, members } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
+import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -10,6 +11,7 @@ interface AuthContextType {
   login: (emailOrPsn: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateCurrentUser?: (updatedUser: User) => void;
+  session: Session | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,112 +19,241 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => false,
   logout: () => {},
+  session: null,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for saved user in local storage
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      try {
-        setCurrentUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error('Failed to parse saved user', error);
-        localStorage.removeItem('currentUser');
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        setSession(currentSession);
+        if (currentSession?.user) {
+          fetchUserProfile(currentSession.user.id);
+        } else {
+          setCurrentUser(null);
+        }
       }
-    }
-    setIsLoading(false);
+    );
+
+    // Check for initial session
+    const initializeAuth = async () => {
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      setSession(initialSession);
+      
+      if (initialSession?.user) {
+        fetchUserProfile(initialSession.user.id);
+      }
+      
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      // First check for admin role in profiles
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Then get member data
+      const { data: memberData, error: memberError } = await supabase
+        .from('members')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      // Construct user object
+      const user: User = {
+        id: userId,
+        name: memberData?.name || 'User',
+        email: memberData?.email || '',
+        role: profileData?.role || 'member'
+      };
+
+      // Add member data if available
+      if (memberData) {
+        user.member = {
+          id: memberData.id,
+          name: memberData.name,
+          email: memberData.email,
+          psn_id: memberData.psn_id,
+          profile_image: memberData.profile_image || '',
+          created_at: new Date(memberData.created_at),
+          isApproved: memberData.is_approved,
+          payments: [] // We'd fetch payments separately if needed
+        };
+      }
+
+      setCurrentUser(user);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      setCurrentUser(null);
+    }
+  };
 
   const updateCurrentUser = (updatedUser: User) => {
     setCurrentUser(updatedUser);
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    
+    // Update the member record in Supabase if member data exists
+    if (updatedUser.member && session?.user) {
+      supabase
+        .from('members')
+        .update({
+          name: updatedUser.name,
+          email: updatedUser.email,
+          psn_id: updatedUser.member.psn_id,
+          profile_image: updatedUser.member.profile_image
+        })
+        .eq('user_id', session.user.id)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Failed to update profile:', error);
+            toast({
+              title: "Erro ao atualizar perfil",
+              description: "Não foi possível salvar suas alterações.",
+              variant: "destructive",
+            });
+          }
+        });
+    }
   };
 
   const login = async (emailOrPsn: string, password: string): Promise<boolean> => {
-    // Simulating API call with timeout
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Check if it's the admin user
-        if (emailOrPsn === 'wallace_erick@hotmail.com') {
-          // Find or create Wallace as admin
-          let user: User = {
-            id: 'admin-1',
-            name: 'Wallace Erick',
-            email: 'wallace_erick@hotmail.com',
-            role: 'admin'
-          };
-          
-          setCurrentUser(user);
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          toast({
-            title: "Login bem-sucedido",
-            description: `Bem-vindo de volta, ${user.name}!`,
-          });
-          resolve(true);
-          return;
-        }
-        
-        // Find user with matching email or PSN ID
-        const user = usersData.find(u => 
-          u.email === emailOrPsn || 
-          (u.member && u.member.psn_id === emailOrPsn)
-        );
-        
-        // For members, check password as well
-        if (user && user.role === 'member') {
-          if (user.member?.password === password) {
-            setCurrentUser(user);
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            toast({
-              title: "Login bem-sucedido",
-              description: `Bem-vindo de volta, ${user.name}!`,
-            });
-            resolve(true);
-          } else {
-            toast({
-              title: "Erro de login",
-              description: "Senha incorreta",
-              variant: "destructive",
-            });
-            resolve(false);
-          }
-        } else if (user && user.role === 'admin' && password === 'admin') {
-          // For admin, use hardcoded password 'admin'
-          setCurrentUser(user);
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          toast({
-            title: "Login bem-sucedido",
-            description: `Bem-vindo de volta, ${user.name}!`,
-          });
-          resolve(true);
-        } else {
+    setIsLoading(true);
+    
+    try {
+      // First try to login with email and password through Supabase auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailOrPsn, // Assume it's an email first
+        password: password
+      });
+
+      if (error) {
+        // If direct login fails, check if it's a PSN ID instead
+        const { data: members, error: memberError } = await supabase
+          .from('members')
+          .select('user_id, email')
+          .eq('psn_id', emailOrPsn)
+          .single();
+
+        if (memberError || !members) {
           toast({
             title: "Erro de login",
-            description: "Usuário não encontrado",
+            description: "Credenciais inválidas.",
             variant: "destructive",
           });
-          resolve(false);
+          setIsLoading(false);
+          return false;
         }
-      }, 1000);
-    });
+
+        // If we found a member by PSN ID, try to login with their email
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: members.email,
+          password: password
+        });
+
+        if (authError) {
+          toast({
+            title: "Erro de login",
+            description: "Senha incorreta.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return false;
+        }
+
+        // Special case for admin login
+        if (emailOrPsn === 'wallace_erick@hotmail.com') {
+          const { data: profileUpdate } = await supabase
+            .from('profiles')
+            .update({ role: 'admin' })
+            .eq('id', authData.user.id);
+        }
+
+        setSession(authData.session);
+        toast({
+          title: "Login bem-sucedido",
+          description: "Bem-vindo de volta!",
+        });
+        
+        return true;
+      }
+
+      // If login was successful
+      setSession(data.session);
+      toast({
+        title: "Login bem-sucedido",
+        description: "Bem-vindo de volta!",
+      });
+      
+      // Special case for admin login
+      if (emailOrPsn === 'wallace_erick@hotmail.com') {
+        const { data: profileUpdate } = await supabase
+          .from('profiles')
+          .update({ role: 'admin' })
+          .eq('id', data.user.id);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Erro de login",
+        description: "Ocorreu um erro ao processar sua solicitação.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('currentUser');
-    toast({
-      title: "Logout bem-sucedido",
-      description: "Você foi desconectado com sucesso.",
-    });
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Erro ao sair",
+        description: "Não foi possível encerrar sua sessão.",
+        variant: "destructive",
+      });
+    } else {
+      setCurrentUser(null);
+      setSession(null);
+      toast({
+        title: "Logout bem-sucedido",
+        description: "Você foi desconectado com sucesso.",
+      });
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, isLoading, login, logout, updateCurrentUser }}>
+    <AuthContext.Provider value={{ 
+      currentUser, 
+      isLoading, 
+      login, 
+      logout, 
+      updateCurrentUser,
+      session 
+    }}>
       {children}
     </AuthContext.Provider>
   );

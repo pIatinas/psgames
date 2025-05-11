@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,11 +18,18 @@ const formSchema = z.object({
 });
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, currentUser, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (currentUser || session) {
+      navigate('/');
+    }
+  }, [currentUser, session, navigate]);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,6 +47,7 @@ const Login = () => {
         navigate('/');
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao fazer login.",

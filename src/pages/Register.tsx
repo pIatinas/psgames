@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/components/ui/use-toast';
 import { User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -18,15 +19,15 @@ const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { currentUser } = useAuth();
+  const { currentUser, session } = useAuth();
   const navigate = useNavigate();
 
   // If user is already logged in, redirect to home
-  React.useEffect(() => {
-    if (currentUser) {
+  useEffect(() => {
+    if (currentUser || session) {
       navigate('/');
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, session, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,14 +54,33 @@ const Register: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Simulating registration success
-      setTimeout(() => {
-        toast({
-          title: "Cadastro realizado",
-          description: "Sua conta foi criada com sucesso! Faça login para continuar.",
-        });
-        navigate('/login');
-      }, 1500);
+      // Register the user with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            psn_id: psnId
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Cadastro realizado",
+        description: "Sua conta foi criada com sucesso! Faça login para continuar.",
+      });
+      
+      navigate('/login');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      toast({
+        title: "Erro no cadastro",
+        description: error.message || "Ocorreu um erro ao criar sua conta.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
