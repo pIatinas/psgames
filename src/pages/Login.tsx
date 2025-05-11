@@ -11,11 +11,59 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   emailOrPsnId: z.string().min(1, { message: "Campo obrigatório" }),
   password: z.string().min(1, { message: "Campo obrigatório" }),
 });
+
+// Function to create admin user
+const createAdminUser = async () => {
+  const adminEmail = 'wallace_erick@hotmail.com';
+  const adminPassword = '123mudar';
+  
+  try {
+    // Check if user already exists
+    const { data: existingUsers } = await supabase.auth.admin.listUsers();
+    const adminExists = existingUsers?.users?.some(user => user.email === adminEmail);
+    
+    if (!adminExists) {
+      // Create the admin user
+      const { data, error } = await supabase.auth.signUp({
+        email: adminEmail,
+        password: adminPassword,
+        options: {
+          data: {
+            name: 'Wallace',
+            psn_id: 'admin_wallace'
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data.user) {
+        // Set role to admin
+        await supabase
+          .from('profiles')
+          .update({ role: 'admin' })
+          .eq('id', data.user.id);
+      }
+      
+      console.log('Admin user created successfully');
+    } else {
+      console.log('Admin user already exists');
+    }
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+  }
+};
+
+// Try to create admin user on component mount
+useEffect(() => {
+  createAdminUser();
+}, []);
 
 const Login = () => {
   const { login, currentUser, session } = useAuth();

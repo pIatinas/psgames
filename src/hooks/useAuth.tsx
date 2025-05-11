@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError && profileError.code !== 'PGRST116') throw profileError;
 
       // Then get member data
       const { data: memberData, error: memberError } = await supabase
@@ -78,6 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .select('*')
         .eq('user_id', userId)
         .single();
+
+      if (memberError && memberError.code !== 'PGRST116') throw memberError;
 
       // Construct user object
       const user: User = {
@@ -94,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: memberData.name,
           email: memberData.email,
           psn_id: memberData.psn_id,
+          password: '', // Secure placeholder as we don't store or display passwords
           profile_image: memberData.profile_image || '',
           created_at: new Date(memberData.created_at),
           isApproved: memberData.is_approved,
@@ -181,7 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Special case for admin login
         if (emailOrPsn === 'wallace_erick@hotmail.com') {
-          const { data: profileUpdate } = await supabase
+          await supabase
             .from('profiles')
             .update({ role: 'admin' })
             .eq('id', authData.user.id);
@@ -204,8 +207,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       // Special case for admin login
-      if (emailOrPsn === 'wallace_erick@hotmail.com') {
-        const { data: profileUpdate } = await supabase
+      if (emailOrPsn === 'wallace_erick@hotmail.com' && data.user) {
+        await supabase
           .from('profiles')
           .update({ role: 'admin' })
           .eq('id', data.user.id);
