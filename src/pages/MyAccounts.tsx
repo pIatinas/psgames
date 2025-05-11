@@ -10,7 +10,7 @@ import SectionTitle from '@/components/SectionTitle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarClock, Game, Check, X } from 'lucide-react';
+import { CalendarClock, GamepadIcon, Check, X } from 'lucide-react';
 import { Account } from '@/types';
 
 const MyAccounts: React.FC = () => {
@@ -116,7 +116,7 @@ const MyAccounts: React.FC = () => {
                     {account.games && account.games.length > 0 && (
                       <div className="mt-4">
                         <div className="text-sm font-medium mb-2 text-white flex items-center">
-                          <Game className="h-4 w-4 mr-1" />
+                          <GamepadIcon className="h-4 w-4 mr-1" />
                           Jogos disponíveis
                         </div>
                         <div className="flex flex-wrap gap-2">
