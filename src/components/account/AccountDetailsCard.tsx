@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, User } from 'lucide-react';
 import { Account } from '@/types';
 import {
   Card,
@@ -43,14 +43,20 @@ const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({ account, usedBy
               <div className="font-medium">Slot 1</div>
               <div>{account.slot1 ? 'Em uso' : 'Disponível'}</div>
               {account.slot1 && (
-                <div className="text-xs mt-1">Por: {account.slot1.member.name}</div>
+                <div className="flex items-center mt-1 text-xs gap-1">
+                  <User className="h-3 w-3" />
+                  {account.slot1.member.name}
+                </div>
               )}
             </div>
             <div className={`text-sm px-3 py-2 rounded-md ${account.slot2 ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
               <div className="font-medium">Slot 2</div>
               <div>{account.slot2 ? 'Em uso' : 'Disponível'}</div>
               {account.slot2 && (
-                <div className="text-xs mt-1">Por: {account.slot2.member.name}</div>
+                <div className="flex items-center mt-1 text-xs gap-1">
+                  <User className="h-3 w-3" />
+                  {account.slot2.member.name}
+                </div>
               )}
             </div>
           </div>

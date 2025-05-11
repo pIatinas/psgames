@@ -12,7 +12,10 @@ import MyProfile from './pages/MyProfile';
 import MyAccounts from './pages/MyAccounts';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Admin from './pages/Admin';
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminGamesPage from './pages/admin/AdminGamesPage';
+import AdminAccountsPage from './pages/admin/AdminAccountsPage';
+import AdminMembersPage from './pages/admin/AdminMembersPage';
 import NotFound from './pages/NotFound';
 import { AuthProvider } from './hooks/useAuth';
 import { Toaster } from "@/components/ui/toaster";
@@ -35,7 +38,15 @@ function App() {
           <Route path="/my-accounts" element={<MyAccounts />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<Admin />} />
+          
+          {/* Admin routes with separate pages */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminGamesPage />} />
+            <Route path="games" element={<AdminGamesPage />} />
+            <Route path="accounts" element={<AdminAccountsPage />} />
+            <Route path="members" element={<AdminMembersPage />} />
+          </Route>
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

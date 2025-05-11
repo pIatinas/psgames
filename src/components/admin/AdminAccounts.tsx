@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -106,16 +105,14 @@ const AdminAccounts: React.FC = () => {
     setAccounts(accounts.filter(account => account.id !== id));
   };
 
-  // Return null if not authenticated or loading
+  // Return null if not authenticated
   if (!currentUser) {
     return null;
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">Gerenciar Contas</h2>
-        
+      <div className="flex justify-end mb-6">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>

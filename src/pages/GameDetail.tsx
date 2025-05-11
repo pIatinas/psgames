@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -7,7 +6,7 @@ import SectionTitle from '@/components/SectionTitle';
 import { games, accounts } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, ArrowLeft, Trophy, Check, X } from 'lucide-react';
+import { Calendar, ArrowLeft, Trophy, Check, X, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchGameInfo } from '@/services/gameInfoService';
 import { Account } from '@/types';
@@ -250,7 +249,7 @@ const GameDetail = () => {
   );
 };
 
-// Simple account card component for game detail page
+// Updated account card component to show member names
 const AccountCard = ({ account }: { account: Account }) => {
   return (
     <div className="border rounded-lg p-4">
@@ -264,18 +263,32 @@ const AccountCard = ({ account }: { account: Account }) => {
       </div>
       
       <div className="grid grid-cols-2 gap-2 mt-4">
-        <div className={`p-2 rounded text-center ${!account.slot1 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+        <div className={`p-3 rounded text-center ${!account.slot1 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
           <div className="text-xs">Slot 1</div>
-          <div className="flex justify-center mt-1">
-            {!account.slot1 ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-          </div>
+          {account.slot1 ? (
+            <div className="flex items-center justify-center mt-1 flex-col">
+              <User className="h-4 w-4" />
+              <span className="text-xs mt-1">{account.slot1.member.name}</span>
+            </div>
+          ) : (
+            <div className="flex justify-center mt-1">
+              <Check className="h-4 w-4" />
+            </div>
+          )}
         </div>
         
-        <div className={`p-2 rounded text-center ${!account.slot2 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+        <div className={`p-3 rounded text-center ${!account.slot2 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
           <div className="text-xs">Slot 2</div>
-          <div className="flex justify-center mt-1">
-            {!account.slot2 ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-          </div>
+          {account.slot2 ? (
+            <div className="flex items-center justify-center mt-1 flex-col">
+              <User className="h-4 w-4" />
+              <span className="text-xs mt-1">{account.slot2.member.name}</span>
+            </div>
+          ) : (
+            <div className="flex justify-center mt-1">
+              <Check className="h-4 w-4" />
+            </div>
+          )}
         </div>
       </div>
       

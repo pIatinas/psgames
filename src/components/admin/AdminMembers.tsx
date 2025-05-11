@@ -1,21 +1,17 @@
 
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import { 
   Dialog, DialogContent, DialogDescription, 
   DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/hooks/useAuth';
 import { useMemberManagement } from '@/hooks/useMemberManagement';
 import MembersList from './members/MembersList';
 import MemberForm from './members/MemberForm';
 
 const AdminMembers: React.FC = () => {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const {
     members,
@@ -34,35 +30,9 @@ const AdminMembers: React.FC = () => {
     handleDeleteMember,
   } = useMemberManagement();
 
-  // Redirect if not admin
-  useEffect(() => {
-    if (currentUser && currentUser.role !== 'admin') {
-      toast({
-        title: "Acesso Negado",
-        description: "Você não tem permissão para acessar esta área.",
-        variant: "destructive",
-      });
-      navigate('/');
-    } else if (!currentUser) {
-      toast({
-        title: "Login Necessário",
-        description: "Faça login para acessar esta área.",
-        variant: "destructive",
-      });
-      navigate('/login');
-    }
-  }, [currentUser, navigate, toast]);
-
-  // Return null if not authenticated or loading
-  if (!currentUser) {
-    return null;
-  }
-
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Gerenciar Membros</h2>
-        
+      <div className="flex justify-end mb-6">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
