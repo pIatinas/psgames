@@ -24,7 +24,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
   try {
     // First check for role in profiles
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
+      .from('profiles' as any)
       .select('role')
       .eq('id', userId)
       .maybeSingle();
@@ -36,7 +36,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
 
     // Then get member data
     const { data: memberData, error: memberError } = await supabase
-      .from('members')
+      .from('members' as any)
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
@@ -56,15 +56,16 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
 
     // Add member data if available
     if (memberData) {
+      const typedMemberData = memberData as unknown as MemberData;
       user.member = {
-        id: memberData.id,
-        name: memberData.name,
-        email: memberData.email,
-        psn_id: memberData.psn_id,
+        id: typedMemberData.id,
+        name: typedMemberData.name,
+        email: typedMemberData.email,
+        psn_id: typedMemberData.psn_id,
         password: '', // Secure placeholder as we don't store or display passwords
-        profile_image: memberData.profile_image || '',
-        created_at: new Date(memberData.created_at),
-        isApproved: memberData.is_approved,
+        profile_image: typedMemberData.profile_image || '',
+        created_at: new Date(typedMemberData.created_at),
+        isApproved: typedMemberData.is_approved,
         payments: [] // We'd fetch payments separately if needed
       };
     }
@@ -83,9 +84,8 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
       return false;
     }
     
-    // Using type assertion to fix TypeScript errors
     const { error } = await supabase
-      .from('members')
+      .from('members' as any)
       .update({
         name: user.name,
         email: user.email,
@@ -114,9 +114,8 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
 // Set user as admin
 export const setUserAsAdmin = async (userId: string): Promise<void> => {
   try {
-    // Using type assertion to fix TypeScript errors
     const { error } = await supabase
-      .from('profiles')
+      .from('profiles' as any)
       .update({ role: 'admin' } as any)
       .eq('id', userId);
       

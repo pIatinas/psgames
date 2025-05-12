@@ -63,7 +63,7 @@ const Login = () => {
         // Set role to admin with type assertion for TypeScript
         try {
           await supabase
-            .from('profiles')
+            .from('profiles' as any)
             .update({ role: 'admin' } as any)
             .eq('id', data.user.id);
             

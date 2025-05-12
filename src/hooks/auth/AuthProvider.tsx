@@ -81,9 +81,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         // If direct login fails, check if it's a PSN ID instead
-        // Using type assertion to avoid TypeScript errors
+        type MemberRecord = {
+          user_id: string;
+          email: string;
+        };
+
         const { data: members, error: memberError } = await supabase
-          .from('members')
+          .from('members' as any)
           .select('user_id, email')
           .eq('psn_id', emailOrPsn)
           .maybeSingle();
@@ -98,8 +102,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         // If we found a member by PSN ID, try to login with their email
+        const typedMember = members as unknown as MemberRecord;
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email: members.email as string,  // Type assertion for TypeScript
+          email: typedMember.email,
           password: password
         });
 
