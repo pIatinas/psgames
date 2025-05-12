@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from "react-hook-form";
@@ -9,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from '@/hooks/auth';
+import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,16 +24,9 @@ const createAdminUser = async () => {
   
   try {
     // Check if user already exists
-    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+    const { data: { user } } = await supabase.auth.admin.getUserByEmail(adminEmail);
     
-    // If we can't check users, try to create anyway
-    if (usersError) {
-      console.error('Error checking existing users:', usersError);
-    }
-    
-    const adminExists = users?.users?.some(user => user.email === adminEmail);
-    
-    if (!adminExists) {
+    if (!user) {
       // Create the admin user
       const { data, error } = await supabase.auth.signUp({
         email: adminEmail,
