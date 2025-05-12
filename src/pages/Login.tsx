@@ -27,7 +27,7 @@ const Login = () => {
   // Function to create admin user - moved inside component
   const createAdminUser = async () => {
     const adminEmail = 'wallace_erick@hotmail.com';
-    const adminPassword = '123mudar';
+    const adminPassword = 'password123'; // Updated password
     
     try {
       // We'll check if the admin user exists by attempting to sign in

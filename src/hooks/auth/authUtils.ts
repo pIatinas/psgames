@@ -51,7 +51,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
       id: userId,
       name: memberData?.name || 'User',
       email: memberData?.email || '',
-      role: profileData?.role || 'member'
+      role: (profileData && profileData.role) ? profileData.role : 'member'
     };
 
     // Add member data if available
