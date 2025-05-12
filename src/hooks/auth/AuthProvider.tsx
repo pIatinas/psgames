@@ -4,15 +4,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
-
-interface AuthContextType {
-  currentUser: User | null;
-  isLoading: boolean;
-  login: (emailOrPsn: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  updateCurrentUser?: (updatedUser: User) => void;
-  session: Session | null;
-}
+import { AuthContextType } from './authTypes';
+import { fetchUserProfile, setUserAsAdmin, updateUserProfile } from './authUtils';
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
@@ -34,7 +27,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (event, currentSession) => {
         setSession(currentSession);
         if (currentSession?.user) {
-          fetchUserProfile(currentSession.user.id);
+          // Defer the fetch to avoid auth deadlock
+          setTimeout(() => {
+            fetchUserProfile(currentSession.user.id).then(user => {
+              setCurrentUser(user);
+            });
+          }, 0);
         } else {
           setCurrentUser(null);
         }
@@ -47,7 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(initialSession);
       
       if (initialSession?.user) {
-        fetchUserProfile(initialSession.user.id);
+        const user = await fetchUserProfile(initialSession.user.id);
+        setCurrentUser(user);
       }
       
       setIsLoading(false);
@@ -61,80 +60,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      // First check for admin role in profiles
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') throw profileError;
-
-      // Then get member data
-      const { data: memberData, error: memberError } = await supabase
-        .from('members')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (memberError && memberError.code !== 'PGRST116') throw memberError;
-
-      // Construct user object
-      const user: User = {
-        id: userId,
-        name: memberData?.name || 'User',
-        email: memberData?.email || '',
-        role: profileData?.role || 'member'
-      };
-
-      // Add member data if available
-      if (memberData) {
-        user.member = {
-          id: memberData.id,
-          name: memberData.name,
-          email: memberData.email,
-          psn_id: memberData.psn_id,
-          password: '', // Secure placeholder as we don't store or display passwords
-          profile_image: memberData.profile_image || '',
-          created_at: new Date(memberData.created_at),
-          isApproved: memberData.is_approved,
-          payments: [] // We'd fetch payments separately if needed
-        };
-      }
-
-      setCurrentUser(user);
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      setCurrentUser(null);
-    }
-  };
-
   const updateCurrentUser = (updatedUser: User) => {
     setCurrentUser(updatedUser);
     
     // Update the member record in Supabase if member data exists
     if (updatedUser.member && session?.user) {
-      supabase
-        .from('members')
-        .update({
-          name: updatedUser.name,
-          email: updatedUser.email,
-          psn_id: updatedUser.member.psn_id,
-          profile_image: updatedUser.member.profile_image
-        })
-        .eq('user_id', session.user.id)
-        .then(({ error }) => {
-          if (error) {
-            console.error('Failed to update profile:', error);
-            toast({
-              title: "Erro ao atualizar perfil",
-              description: "Não foi possível salvar suas alterações.",
-              variant: "destructive",
-            });
-          }
-        });
+      updateUserProfile(updatedUser, session.user.id);
     }
   };
 
@@ -154,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('members')
           .select('user_id, email')
           .eq('psn_id', emailOrPsn)
-          .single();
+          .maybeSingle();
 
         if (memberError || !members) {
           toast({
@@ -162,7 +93,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             description: "Credenciais inválidas.",
             variant: "destructive",
           });
-          setIsLoading(false);
           return false;
         }
 
@@ -178,16 +108,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             description: "Senha incorreta.",
             variant: "destructive",
           });
-          setIsLoading(false);
           return false;
         }
 
         // Special case for admin login
-        if (emailOrPsn === 'wallace_erick@hotmail.com') {
-          await supabase
-            .from('profiles')
-            .update({ role: 'admin' })
-            .eq('id', authData.user.id);
+        if (emailOrPsn === 'wallace_erick@hotmail.com' && authData.user) {
+          await setUserAsAdmin(authData.user.id);
         }
 
         setSession(authData.session);
@@ -208,10 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Special case for admin login
       if (emailOrPsn === 'wallace_erick@hotmail.com' && data.user) {
-        await supabase
-          .from('profiles')
-          .update({ role: 'admin' })
-          .eq('id', data.user.id);
+        await setUserAsAdmin(data.user.id);
       }
 
       return true;

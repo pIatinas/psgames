@@ -17,7 +17,7 @@ import AdminGamesPage from './pages/admin/AdminGamesPage';
 import AdminAccountsPage from './pages/admin/AdminAccountsPage';
 import AdminMembersPage from './pages/admin/AdminMembersPage';
 import NotFound from './pages/NotFound';
-import { AuthProvider } from './hooks/useAuth';
+import { AuthProvider } from './hooks/auth';
 import { Toaster } from "@/components/ui/toaster";
 import ScrollToTop from './components/ScrollToTop';
 
