@@ -28,7 +28,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
       .from('profiles')
       .select('role')
       .eq('id', userId)
-      .maybeSingle();
+      .maybeSingle() as { data: ProfileData | null, error: any };
 
     if (profileError && profileError.code !== 'PGRST116') {
       console.error("Error fetching profile:", profileError);
@@ -40,11 +40,19 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
       .from('members')
       .select('*')
       .eq('user_id', userId)
-      .maybeSingle();
+      .maybeSingle() as { data: MemberData | null, error: any };
 
     if (memberError && memberError.code !== 'PGRST116') {
       console.error("Error fetching member:", memberError);
       return null;
+    }
+
+    // Determine the role with proper type checking
+    let userRole: 'member' | 'admin' = 'member'; // Default role
+    
+    if (profileData && profileData.role) {
+      // Ensure role is one of the valid types
+      userRole = profileData.role === 'admin' ? 'admin' : 'member';
     }
 
     // Construct user object with null checks
@@ -52,7 +60,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
       id: userId,
       name: memberData?.name || 'User',
       email: memberData?.email || '',
-      role: (profileData && 'role' in profileData && profileData.role) ? profileData.role : 'member'
+      role: userRole
     };
 
     // Add member data if available
@@ -94,7 +102,7 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
     const { error } = await supabase
       .from('members')
       .update(updateData)
-      .eq('user_id', sessionUserId);
+      .eq('user_id', sessionUserId) as { error: any };
 
     if (error) {
       console.error('Failed to update profile:', error);
@@ -116,12 +124,12 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
 // Set user as admin
 export const setUserAsAdmin = async (userId: string): Promise<void> => {
   try {
-    const roleData = { role: 'admin' };
+    const roleData = { role: 'admin' as const };
     
     const { error } = await supabase
       .from('profiles')
       .update(roleData)
-      .eq('id', userId);
+      .eq('id', userId) as { error: any };
       
     if (error) {
       console.error("Error setting user as admin:", error);
