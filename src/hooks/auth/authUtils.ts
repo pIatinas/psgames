@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
 import { toast } from '@/components/ui/use-toast';
+import { Database } from '@/integrations/supabase/types';
 
 // Define types for Supabase database tables
 interface ProfileData {
@@ -24,7 +25,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
   try {
     // First check for role in profiles
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles' as never)
+      .from('profiles')
       .select('role')
       .eq('id', userId)
       .maybeSingle();
@@ -36,7 +37,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
 
     // Then get member data
     const { data: memberData, error: memberError } = await supabase
-      .from('members' as never)
+      .from('members')
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
@@ -51,21 +52,20 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
       id: userId,
       name: memberData?.name || 'User',
       email: memberData?.email || '',
-      role: (profileData && profileData.role) ? profileData.role : 'member'
+      role: (profileData && 'role' in profileData && profileData.role) ? profileData.role : 'member'
     };
 
     // Add member data if available
     if (memberData) {
-      const typedMemberData = memberData as unknown as MemberData;
       user.member = {
-        id: typedMemberData.id,
-        name: typedMemberData.name,
-        email: typedMemberData.email,
-        psn_id: typedMemberData.psn_id,
+        id: memberData.id,
+        name: memberData.name,
+        email: memberData.email,
+        psn_id: memberData.psn_id,
         password: '', // Secure placeholder as we don't store or display passwords
-        profile_image: typedMemberData.profile_image || '',
-        created_at: new Date(typedMemberData.created_at),
-        isApproved: typedMemberData.is_approved,
+        profile_image: memberData.profile_image || '',
+        created_at: new Date(memberData.created_at),
+        isApproved: memberData.is_approved,
         payments: [] // We'd fetch payments separately if needed
       };
     }
@@ -92,8 +92,8 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
     };
     
     const { error } = await supabase
-      .from('members' as never)
-      .update(updateData as never)
+      .from('members')
+      .update(updateData)
       .eq('user_id', sessionUserId);
 
     if (error) {
@@ -119,8 +119,8 @@ export const setUserAsAdmin = async (userId: string): Promise<void> => {
     const roleData = { role: 'admin' };
     
     const { error } = await supabase
-      .from('profiles' as never)
-      .update(roleData as never)
+      .from('profiles')
+      .update(roleData)
       .eq('id', userId);
       
     if (error) {

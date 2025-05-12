@@ -59,19 +59,7 @@ const Login = () => {
       if (error) throw error;
       
       if (data.user) {
-        // Set role to admin with type assertion for TypeScript
-        try {
-          const roleData = { role: 'admin' };
-          
-          await supabase
-            .from('profiles' as never)
-            .update(roleData as never)
-            .eq('id', data.user.id);
-            
-          console.log('Admin user created successfully');
-        } catch (e) {
-          console.error('Error setting admin role:', e);
-        }
+        console.log('Admin user created successfully');
       }
     } catch (error) {
       console.error('Error creating admin user:', error);
