@@ -24,7 +24,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
   try {
     // First check for role in profiles
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles' as any)
+      .from('profiles' as never)
       .select('role')
       .eq('id', userId)
       .maybeSingle();
@@ -36,7 +36,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
 
     // Then get member data
     const { data: memberData, error: memberError } = await supabase
-      .from('members' as any)
+      .from('members' as never)
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
@@ -46,7 +46,7 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
       return null;
     }
 
-    // Construct user object
+    // Construct user object with null checks
     const user: User = {
       id: userId,
       name: memberData?.name || 'User',
@@ -84,14 +84,16 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
       return false;
     }
     
+    const updateData = {
+      name: user.name,
+      email: user.email,
+      psn_id: user.member.psn_id,
+      profile_image: user.member.profile_image
+    };
+    
     const { error } = await supabase
-      .from('members' as any)
-      .update({
-        name: user.name,
-        email: user.email,
-        psn_id: user.member.psn_id,
-        profile_image: user.member.profile_image
-      } as any)
+      .from('members' as never)
+      .update(updateData as never)
       .eq('user_id', sessionUserId);
 
     if (error) {
@@ -114,9 +116,11 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
 // Set user as admin
 export const setUserAsAdmin = async (userId: string): Promise<void> => {
   try {
+    const roleData = { role: 'admin' };
+    
     const { error } = await supabase
-      .from('profiles' as any)
-      .update({ role: 'admin' } as any)
+      .from('profiles' as never)
+      .update(roleData as never)
       .eq('id', userId);
       
     if (error) {

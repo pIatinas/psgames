@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from "react-hook-form";
@@ -62,9 +61,11 @@ const Login = () => {
       if (data.user) {
         // Set role to admin with type assertion for TypeScript
         try {
+          const roleData = { role: 'admin' };
+          
           await supabase
-            .from('profiles' as any)
-            .update({ role: 'admin' } as any)
+            .from('profiles' as never)
+            .update(roleData as never)
             .eq('id', data.user.id);
             
           console.log('Admin user created successfully');

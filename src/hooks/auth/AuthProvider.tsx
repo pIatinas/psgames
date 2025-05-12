@@ -81,13 +81,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         // If direct login fails, check if it's a PSN ID instead
-        type MemberRecord = {
+        interface MemberRecord {
           user_id: string;
           email: string;
-        };
+        }
 
         const { data: members, error: memberError } = await supabase
-          .from('members' as any)
+          .from('members' as never)
           .select('user_id, email')
           .eq('psn_id', emailOrPsn)
           .maybeSingle();
