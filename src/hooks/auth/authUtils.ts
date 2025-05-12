@@ -3,6 +3,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
 import { toast } from '@/components/ui/use-toast';
 
+// Define types for Supabase database tables
+interface ProfileData {
+  role?: string;
+}
+
+interface MemberData {
+  id: string;
+  name: string;
+  email: string;
+  psn_id: string;
+  profile_image?: string;
+  created_at: string;
+  is_approved: boolean;
+}
+
 // Fetch user profile from Supabase
 export const fetchUserProfile = async (userId: string): Promise<User | null> => {
   try {
@@ -97,10 +112,14 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
 // Set user as admin
 export const setUserAsAdmin = async (userId: string): Promise<void> => {
   try {
-    await supabase
+    const { error } = await supabase
       .from('profiles')
       .update({ role: 'admin' })
       .eq('id', userId);
+      
+    if (error) {
+      console.error("Error setting user as admin:", error);
+    }
   } catch (error) {
     console.error("Error setting user as admin:", error);
   }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from "react-hook-form";
@@ -17,62 +18,69 @@ const formSchema = z.object({
   password: z.string().min(1, { message: "Campo obrigatório" }),
 });
 
-// Function to create admin user
-const createAdminUser = async () => {
-  const adminEmail = 'wallace_erick@hotmail.com';
-  const adminPassword = '123mudar';
-  
-  try {
-    // Check if user already exists
-    const { data: { user } } = await supabase.auth.admin.getUserByEmail(adminEmail);
-    
-    if (!user) {
-      // Create the admin user
-      const { data, error } = await supabase.auth.signUp({
-        email: adminEmail,
-        password: adminPassword,
-        options: {
-          data: {
-            name: 'Wallace',
-            psn_id: 'admin_wallace'
-          }
-        }
-      });
-      
-      if (error) throw error;
-      
-      if (data.user) {
-        // Set role to admin
-        try {
-          await supabase
-            .from('profiles')
-            .update({ role: 'admin' })
-            .eq('id', data.user.id);
-            
-          console.log('Admin user created successfully');
-        } catch (e) {
-          console.error('Error setting admin role:', e);
-        }
-      }
-    } else {
-      console.log('Admin user already exists');
-    }
-  } catch (error) {
-    console.error('Error creating admin user:', error);
-  }
-};
-
-// Try to create admin user on component mount
-useEffect(() => {
-  createAdminUser();
-}, []);
-
 const Login = () => {
   const { login, currentUser, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Function to create admin user - moved inside component
+  const createAdminUser = async () => {
+    const adminEmail = 'wallace_erick@hotmail.com';
+    const adminPassword = '123mudar';
+    
+    try {
+      // Check if user already exists - using listUsers instead of getUserByEmail
+      const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+      
+      if (usersError) {
+        console.error('Error checking existing users:', usersError);
+        return;
+      }
+      
+      const adminExists = users?.users?.some(user => user.email === adminEmail);
+      
+      if (!adminExists) {
+        // Create the admin user
+        const { data, error } = await supabase.auth.signUp({
+          email: adminEmail,
+          password: adminPassword,
+          options: {
+            data: {
+              name: 'Wallace',
+              psn_id: 'admin_wallace'
+            }
+          }
+        });
+        
+        if (error) throw error;
+        
+        if (data.user) {
+          // Set role to admin - will fix this in authUtils
+          try {
+            await supabase
+              .from('profiles')
+              .update({ role: 'admin' })
+              .eq('id', data.user.id);
+              
+            console.log('Admin user created successfully');
+          } catch (e) {
+            console.error('Error setting admin role:', e);
+          }
+        }
+      } else {
+        console.log('Admin user already exists');
+      }
+    } catch (error) {
+      console.error('Error creating admin user:', error);
+    }
+  };
+  
+  // Try to create admin user on component mount
+  useEffect(() => {
+    createAdminUser();
+  }, []);
   
   // Redirect if already logged in
   useEffect(() => {
