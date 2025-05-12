@@ -31,46 +31,46 @@ const Login = () => {
     const adminPassword = '123mudar';
     
     try {
-      // Check if user already exists - using listUsers instead of getUserByEmail
-      const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+      // We'll check if the admin user exists by attempting to sign in
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: adminEmail,
+        password: adminPassword
+      });
       
-      if (usersError) {
-        console.error('Error checking existing users:', usersError);
+      // If sign in works, the user exists
+      if (!signInError) {
+        console.log('Admin user already exists');
+        // Sign out immediately
+        await supabase.auth.signOut();
         return;
       }
       
-      const adminExists = users?.users?.some(user => user.email === adminEmail);
-      
-      if (!adminExists) {
-        // Create the admin user
-        const { data, error } = await supabase.auth.signUp({
-          email: adminEmail,
-          password: adminPassword,
-          options: {
-            data: {
-              name: 'Wallace',
-              psn_id: 'admin_wallace'
-            }
-          }
-        });
-        
-        if (error) throw error;
-        
-        if (data.user) {
-          // Set role to admin - will fix this in authUtils
-          try {
-            await supabase
-              .from('profiles')
-              .update({ role: 'admin' })
-              .eq('id', data.user.id);
-              
-            console.log('Admin user created successfully');
-          } catch (e) {
-            console.error('Error setting admin role:', e);
+      // Create the admin user if sign in failed
+      const { data, error } = await supabase.auth.signUp({
+        email: adminEmail,
+        password: adminPassword,
+        options: {
+          data: {
+            name: 'Wallace',
+            psn_id: 'admin_wallace'
           }
         }
-      } else {
-        console.log('Admin user already exists');
+      });
+      
+      if (error) throw error;
+      
+      if (data.user) {
+        // Set role to admin with type assertion for TypeScript
+        try {
+          await supabase
+            .from('profiles')
+            .update({ role: 'admin' } as any)
+            .eq('id', data.user.id);
+            
+          console.log('Admin user created successfully');
+        } catch (e) {
+          console.error('Error setting admin role:', e);
+        }
       }
     } catch (error) {
       console.error('Error creating admin user:', error);

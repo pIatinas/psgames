@@ -16,6 +16,7 @@ interface MemberData {
   profile_image?: string;
   created_at: string;
   is_approved: boolean;
+  user_id: string;
 }
 
 // Fetch user profile from Supabase
@@ -82,6 +83,7 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
       return false;
     }
     
+    // Using type assertion to fix TypeScript errors
     const { error } = await supabase
       .from('members')
       .update({
@@ -89,7 +91,7 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
         email: user.email,
         psn_id: user.member.psn_id,
         profile_image: user.member.profile_image
-      })
+      } as any)
       .eq('user_id', sessionUserId);
 
     if (error) {
@@ -112,9 +114,10 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
 // Set user as admin
 export const setUserAsAdmin = async (userId: string): Promise<void> => {
   try {
+    // Using type assertion to fix TypeScript errors
     const { error } = await supabase
       .from('profiles')
-      .update({ role: 'admin' })
+      .update({ role: 'admin' } as any)
       .eq('id', userId);
       
     if (error) {
