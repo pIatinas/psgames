@@ -4,17 +4,61 @@ export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA" | "VR";
 export interface Game {
   id: string;
   name: string;
-  image: string;
-  banner: string;
-  platform: GamePlatform[];
-  created_at: Date;
-  referenceLink?: string;
+  image?: string;
+  banner?: string;
+  platform: string[];
   description?: string;
-  releaseDate?: string;
   developer?: string;
   genre?: string;
+  release_date?: string;
+  rawg_id?: number;
+  created_at: string;
+  updated_at: string;
 }
 
+export interface Account {
+  id: string;
+  email: string;
+  password: string;
+  birthday?: string;
+  security_answer?: string;
+  codes?: string;
+  qr_code?: string;
+  created_at: string;
+  updated_at: string;
+  games?: Game[];
+  slots?: AccountSlot[];
+}
+
+export interface AccountSlot {
+  id: string;
+  account_id: string;
+  slot_number: number;
+  user_id?: string;
+  entered_at?: string;
+  created_at: string;
+  user?: User;
+}
+
+export interface Profile {
+  id: string;
+  name?: string;
+  avatar_url?: string;
+  role: 'admin' | 'member';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'member';
+  profile?: Profile;
+  accounts?: Account[];
+}
+
+// Legacy interfaces for backward compatibility
 export interface Member {
   id: string;
   name: string;
@@ -40,25 +84,4 @@ export interface Payment {
 export interface SlotOccupation {
   member: Member;
   entered_at: Date;
-}
-
-export interface Account {
-  id: string;
-  email: string;
-  password: string;
-  code?: string;
-  created_at: Date;
-  qrcode?: string;
-  image?: string;
-  games?: Game[];
-  slot1?: SlotOccupation;
-  slot2?: SlotOccupation;
-}
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'member';
-  member?: Member;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -12,34 +12,37 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Edit, Plus, Trash } from 'lucide-react';
-import { Game, GamePlatform, Account } from '@/types';
-import { games as gamesData, accounts as accountsData } from '@/data/mockData';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import { Edit, Plus, Trash, Search } from 'lucide-react';
+import { Game, GamePlatform } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { enrichGameWithExternalInfo } from '@/services/gameInfoService';
+import { gameService, rawgService } from '@/services/supabaseService';
 
 const AdminGames: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [games, setGames] = useState<Game[]>(gamesData);
-  const [accounts, setAccounts] = useState<Account[]>(accountsData);
+  const [games, setGames] = useState<Game[]>([]);
   const [newGame, setNewGame] = useState<Partial<Game>>({
     name: '',
     image: '',
     banner: '',
     platform: [],
-    referenceLink: ''
+    description: '',
+    developer: '',
+    genre: '',
+    release_date: ''
   });
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [rawgResults, setRawgResults] = useState<any[]>([]);
+  const [showRawgSearch, setShowRawgSearch] = useState(false);
 
-  // Redirect if not admin
-  React.useEffect(() => {
+  // Load games and check authentication
+  useEffect(() => {
     if (currentUser && currentUser.role !== 'admin') {
       toast({
         title: "Acesso Negado",
@@ -54,8 +57,67 @@ const AdminGames: React.FC = () => {
         variant: "destructive",
       });
       navigate('/login');
+    } else {
+      loadGames();
     }
   }, [currentUser, navigate, toast]);
+
+  const loadGames = async () => {
+    try {
+      setLoading(true);
+      const data = await gameService.getAll();
+      setGames(data);
+    } catch (error) {
+      console.error('Error loading games:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar jogos.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const searchRawgGames = async () => {
+    if (!searchQuery.trim()) return;
+    
+    try {
+      const results = await rawgService.searchGame(searchQuery);
+      setRawgResults(results);
+      setShowRawgSearch(true);
+    } catch (error) {
+      console.error('Error searching RAWG:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao buscar jogos na API RAWG.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fillFromRawg = (rawgGame: any) => {
+    setNewGame({
+      name: rawgGame.name,
+      image: rawgGame.background_image,
+      banner: rawgGame.background_image,
+      platform: rawgGame.platforms?.map((p: any) => {
+        const platformName = p.platform.name;
+        if (platformName.includes('PlayStation 5')) return 'PS5';
+        if (platformName.includes('PlayStation 4')) return 'PS4';
+        if (platformName.includes('PlayStation 3')) return 'PS3';
+        if (platformName.includes('PS Vita')) return 'VITA';
+        if (platformName.includes('PlayStation VR')) return 'VR';
+        return platformName;
+      }).filter((p: string) => ['PS5', 'PS4', 'PS3', 'VITA', 'VR'].includes(p)) || [],
+      description: rawgGame.description_raw || '',
+      developer: rawgGame.developers?.[0]?.name || '',
+      genre: rawgGame.genres?.map((g: any) => g.name).join(', ') || '',
+      release_date: rawgGame.released || '',
+      rawg_id: rawgGame.id
+    });
+    setShowRawgSearch(false);
+  };
 
   const platformOptions: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA", "VR"];
 
@@ -74,54 +136,24 @@ const AdminGames: React.FC = () => {
     }
   };
 
-  const handleAccountToggle = (accountId: string) => {
-    if (selectedAccounts.includes(accountId)) {
-      setSelectedAccounts(selectedAccounts.filter(id => id !== accountId));
-    } else {
-      setSelectedAccounts([...selectedAccounts, accountId]);
-    }
-  };
-
   const handleSaveGame = async () => {
+    if (!newGame.name) {
+      toast({
+        title: "Erro",
+        description: "Nome do jogo é obrigatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Enriquecer o jogo com informações externas
-      const enrichedGame = await enrichGameWithExternalInfo(newGame);
-      
       if (isEditing && newGame.id) {
         // Update existing game
-        const updatedGame = {
-          ...games.find(game => game.id === newGame.id),
-          ...enrichedGame
-        } as Game;
-
-        // Link game to selected accounts
-        const updatedAccounts = accounts.map(account => {
-          if (selectedAccounts.includes(account.id)) {
-            // Add game to account if not already there
-            const existingGames = account.games || [];
-            if (!existingGames.find(g => g.id === updatedGame.id)) {
-              return {
-                ...account,
-                games: [...existingGames, updatedGame]
-              };
-            }
-          } else {
-            // Remove game from account if previously linked
-            if (account.games?.some(g => g.id === updatedGame.id)) {
-              return {
-                ...account,
-                games: account.games.filter(g => g.id !== updatedGame.id)
-              };
-            }
-          }
-          return account;
-        });
-
+        const updatedGame = await gameService.update(newGame.id, newGame);
         setGames(games.map(game => 
           game.id === newGame.id ? updatedGame : game
         ));
-        setAccounts(updatedAccounts);
         
         toast({
           title: "Jogo atualizado",
@@ -129,29 +161,12 @@ const AdminGames: React.FC = () => {
         });
       } else {
         // Add new game
-        const gameToAdd = {
-          ...enrichedGame,
-          id: `game-${Date.now()}`,
-          created_at: new Date(),
-        } as Game;
-
-        // Link game to selected accounts
-        const updatedAccounts = accounts.map(account => {
-          if (selectedAccounts.includes(account.id)) {
-            return {
-              ...account,
-              games: [...(account.games || []), gameToAdd]
-            };
-          }
-          return account;
-        });
-
+        const gameToAdd = await gameService.create(newGame);
         setGames([...games, gameToAdd]);
-        setAccounts(updatedAccounts);
         
         toast({
           title: "Jogo adicionado",
-          description: "O jogo foi adicionado com sucesso e informações externas foram buscadas.",
+          description: "O jogo foi adicionado com sucesso.",
         });
       }
     } catch (error) {
@@ -165,8 +180,16 @@ const AdminGames: React.FC = () => {
       setLoading(false);
       
       // Reset form
-      setNewGame({ name: '', image: '', banner: '', platform: [], referenceLink: '' });
-      setSelectedAccounts([]);
+      setNewGame({ 
+        name: '', 
+        image: '', 
+        banner: '', 
+        platform: [], 
+        description: '',
+        developer: '',
+        genre: '',
+        release_date: ''
+      });
       setIsEditing(false);
       setOpen(false);
     }
@@ -174,45 +197,50 @@ const AdminGames: React.FC = () => {
 
   const handleEditGame = (game: Game) => {
     setNewGame(game);
-    // Set selected accounts for this game
-    setSelectedAccounts(
-      accounts
-        .filter(account => account.games?.some(g => g.id === game.id))
-        .map(account => account.id)
-    );
     setIsEditing(true);
     setOpen(true);
   };
 
-  const handleDeleteGame = (id: string) => {
-    // Remove game from all accounts
-    const updatedAccounts = accounts.map(account => {
-      if (account.games?.some(g => g.id === id)) {
-        return {
-          ...account,
-          games: account.games.filter(g => g.id !== id)
-        };
-      }
-      return account;
-    });
-
-    setGames(games.filter(game => game.id !== id));
-    setAccounts(updatedAccounts);
-    
-    toast({
-      title: "Jogo excluído",
-      description: "O jogo foi excluído com sucesso.",
-    });
+  const handleDeleteGame = async (id: string) => {
+    try {
+      await gameService.delete(id);
+      setGames(games.filter(game => game.id !== id));
+      
+      toast({
+        title: "Jogo excluído",
+        description: "O jogo foi excluído com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao excluir jogo:", error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao excluir o jogo.",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Return null if not authenticated or loading
+  // Return null if not authenticated
   if (!currentUser) {
     return null;
   }
 
   return (
     <div>
-      <div className="flex justify-end mb-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Buscar jogos na API RAWG..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-64"
+          />
+          <Button onClick={searchRawgGames} variant="outline">
+            <Search className="h-4 w-4 mr-2" />
+            Buscar
+          </Button>
+        </div>
+        
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -220,58 +248,111 @@ const AdminGames: React.FC = () => {
               Novo Jogo
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="text-white">{isEditing ? 'Editar Jogo' : 'Adicionar Novo Jogo'}</DialogTitle>
-              <DialogDescription className="text-white">
+              <DialogTitle>{isEditing ? 'Editar Jogo' : 'Adicionar Novo Jogo'}</DialogTitle>
+              <DialogDescription>
                 Preencha os detalhes do jogo abaixo.
               </DialogDescription>
             </DialogHeader>
             
+            {showRawgSearch && (
+              <div className="mb-4">
+                <h4 className="font-semibold mb-2">Resultados da busca RAWG:</h4>
+                <div className="max-h-40 overflow-y-auto space-y-2">
+                  {rawgResults.map((game, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 border rounded">
+                      <div>
+                        <p className="font-medium">{game.name}</p>
+                        <p className="text-sm text-muted-foreground">{game.released}</p>
+                      </div>
+                      <Button size="sm" onClick={() => fillFromRawg(game)}>
+                        Usar este jogo
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowRawgSearch(false)}
+                  className="mt-2"
+                >
+                  Fechar resultados
+                </Button>
+              </div>
+            )}
+            
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name" className="text-white">Nome</Label>
+                <Label htmlFor="name">Nome *</Label>
                 <Input 
                   id="name" 
-                  value={newGame.name} 
+                  value={newGame.name || ''} 
                   onChange={(e) => setNewGame({...newGame, name: e.target.value})}
-                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="image" className="text-white">URL da Imagem</Label>
+                <Label htmlFor="image">URL da Imagem</Label>
                 <Input 
                   id="image" 
-                  value={newGame.image} 
+                  value={newGame.image || ''} 
                   onChange={(e) => setNewGame({...newGame, image: e.target.value})}
-                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="banner" className="text-white">URL do Banner</Label>
+                <Label htmlFor="banner">URL do Banner</Label>
                 <Input 
                   id="banner" 
-                  value={newGame.banner} 
+                  value={newGame.banner || ''} 
                   onChange={(e) => setNewGame({...newGame, banner: e.target.value})}
-                  className="text-white"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="referenceLink" className="text-white">Link de Referência</Label>
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea 
+                  id="description" 
+                  value={newGame.description || ''} 
+                  onChange={(e) => setNewGame({...newGame, description: e.target.value})}
+                  rows={3}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="developer">Desenvolvedor</Label>
+                  <Input 
+                    id="developer" 
+                    value={newGame.developer || ''} 
+                    onChange={(e) => setNewGame({...newGame, developer: e.target.value})}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="genre">Gênero</Label>
+                  <Input 
+                    id="genre" 
+                    value={newGame.genre || ''} 
+                    onChange={(e) => setNewGame({...newGame, genre: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="release_date">Data de Lançamento</Label>
                 <Input 
-                  id="referenceLink" 
-                  value={newGame.referenceLink || ''} 
-                  onChange={(e) => setNewGame({...newGame, referenceLink: e.target.value})}
-                  className="text-white"
-                  placeholder="https://www.psnprofiles.com/game/xxxx"
+                  id="release_date" 
+                  type="date"
+                  value={newGame.release_date || ''} 
+                  onChange={(e) => setNewGame({...newGame, release_date: e.target.value})}
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label className="text-white">Plataformas</Label>
+                <Label>Plataformas</Label>
                 <div className="flex flex-wrap gap-2">
                   {platformOptions.map(platform => (
                     <Button
@@ -286,37 +367,28 @@ const AdminGames: React.FC = () => {
                   ))}
                 </div>
               </div>
-              
-              <div className="grid gap-2">
-                <Label className="text-white">Contas Vinculadas</Label>
-                <div className="max-h-48 overflow-y-auto border rounded-md p-2">
-                  {accounts.map(account => (
-                    <div key={account.id} className="flex items-center space-x-2 py-1">
-                      <Checkbox 
-                        id={`account-${account.id}`}
-                        checked={selectedAccounts.includes(account.id)}
-                        onCheckedChange={() => handleAccountToggle(account.id)}
-                      />
-                      <Label htmlFor={`account-${account.id}`} className="cursor-pointer text-white">
-                        {account.email}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
             
             <DialogFooter>
               <Button variant="outline" onClick={() => {
                 setOpen(false);
-                setNewGame({ name: '', image: '', banner: '', platform: [], referenceLink: '' });
-                setSelectedAccounts([]);
+                setNewGame({ 
+                  name: '', 
+                  image: '', 
+                  banner: '', 
+                  platform: [], 
+                  description: '',
+                  developer: '',
+                  genre: '',
+                  release_date: ''
+                });
                 setIsEditing(false);
+                setShowRawgSearch(false);
               }}>
                 Cancelar
               </Button>
               <Button onClick={handleSaveGame} disabled={loading}>
-                {loading ? "Buscando informações..." : "Salvar"}
+                {loading ? "Salvando..." : "Salvar"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -327,27 +399,34 @@ const AdminGames: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-white">Nome</TableHead>
-              <TableHead className="text-white">Plataformas</TableHead>
-              <TableHead className="text-white">Contas</TableHead>
-              <TableHead className="text-white">Data de Criação</TableHead>
-              <TableHead className="text-right text-white">Ações</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Plataformas</TableHead>
+              <TableHead>Desenvolvedor</TableHead>
+              <TableHead>Data de Criação</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {games.map(game => {
-              // Get accounts that have this game
-              const gameAccounts = accounts.filter(account => 
-                account.games?.some(g => g.id === game.id)
-              );
-              
-              return (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  Carregando jogos...
+                </TableCell>
+              </TableRow>
+            ) : games.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  Nenhum jogo encontrado
+                </TableCell>
+              </TableRow>
+            ) : (
+              games.map(game => (
                 <TableRow key={game.id}>
-                  <TableCell className="font-medium text-white">{game.name}</TableCell>
+                  <TableCell className="font-medium">{game.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {game.platform.map(platform => {
-                        const colorMap: Record<GamePlatform, string> = {
+                        const colorMap: Record<string, string> = {
                           "PS5": "bg-blue-500 text-white",
                           "PS4": "bg-indigo-500 text-white",
                           "PS3": "bg-purple-500 text-white",
@@ -356,32 +435,15 @@ const AdminGames: React.FC = () => {
                         };
                         
                         return (
-                          <span key={platform} className={`px-2 py-1 text-xs rounded-full ${colorMap[platform]}`}>
+                          <span key={platform} className={`px-2 py-1 text-xs rounded-full ${colorMap[platform] || 'bg-gray-500 text-white'}`}>
                             {platform}
                           </span>
                         );
                       })}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {gameAccounts.length > 0 ? (
-                        gameAccounts.slice(0, 3).map(account => (
-                          <span key={account.id} className="px-2 py-1 text-xs bg-secondary rounded-full text-white">
-                            {account.email}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs text-white">Sem contas</span>
-                      )}
-                      {gameAccounts.length > 3 && (
-                        <span className="px-2 py-1 text-xs bg-secondary rounded-full text-white">
-                          +{gameAccounts.length - 3} mais
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-white">{new Date(game.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{game.developer || '-'}</TableCell>
+                  <TableCell>{new Date(game.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" size="icon" onClick={() => handleEditGame(game)}>
@@ -393,8 +455,8 @@ const AdminGames: React.FC = () => {
                     </div>
                   </TableCell>
                 </TableRow>
-              );
-            })}
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

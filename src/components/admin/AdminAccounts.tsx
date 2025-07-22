@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -14,30 +14,32 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Edit, Plus, Trash } from 'lucide-react';
 import { Account, Game } from '@/types';
-import { accounts as accountsData, games as gamesData } from '@/data/mockData';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { accountService, gameService } from '@/services/supabaseService';
 
 const AdminAccounts: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [accounts, setAccounts] = useState<Account[]>(accountsData);
-  const [games, setGames] = useState<Game[]>(gamesData);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState(true);
   const [newAccount, setNewAccount] = useState<Partial<Account>>({
     email: '',
     password: '',
-    code: '',
-    qrcode: '',
-    image: '',
+    codes: '',
+    qr_code: '',
+    birthday: '',
+    security_answer: ''
   });
   const [selectedGames, setSelectedGames] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [open, setOpen] = useState(false);
 
-  // Redirect if not admin
-  React.useEffect(() => {
+  // Load data and check authentication
+  useEffect(() => {
     if (currentUser && currentUser.role !== 'admin') {
       toast({
         title: "Acesso Negado",
@@ -52,8 +54,31 @@ const AdminAccounts: React.FC = () => {
         variant: "destructive",
       });
       navigate('/login');
+    } else {
+      loadData();
     }
   }, [currentUser, navigate, toast]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [accountsData, gamesData] = await Promise.all([
+        accountService.getAll(),
+        gameService.getAll()
+      ]);
+      setAccounts(accountsData);
+      setGames(gamesData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGameToggle = (gameId: string) => {
     if (selectedGames.includes(gameId)) {
@@ -63,35 +88,46 @@ const AdminAccounts: React.FC = () => {
     }
   };
 
-  const handleSaveAccount = () => {
-    // Get selected games objects
-    const linkedGames = games.filter(game => selectedGames.includes(game.id));
-    
-    if (isEditing && newAccount.id) {
-      // Update existing account
-      setAccounts(accounts.map(account => 
-        account.id === newAccount.id ? { 
-          ...account, 
-          ...newAccount,
-          games: linkedGames 
-        } as Account : account
-      ));
-    } else {
-      // Add new account
-      const accountToAdd = {
-        ...newAccount,
-        id: `account-${Date.now()}`,
-        created_at: new Date(),
-        games: linkedGames
-      } as Account;
-      setAccounts([...accounts, accountToAdd]);
+  const handleSaveAccount = async () => {
+    if (!newAccount.email || !newAccount.password) {
+      toast({
+        title: "Erro",
+        description: "Email e senha são obrigatórios.",
+        variant: "destructive",
+      });
+      return;
     }
-    
-    // Reset form
-    setNewAccount({ email: '', password: '', code: '', qrcode: '', image: '' });
-    setSelectedGames([]);
-    setIsEditing(false);
-    setOpen(false);
+
+    try {
+      setLoading(true);
+      if (isEditing && newAccount.id) {
+        const updatedAccount = await accountService.update(newAccount.id, newAccount, selectedGames);
+        setAccounts(accounts.map(account => 
+          account.id === newAccount.id ? updatedAccount : account
+        ));
+      } else {
+        const accountToAdd = await accountService.create(newAccount, selectedGames);
+        setAccounts([...accounts, accountToAdd]);
+      }
+      
+      setNewAccount({ email: '', password: '', codes: '', qr_code: '', birthday: '', security_answer: '' });
+      setSelectedGames([]);
+      setIsEditing(false);
+      setOpen(false);
+      
+      toast({
+        title: "Sucesso",
+        description: isEditing ? "Conta atualizada com sucesso." : "Conta criada com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar conta.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditAccount = (account: Account) => {
@@ -101,8 +137,21 @@ const AdminAccounts: React.FC = () => {
     setOpen(true);
   };
 
-  const handleDeleteAccount = (id: string) => {
-    setAccounts(accounts.filter(account => account.id !== id));
+  const handleDeleteAccount = async (id: string) => {
+    try {
+      await accountService.delete(id);
+      setAccounts(accounts.filter(account => account.id !== id));
+      toast({
+        title: "Sucesso",
+        description: "Conta excluída com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir conta.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Return null if not authenticated
@@ -152,32 +201,30 @@ const AdminAccounts: React.FC = () => {
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="code" className="text-white">Código</Label>
+                <Label htmlFor="codes">Códigos</Label>
                 <Input 
-                  id="code" 
-                  value={newAccount.code || ''} 
-                  onChange={(e) => setNewAccount({...newAccount, code: e.target.value})}
-                  className="text-white"
+                  id="codes" 
+                  value={newAccount.codes || ''} 
+                  onChange={(e) => setNewAccount({...newAccount, codes: e.target.value})}
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="qrcode" className="text-white">QR Code URL</Label>
+                <Label htmlFor="qr_code">QR Code URL</Label>
                 <Input 
-                  id="qrcode" 
-                  value={newAccount.qrcode || ''} 
-                  onChange={(e) => setNewAccount({...newAccount, qrcode: e.target.value})}
-                  className="text-white"
+                  id="qr_code" 
+                  value={newAccount.qr_code || ''} 
+                  onChange={(e) => setNewAccount({...newAccount, qr_code: e.target.value})}
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="image" className="text-white">Imagem URL</Label>
+                <Label htmlFor="birthday">Aniversário</Label>
                 <Input 
-                  id="image" 
-                  value={newAccount.image || ''} 
-                  onChange={(e) => setNewAccount({...newAccount, image: e.target.value})}
-                  className="text-white"
+                  id="birthday" 
+                  type="date"
+                  value={newAccount.birthday || ''} 
+                  onChange={(e) => setNewAccount({...newAccount, birthday: e.target.value})}
                 />
               </div>
               
