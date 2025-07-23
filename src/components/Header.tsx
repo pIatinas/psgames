@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const Header: React.FC = () => {
   const location = useLocation();
-  const { currentUser, signOut } = useAuth();
+  const { currentUser, logout } = useAuth();
   
   const isActive = (path: string) => {
     if (path === '/') {
@@ -24,7 +24,7 @@ const Header: React.FC = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      await logout();
     } catch (error) {
       console.error('Error signing out:', error);
     }
