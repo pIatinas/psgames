@@ -1,3 +1,4 @@
+
 export interface Game {
   id: string;
   name: string;
@@ -43,11 +44,12 @@ export interface Member {
   name: string;
   email: string;
   password?: string;
-  psn_id: string;
+  psn_id?: string;
   profile_image?: string;
   isApproved: boolean;
   created_at: string;
   updated_at: string;
+  accounts?: Account[];
 }
 
 export type UserRole = 'admin' | 'member';
@@ -59,7 +61,6 @@ export interface UserRoleData {
   created_at: string;
 }
 
-// Update User interface to include roles
 export interface User {
   id: string;
   name: string;

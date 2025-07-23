@@ -1,75 +1,45 @@
 
-import React, { useEffect } from 'react';
-import { Outlet, useNavigate, Link } from 'react-router-dom';
+import React from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
 
-const AdminLayout: React.FC = () => {
-  const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
+const AdminLayout = () => {
+  const location = useLocation();
   
-  // Redirect if not admin
-  useEffect(() => {
-    if (currentUser && currentUser.role !== 'admin') {
-      toast({
-        title: "Acesso Negado",
-        description: "Você não tem permissão para acessar esta área.",
-        variant: "destructive",
-      });
-      navigate('/');
-    } else if (!currentUser) {
-      toast({
-        title: "Login Necessário",
-        description: "Faça login para acessar esta área.",
-        variant: "destructive",
-      });
-      navigate('/login');
-    }
-  }, [currentUser, navigate, toast]);
-
-  // Return null if not authenticated or loading
-  if (!currentUser) {
-    return null;
-  }
+  const adminPages = [
+    { name: 'Jogos', path: '/admin/games' },
+    { name: 'Contas', path: '/admin/accounts' },
+    { name: 'Membros', path: '/admin/members' },
+  ];
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1 container py-8">
-        <h1 className="text-3xl font-bold mb-6 text-pink-500">Área Administrativa</h1>
-        
-        <div className="mb-8">
-          <div className="flex gap-2 border-b pb-4">
-            <Button 
-              variant="ghost" 
-              className="text-white hover:text-primary"
+      
+      <main className="flex-grow container py-8">
+        <div className="flex gap-4 mb-8 border-b">
+          {adminPages.map((page) => (
+            <Button
+              key={page.path}
+              variant={location.pathname === page.path ? "default" : "ghost"}
               asChild
+              className={cn(
+                "rounded-b-none border-b-2 border-transparent pb-3",
+                location.pathname === page.path && "border-primary bg-primary text-primary-foreground",
+                location.pathname !== page.path && "hover:text-white"
+              )}
             >
-              <Link to="/admin/games">Jogos</Link>
+              <Link to={page.path}>{page.name}</Link>
             </Button>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:text-primary"
-              asChild
-            >
-              <Link to="/admin/accounts">Contas</Link>
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:text-primary"
-              asChild
-            >
-              <Link to="/admin/members">Membros</Link>
-            </Button>
-          </div>
+          ))}
         </div>
         
         <Outlet />
       </main>
+      
       <Footer />
     </div>
   );

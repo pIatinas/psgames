@@ -15,28 +15,41 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash, Gamepad2 } from 'lucide-react';
 import { Game, GamePlatform } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { gameService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
 
 const AdminGames: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<Game | null>(null);
+  const [deleteGameId, setDeleteGameId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Game>>({
     name: '',
+    description: '',
     image: '',
     banner: '',
     platform: [],
-    description: '',
     developer: '',
     genre: '',
     release_date: '',
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
 
   const { data: games = [], isLoading } = useQuery({
     queryKey: ['admin-games'],
@@ -49,10 +62,10 @@ const AdminGames: React.FC = () => {
     } else {
       setFormData({
         name: '',
+        description: '',
         image: '',
         banner: '',
         platform: [],
-        description: '',
         developer: '',
         genre: '',
         release_date: '',
@@ -72,8 +85,10 @@ const AdminGames: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteGame = async (gameId: string) => {
-    const success = await gameService.delete(gameId);
+  const handleDeleteConfirm = async () => {
+    if (!deleteGameId) return;
+    
+    const success = await gameService.delete(deleteGameId);
     if (success) {
       queryClient.invalidateQueries({ queryKey: ['admin-games'] });
       toast({
@@ -87,6 +102,7 @@ const AdminGames: React.FC = () => {
         variant: "destructive",
       });
     }
+    setDeleteGameId(null);
   };
 
   const handleSaveGame = async () => {
@@ -137,6 +153,20 @@ const AdminGames: React.FC = () => {
     }
   };
 
+  const truncateText = (text: string, lines: number = 2) => {
+    const words = text.split(' ');
+    const wordsPerLine = 8;
+    const maxWords = lines * wordsPerLine;
+    
+    if (words.length <= maxWords) {
+      return text;
+    }
+    
+    return words.slice(0, maxWords).join(' ') + '...';
+  };
+
+  const isAdmin = currentUser?.role === 'admin';
+
   if (isLoading) {
     return (
       <div className="text-center py-12">
@@ -149,29 +179,34 @@ const AdminGames: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Gerenciar Jogos</h1>
           <p className="text-muted-foreground">Adicione, edite ou remova jogos do catálogo</p>
         </div>
-        <Button onClick={handleAddGame}>
-          <Plus className="mr-2 h-4 w-4" />
-          Adicionar Jogo
-        </Button>
+        {isAdmin && (
+          <Button onClick={handleAddGame}>
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Jogo
+          </Button>
+        )}
       </div>
 
       {/* Games Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {games.map((game) => (
           <Card key={game.id} className="overflow-hidden">
-            <div className="aspect-[3/4] relative">
+            <div className="aspect-square relative">
               <ImagePlaceholder
                 src={game.image}
                 alt={game.name}
-                icon={Gamepad2}
                 className="w-full h-full object-cover"
               />
             </div>
             <CardContent className="p-4">
               <h3 className="font-semibold text-lg mb-2">{game.name}</h3>
+              {game.description && (
+                <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                  {truncateText(game.description, 2)}
+                </p>
+              )}
               <div className="flex flex-wrap gap-1 mb-3">
                 {game.platform.map((platform) => (
                   <Badge key={platform} variant="secondary">
@@ -179,24 +214,26 @@ const AdminGames: React.FC = () => {
                   </Badge>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEditGame(game)}
-                  className="flex-1"
-                >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Editar
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDeleteGame(game.id)}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </div>
+              {isAdmin && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditGame(game)}
+                    className="flex-1"
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteGameId(game.id)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -229,23 +266,36 @@ const AdminGames: React.FC = () => {
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="image">URL da Imagem</Label>
-              <Input
-                id="image"
-                value={formData.image || ''}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                placeholder="https://exemplo.com/imagem.jpg"
+              <Label htmlFor="description">Descrição</Label>
+              <Textarea
+                id="description"
+                value={formData.description || ''}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Descrição do jogo..."
+                rows={3}
               />
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="banner">URL do Banner</Label>
-              <Input
-                id="banner"
-                value={formData.banner || ''}
-                onChange={(e) => setFormData({ ...formData, banner: e.target.value })}
-                placeholder="https://exemplo.com/banner.jpg"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="image">URL da Imagem</Label>
+                <Input
+                  id="image"
+                  value={formData.image || ''}
+                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  placeholder="https://exemplo.com/imagem.jpg"
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="banner">URL do Banner</Label>
+                <Input
+                  id="banner"
+                  value={formData.banner || ''}
+                  onChange={(e) => setFormData({ ...formData, banner: e.target.value })}
+                  placeholder="https://exemplo.com/banner.jpg"
+                />
+              </div>
             </div>
             
             <div className="grid gap-2">
@@ -266,24 +316,26 @@ const AdminGames: React.FC = () => {
               </div>
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="developer">Desenvolvedor</Label>
-              <Input
-                id="developer"
-                value={formData.developer || ''}
-                onChange={(e) => setFormData({ ...formData, developer: e.target.value })}
-                placeholder="Ex: Santa Monica Studio"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="genre">Gênero</Label>
-              <Input
-                id="genre"
-                value={formData.genre || ''}
-                onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-                placeholder="Ex: Ação, Aventura"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="developer">Desenvolvedor</Label>
+                <Input
+                  id="developer"
+                  value={formData.developer || ''}
+                  onChange={(e) => setFormData({ ...formData, developer: e.target.value })}
+                  placeholder="Ex: Santa Monica Studio"
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="genre">Gênero</Label>
+                <Input
+                  id="genre"
+                  value={formData.genre || ''}
+                  onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+                  placeholder="Ex: Ação, Aventura"
+                />
+              </div>
             </div>
             
             <div className="grid gap-2">
@@ -293,17 +345,6 @@ const AdminGames: React.FC = () => {
                 type="date"
                 value={formData.release_date || ''}
                 onChange={(e) => setFormData({ ...formData, release_date: e.target.value })}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={formData.description || ''}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Descrição do jogo..."
-                rows={3}
               />
             </div>
           </div>
@@ -318,6 +359,24 @@ const AdminGames: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteGameId} onOpenChange={() => setDeleteGameId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este jogo? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

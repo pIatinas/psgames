@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Game, Account, User } from '@/types';
+import { Game, Account, User, GamePlatform } from '@/types';
 
 // Game service
 export const gameService = {
@@ -15,7 +15,10 @@ export const gameService = {
       return [];
     }
     
-    return data || [];
+    return (data || []).map(game => ({
+      ...game,
+      platform: game.platform as GamePlatform[]
+    }));
   },
 
   async getById(id: string): Promise<Game | null> {
@@ -30,7 +33,10 @@ export const gameService = {
       return null;
     }
     
-    return data;
+    return {
+      ...data,
+      platform: data.platform as GamePlatform[]
+    };
   },
 
   async create(game: Omit<Game, 'id' | 'created_at' | 'updated_at'>): Promise<Game | null> {
@@ -45,7 +51,10 @@ export const gameService = {
       return null;
     }
     
-    return data;
+    return {
+      ...data,
+      platform: data.platform as GamePlatform[]
+    };
   },
 
   async update(id: string, game: Partial<Game>): Promise<Game | null> {
@@ -61,7 +70,10 @@ export const gameService = {
       return null;
     }
     
-    return data;
+    return {
+      ...data,
+      platform: data.platform as GamePlatform[]
+    };
   },
 
   async delete(id: string): Promise<boolean> {
@@ -98,10 +110,12 @@ export const accountService = {
       return [];
     }
     
-    // Transform the data to match our Account interface
     return (data || []).map(account => ({
       ...account,
-      games: account.account_games?.map((ag: any) => ag.games) || [],
+      games: account.account_games?.map((ag: any) => ({
+        ...ag.games,
+        platform: ag.games.platform as GamePlatform[]
+      })) || [],
       slots: account.account_slots || []
     }));
   },
@@ -126,7 +140,10 @@ export const accountService = {
     
     return {
       ...data,
-      games: data.account_games?.map((ag: any) => ag.games) || [],
+      games: data.account_games?.map((ag: any) => ({
+        ...ag.games,
+        platform: ag.games.platform as GamePlatform[]
+      })) || [],
       slots: data.account_slots || []
     };
   },
@@ -174,6 +191,21 @@ export const accountService = {
     }
     
     return true;
+  },
+
+  async freeSlot(accountId: string, slotNumber: number): Promise<boolean> {
+    const { error } = await supabase
+      .from('account_slots')
+      .delete()
+      .eq('account_id', accountId)
+      .eq('slot_number', slotNumber);
+    
+    if (error) {
+      console.error('Error freeing slot:', error);
+      return false;
+    }
+    
+    return true;
   }
 };
 
@@ -193,7 +225,6 @@ export const userService = {
       return [];
     }
     
-    // Transform the data to match our User interface
     return (data || []).map(profile => {
       const roles = profile.user_roles || [];
       const hasAdminRole = roles.some((role: any) => role.role === 'admin');
@@ -215,5 +246,21 @@ export const userService = {
         roles: roles
       };
     });
+  },
+
+  async updateProfile(userId: string, profileData: any): Promise<any> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(profileData)
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+    
+    return data;
   }
 };
