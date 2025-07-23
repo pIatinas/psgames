@@ -12,7 +12,7 @@ const Header: React.FC = () => {
 
   // Get user initials for avatar
   const getUserInitials = () => {
-    if (!currentUser) return '';
+    if (!currentUser?.name) return 'U';
     return currentUser.name
       .split(' ')
       .map(n => n[0])
@@ -66,13 +66,13 @@ const Header: React.FC = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2 flex items-center text-white">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={currentUser.profile?.avatar_url} />
+                    <AvatarImage src={currentUser.profile?.avatar_url || `https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=100&h=100&fit=crop&crop=face`} />
                     <AvatarFallback>{getUserInitials()}</AvatarFallback>
                   </Avatar>
-                  <span className="max-w-24 truncate">{currentUser.name}</span>
+                  <span className="max-w-24 truncate">{currentUser.name || 'Usuário'}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-background border border-border">
                 <DropdownMenuItem asChild>
                   <Link to="/profile">Meu Perfil</Link>
                 </DropdownMenuItem>
@@ -80,7 +80,7 @@ const Header: React.FC = () => {
                   <Link to="/my-accounts">Minhas Contas</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout}>
+                <DropdownMenuItem onClick={logout} className="text-red-500 focus:text-red-500">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Logout</span>
                 </DropdownMenuItem>

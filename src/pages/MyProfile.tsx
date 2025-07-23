@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Camera, User } from 'lucide-react';
 import SectionTitle from '@/components/SectionTitle';
+import { userService } from '@/services/supabaseService';
 
 const MyProfile: React.FC = () => {
   const { currentUser, updateCurrentUser } = useAuth();
@@ -18,20 +19,18 @@ const MyProfile: React.FC = () => {
   const navigate = useNavigate();
   
   const [name, setName] = useState(currentUser?.name || '');
-  const [email, setEmail] = useState(currentUser?.email || '');
-  const [psnId, setPsnId] = useState(currentUser?.member?.psn_id || '');
-  const [profileImage, setProfileImage] = useState<string | null>(currentUser?.member?.profile_image || null);
+  const [profileImage, setProfileImage] = useState<string | null>(currentUser?.profile?.avatar_url || null);
   const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Redirect if not logged in
-  React.useEffect(() => {
+  useEffect(() => {
     if (!currentUser) {
       navigate('/login');
     }
   }, [currentUser, navigate]);
 
-  if (!currentUser || !currentUser.member) {
+  if (!currentUser) {
     return null;
   }
 
@@ -62,23 +61,18 @@ const MyProfile: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // In a real application, this would be an API call
-      // For now, we'll just update the local state
-      if (currentUser && currentUser.member) {
+      if (currentUser.profile) {
+        const updatedProfile = await userService.updateProfile(currentUser.id, {
+          name,
+          avatar_url: profileImage || currentUser.profile.avatar_url,
+        });
+
         const updatedUser = {
           ...currentUser,
           name,
-          email,
-          member: {
-            ...currentUser.member,
-            name,
-            email,
-            psn_id: psnId,
-            profile_image: profileImage || currentUser.member.profile_image,
-          }
+          profile: updatedProfile
         };
 
-        // Update user in auth context
         if (updateCurrentUser) {
           updateCurrentUser(updatedUser);
         }
@@ -89,6 +83,7 @@ const MyProfile: React.FC = () => {
         });
       }
     } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao atualizar o perfil.",
@@ -98,6 +93,8 @@ const MyProfile: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const defaultProfileImage = `https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=200&h=200&fit=crop&crop=face`;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -128,24 +125,16 @@ const MyProfile: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label>Email</Label>
                     <Input 
-                      id="email"
                       type="email"
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="seu-email@exemplo.com"
+                      value={currentUser.email || 'Email não disponível'} 
+                      disabled
+                      className="bg-muted"
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="psn-id">PSN ID</Label>
-                    <Input 
-                      id="psn-id" 
-                      value={psnId} 
-                      onChange={(e) => setPsnId(e.target.value)}
-                      placeholder="Seu ID da PlayStation Network"
-                    />
+                    <p className="text-sm text-muted-foreground">
+                      O email não pode ser alterado
+                    </p>
                   </div>
 
                   <Button type="submit" disabled={isLoading}>
@@ -162,23 +151,16 @@ const MyProfile: React.FC = () => {
                 <CardTitle>Imagens do Perfil</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Profile Image Upload */}
                 <div className="space-y-2">
                   <Label htmlFor="profile-image">Imagem de Perfil</Label>
                   <div className="flex flex-col items-center gap-4">
                     <div className="relative">
                       <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border">
-                        {profileImage ? (
-                          <img 
-                            src={profileImage} 
-                            alt="Perfil" 
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                            <User className="h-12 w-12" />
-                          </div>
-                        )}
+                        <img 
+                          src={profileImage || defaultProfileImage} 
+                          alt="Perfil" 
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                       <label 
                         htmlFor="profile-image-input" 
@@ -197,7 +179,6 @@ const MyProfile: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Banner Image Upload */}
                 <div className="space-y-2">
                   <Label htmlFor="banner-image">Banner do Perfil</Label>
                   <div className="flex flex-col items-center gap-4">

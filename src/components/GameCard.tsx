@@ -1,51 +1,44 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Game, GamePlatform } from '@/types';
+import { Game } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import ImagePlaceholder from '@/components/ui/image-placeholder';
 
 interface GameCardProps {
   game: Game;
-  getPlatformColor?: (platform: GamePlatform) => string;
+  className?: string;
 }
 
-const GameCard: React.FC<GameCardProps> = ({ game, getPlatformColor }) => {
-  const defaultPlatformColor = (platform: GamePlatform): string => {
-    const colorMap: Record<GamePlatform, string> = {
-      "PS5": "bg-blue-500 text-white",
-      "PS4": "bg-indigo-500 text-white",
-      "PS3": "bg-purple-500 text-white",
-      "VITA": "bg-green-500 text-white"
-    };
-    
-    return colorMap[platform] || "bg-gray-500 text-white";
-  };
-
-  const getColor = getPlatformColor || defaultPlatformColor;
+const GameCard: React.FC<GameCardProps> = ({ game, className = '' }) => {
+  const gamePlaceholder = `https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=600&fit=crop`;
 
   return (
-    <Link to={`/games/${game.id}`}>
-      <Card className="overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-md">
-        <div className="relative aspect-[16/9] overflow-hidden">
-          <img 
-            src={game.image || '/placeholder.svg'} 
-            alt={game.name}
-            className="h-full w-full object-cover"
-          />
-        </div>
+    <Link to={`/games/${game.id}`} className={`block ${className}`}>
+      <Card className="group overflow-hidden transition-all hover:-translate-y-1 hover:neon-blue-border rounded-lg h-full">
+        <ImagePlaceholder
+          src={game.image}
+          alt={game.name}
+          fallbackSrc={gamePlaceholder}
+          className="aspect-[3/4]"
+        />
         <CardContent className="p-3">
-          <h3 className="font-semibold text-sm md:text-base line-clamp-1 text-white">{game.name}</h3>
-          
-          <div className="flex flex-wrap gap-1 mt-2">
-            {game.platform.map(platform => (
-              <span 
-                key={platform} 
-                className={`text-xs px-2 py-1 rounded-full ${getColor(platform as GamePlatform)}`}
-              >
-                {platform}
-              </span>
-            ))}
-          </div>
+          <h3 className="font-semibold text-sm line-clamp-2 mb-2">{game.name}</h3>
+          {game.platform && game.platform.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {game.platform.slice(0, 2).map(platform => (
+                <Badge key={platform} variant="outline" className="text-xs">
+                  {platform}
+                </Badge>
+              ))}
+              {game.platform.length > 2 && (
+                <Badge variant="outline" className="text-xs">
+                  +{game.platform.length - 2}
+                </Badge>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </Link>
