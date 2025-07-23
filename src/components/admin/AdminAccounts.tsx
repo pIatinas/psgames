@@ -1,15 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Plus, Eye, EyeOff } from 'lucide-react';
-import { Account } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,29 +31,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Plus, Edit, Trash, UserMinus } from 'lucide-react';
+import { Account } from '@/types';
+import { useToast } from '@/components/ui/use-toast';
 import { accountService, gameService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import ImagePlaceholder from '@/components/ui/image-placeholder';
 
 const AdminAccounts: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
-  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
   const [deleteAccountId, setDeleteAccountId] = useState<string | null>(null);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { currentUser } = useAuth();
-  
-  const [formData, setFormData] = useState<Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>>({
+  const [selectedGames, setSelectedGames] = useState<string[]>([]);
+  const [formData, setFormData] = useState<Partial<Account>>({
     email: '',
     password: '',
     birthday: '',
     security_answer: '',
     codes: '',
-    qr_code: ''
+    qr_code: '',
   });
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
 
-  const { data: accounts = [], isLoading: accountsLoading } = useQuery({
+  const { data: accounts = [], isLoading } = useQuery({
     queryKey: ['admin-accounts'],
     queryFn: () => accountService.getAll(),
   });
@@ -60,21 +66,56 @@ const AdminAccounts: React.FC = () => {
     queryFn: () => gameService.getAll(),
   });
 
-  const resetForm = () => {
-    setFormData({
-      email: '',
-      password: '',
-      birthday: '',
-      security_answer: '',
-      codes: '',
-      qr_code: ''
-    });
+  useEffect(() => {
+    if (editingAccount) {
+      setFormData(editingAccount);
+      // Encontrar jogos que estão nesta conta
+      const accountGames = editingAccount.games?.map(game => game.id) || [];
+      setSelectedGames(accountGames);
+    } else {
+      setFormData({
+        email: '',
+        password: '',
+        birthday: '',
+        security_answer: '',
+        codes: '',
+        qr_code: '',
+      });
+      setSelectedGames([]);
+    }
+  }, [editingAccount]);
+
+  const handleAddAccount = () => {
     setEditingAccount(null);
+    setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEditAccount = (account: Account) => {
+    setEditingAccount(account);
+    setIsDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteAccountId) return;
     
+    const success = await accountService.delete(deleteAccountId);
+    if (success) {
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      toast({
+        title: "Conta removida",
+        description: "A conta foi removida com sucesso.",
+      });
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover a conta.",
+        variant: "destructive",
+      });
+    }
+    setDeleteAccountId(null);
+  };
+
+  const handleSaveAccount = async () => {
     if (!formData.email || !formData.password) {
       toast({
         title: "Erro",
@@ -86,19 +127,20 @@ const AdminAccounts: React.FC = () => {
 
     let result;
     if (editingAccount) {
-      result = await accountService.update(editingAccount.id, formData);
+      result = await accountService.update(editingAccount.id, formData, selectedGames);
     } else {
-      result = await accountService.create(formData);
+      result = await accountService.create(formData as Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>, selectedGames);
     }
 
     if (result) {
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
       toast({
-        title: editingAccount ? "Conta atualizada" : "Conta criada",
-        description: editingAccount ? "A conta foi atualizada com sucesso." : "A nova conta foi criada com sucesso.",
+        title: editingAccount ? "Conta atualizada" : "Conta adicionada",
+        description: editingAccount ? "A conta foi atualizada com sucesso." : "A conta foi adicionada com sucesso.",
       });
       setIsDialogOpen(false);
-      resetForm();
+      setEditingAccount(null);
     } else {
       toast({
         title: "Erro",
@@ -108,54 +150,34 @@ const AdminAccounts: React.FC = () => {
     }
   };
 
-  const handleEdit = (account: Account) => {
-    setEditingAccount(account);
-    setFormData({
-      email: account.email,
-      password: account.password,
-      birthday: account.birthday || '',
-      security_answer: account.security_answer || '',
-      codes: account.codes || '',
-      qr_code: account.qr_code || ''
-    });
-    setIsDialogOpen(true);
+  const handleGameToggle = (gameId: string) => {
+    setSelectedGames(prev => 
+      prev.includes(gameId) 
+        ? prev.filter(id => id !== gameId)
+        : [...prev, gameId]
+    );
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!deleteAccountId) return;
-    
-    const success = await accountService.delete(deleteAccountId);
+  const handleFreeSlot = async (accountId: string, slotNumber: number) => {
+    const success = await accountService.freeSlot(accountId, slotNumber);
     if (success) {
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
       toast({
-        title: "Conta excluída",
-        description: "A conta foi excluída com sucesso.",
+        title: "Slot liberado",
+        description: `Slot ${slotNumber} foi liberado com sucesso.`,
       });
     } else {
       toast({
         title: "Erro",
-        description: "Não foi possível excluir a conta.",
+        description: "Não foi possível liberar o slot.",
         variant: "destructive",
       });
     }
-    setDeleteAccountId(null);
-  };
-
-  const togglePasswordVisibility = (accountId: string) => {
-    setShowPasswords(prev => ({
-      ...prev,
-      [accountId]: !prev[accountId]
-    }));
-  };
-
-  const getSlotOccupant = (account: Account, slotNumber: number) => {
-    const slot = account.slots?.find(slot => slot.slot_number === slotNumber);
-    return slot ? 'Ocupado' : 'Livre';
   };
 
   const isAdmin = currentUser?.role === 'admin';
 
-  if (accountsLoading) {
+  if (isLoading) {
     return (
       <div className="text-center py-12">
         <p className="text-lg text-muted-foreground">Carregando contas...</p>
@@ -168,9 +190,9 @@ const AdminAccounts: React.FC = () => {
       <div className="flex justify-between items-center">
         <div />
         {isAdmin && (
-          <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Conta
+          <Button onClick={handleAddAccount}>
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Conta
           </Button>
         )}
       </div>
@@ -181,171 +203,212 @@ const AdminAccounts: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Email</TableHead>
-              <TableHead>Senha</TableHead>
               <TableHead>Jogos</TableHead>
               <TableHead>Slot 1</TableHead>
               <TableHead>Slot 2</TableHead>
-              <TableHead>Resp. Segurança</TableHead>
               <TableHead>Códigos</TableHead>
+              <TableHead>QR Code</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {accounts.map(account => (
-              <TableRow key={account.id}>
-                <TableCell className="font-medium">{account.email}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm">
-                      {showPasswords[account.id] ? account.password : '••••••••'}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => togglePasswordVisibility(account.id)}
-                    >
-                      {showPasswords[account.id] ? 
-                        <EyeOff className="h-4 w-4" /> : 
-                        <Eye className="h-4 w-4" />
-                      }
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {account.games && account.games.length > 0 ? (
+            {accounts.map((account) => {
+              const slot1 = account.slots?.find(slot => slot.slot_number === 1);
+              const slot2 = account.slots?.find(slot => slot.slot_number === 2);
+              
+              return (
+                <TableRow key={account.id}>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{account.email}</p>
+                      <p className="text-sm text-muted-foreground">••••••••</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {account.games.slice(0, 2).map(game => (
-                        <Badge key={game.id} variant="secondary" className="text-xs">
-                          {game.name}
-                        </Badge>
-                      ))}
-                      {account.games.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
+                      {account.games && account.games.length > 0 ? (
+                        account.games.slice(0, 2).map((game) => (
+                          <Badge key={game.id} variant="secondary" className="text-xs">
+                            {game.name.length > 10 ? `${game.name.slice(0, 10)}...` : game.name}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Nenhum jogo</span>
+                      )}
+                      {account.games && account.games.length > 2 && (
+                        <Badge variant="outline" className="text-xs">
                           +{account.games.length - 2}
                         </Badge>
                       )}
                     </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">Nenhum jogo</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getSlotOccupant(account, 1) === 'Ocupado' ? "destructive" : "secondary"}>
-                    {getSlotOccupant(account, 1)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getSlotOccupant(account, 2) === 'Ocupado' ? "destructive" : "secondary"}>
-                    {getSlotOccupant(account, 2)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {account.security_answer || '-'}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {account.codes ? 'Sim' : '-'}
-                  </span>
-                </TableCell>
-                {isAdmin && (
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(account)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeleteAccountId(account.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </TableCell>
-                )}
-              </TableRow>
-            ))}
+                  <TableCell>
+                    {slot1?.user_id ? (
+                      <div className="flex items-center justify-between">
+                        <Badge variant="destructive" className="text-xs">
+                          Ocupado
+                        </Badge>
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleFreeSlot(account.id, 1)}
+                          >
+                            <UserMinus className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        Livre
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {slot2?.user_id ? (
+                      <div className="flex items-center justify-between">
+                        <Badge variant="destructive" className="text-xs">
+                          Ocupado
+                        </Badge>
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleFreeSlot(account.id, 2)}
+                          >
+                            <UserMinus className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        Livre
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-xs font-mono">{account.codes || 'N/A'}</p>
+                  </TableCell>
+                  <TableCell>
+                    {account.qr_code ? (
+                      <div className="w-8 h-8">
+                        <ImagePlaceholder
+                          src={account.qr_code}
+                          alt="QR Code"
+                          className="w-full h-full object-cover rounded"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">N/A</span>
+                    )}
+                  </TableCell>
+                  {isAdmin && (
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditAccount(account)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeleteAccountId(account.id)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
 
       {/* Add/Edit Account Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingAccount ? 'Editar Conta' : 'Nova Conta'}
+              {editingAccount ? 'Editar Conta' : 'Adicionar Nova Conta'}
             </DialogTitle>
+            <DialogDescription>
+              {editingAccount 
+                ? 'Edite as informações da conta abaixo.' 
+                : 'Preencha as informações da nova conta.'
+              }
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Senha *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="birthday">Data de Nascimento</Label>
-                  <Input
-                    id="birthday"
-                    type="date"
-                    value={formData.birthday}
-                    onChange={(e) => setFormData(prev => ({ ...prev, birthday: e.target.value }))}
-                  />
-                </div>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email || ''}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="exemplo@email.com"
+                />
               </div>
               
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="security_answer">Resposta de Segurança</Label>
-                  <Input
-                    id="security_answer"
-                    value={formData.security_answer}
-                    onChange={(e) => setFormData(prev => ({ ...prev, security_answer: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="codes">Códigos de Acesso</Label>
-                  <Textarea
-                    id="codes"
-                    value={formData.codes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, codes: e.target.value }))}
-                    placeholder="Digite os códigos de acesso"
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="qr_code">QR Code</Label>
-                  <Input
-                    id="qr_code"
-                    value={formData.qr_code}
-                    onChange={(e) => setFormData(prev => ({ ...prev, qr_code: e.target.value }))}
-                    placeholder="URL do QR Code"
-                  />
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Senha *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password || ''}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="••••••••"
+                />
               </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="birthday">Data de Nascimento</Label>
+                <Input
+                  id="birthday"
+                  type="date"
+                  value={formData.birthday || ''}
+                  onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="codes">Códigos</Label>
+                <Input
+                  id="codes"
+                  value={formData.codes || ''}
+                  onChange={(e) => setFormData({ ...formData, codes: e.target.value })}
+                  placeholder="ABC123"
+                />
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="security_answer">Resposta de Segurança</Label>
+              <Input
+                id="security_answer"
+                value={formData.security_answer || ''}
+                onChange={(e) => setFormData({ ...formData, security_answer: e.target.value })}
+                placeholder="Resposta para pergunta de segurança"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="qr_code">URL do QR Code</Label>
+              <Input
+                id="qr_code"
+                value={formData.qr_code || ''}
+                onChange={(e) => setFormData({ ...formData, qr_code: e.target.value })}
+                placeholder="https://exemplo.com/qrcode.png"
+              />
             </div>
 
             <div className="grid gap-2">
@@ -356,7 +419,11 @@ const AdminAccounts: React.FC = () => {
               <div className="max-h-32 overflow-y-auto border rounded p-2">
                 {games.map((game) => (
                   <div key={game.id} className="flex items-center space-x-2 py-1">
-                    <Checkbox id={`game-${game.id}`} />
+                    <Checkbox 
+                      id={`game-${game.id}`}
+                      checked={selectedGames.includes(game.id)}
+                      onCheckedChange={() => handleGameToggle(game.id)}
+                    />
                     <Label htmlFor={`game-${game.id}`} className="text-sm">
                       {game.name}
                     </Label>
@@ -364,16 +431,16 @@ const AdminAccounts: React.FC = () => {
                 ))}
               </div>
             </div>
-
-            <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {editingAccount ? 'Atualizar' : 'Criar'} Conta
-              </Button>
-            </div>
-          </form>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveAccount}>
+              {editingAccount ? 'Atualizar' : 'Adicionar'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

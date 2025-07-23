@@ -43,7 +43,7 @@ export const gameService = {
     };
   },
 
-  async create(game: Omit<Game, 'id' | 'created_at' | 'updated_at'>): Promise<Game | null> {
+  async create(game: Omit<Game, 'id' | 'created_at' | 'updated_at'>, accountIds: string[] = []): Promise<Game | null> {
     const { data, error } = await supabase
       .from('games')
       .insert({
@@ -64,6 +64,22 @@ export const gameService = {
       console.error('Error creating game:', error);
       return null;
     }
+
+    // Vincular jogo às contas selecionadas
+    if (accountIds.length > 0) {
+      const accountGameLinks = accountIds.map(accountId => ({
+        game_id: data.id,
+        account_id: accountId
+      }));
+
+      const { error: linkError } = await supabase
+        .from('account_games')
+        .insert(accountGameLinks);
+
+      if (linkError) {
+        console.error('Error linking game to accounts:', linkError);
+      }
+    }
     
     return {
       ...data,
@@ -71,7 +87,7 @@ export const gameService = {
     };
   },
 
-  async update(id: string, game: Partial<Game>): Promise<Game | null> {
+  async update(id: string, game: Partial<Game>, accountIds: string[] = []): Promise<Game | null> {
     const { data, error } = await supabase
       .from('games')
       .update(game)
@@ -82,6 +98,29 @@ export const gameService = {
     if (error) {
       console.error('Error updating game:', error);
       return null;
+    }
+
+    // Atualizar vínculos com contas
+    // Primeiro remove todos os vínculos existentes
+    await supabase
+      .from('account_games')
+      .delete()
+      .eq('game_id', id);
+
+    // Depois adiciona os novos vínculos
+    if (accountIds.length > 0) {
+      const accountGameLinks = accountIds.map(accountId => ({
+        game_id: id,
+        account_id: accountId
+      }));
+
+      const { error: linkError } = await supabase
+        .from('account_games')
+        .insert(accountGameLinks);
+
+      if (linkError) {
+        console.error('Error linking game to accounts:', linkError);
+      }
     }
     
     return {
@@ -168,7 +207,7 @@ export const accountService = {
     };
   },
 
-  async create(account: Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>): Promise<Account | null> {
+  async create(account: Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>, gameIds: string[] = []): Promise<Account | null> {
     const { data, error } = await supabase
       .from('accounts')
       .insert({
@@ -186,11 +225,27 @@ export const accountService = {
       console.error('Error creating account:', error);
       return null;
     }
+
+    // Vincular conta aos jogos selecionados
+    if (gameIds.length > 0) {
+      const accountGameLinks = gameIds.map(gameId => ({
+        account_id: data.id,
+        game_id: gameId
+      }));
+
+      const { error: linkError } = await supabase
+        .from('account_games')
+        .insert(accountGameLinks);
+
+      if (linkError) {
+        console.error('Error linking account to games:', linkError);
+      }
+    }
     
     return { ...data, games: [], slots: [] };
   },
 
-  async update(id: string, account: Partial<Account>): Promise<Account | null> {
+  async update(id: string, account: Partial<Account>, gameIds: string[] = []): Promise<Account | null> {
     const { data, error } = await supabase
       .from('accounts')
       .update(account)
@@ -201,6 +256,29 @@ export const accountService = {
     if (error) {
       console.error('Error updating account:', error);
       return null;
+    }
+
+    // Atualizar vínculos com jogos
+    // Primeiro remove todos os vínculos existentes
+    await supabase
+      .from('account_games')
+      .delete()
+      .eq('account_id', id);
+
+    // Depois adiciona os novos vínculos
+    if (gameIds.length > 0) {
+      const accountGameLinks = gameIds.map(gameId => ({
+        account_id: id,
+        game_id: gameId
+      }));
+
+      const { error: linkError } = await supabase
+        .from('account_games')
+        .insert(accountGameLinks);
+
+      if (linkError) {
+        console.error('Error linking account to games:', linkError);
+      }
     }
     
     return { ...data, games: [], slots: [] };
@@ -240,30 +318,84 @@ export const accountService = {
 export const userService = {
   async getAll(): Promise<User[]> {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .rpc('get_all_users_with_profiles');
     
     if (error) {
       console.error('Error fetching users:', error);
       return [];
     }
     
-    return (data || []).map(profile => ({
-      id: profile.id,
-      name: profile.name || 'User',
-      email: '', // Email not available in profiles table
-      role: profile.role === 'admin' ? 'admin' : 'member',
+    return (data || []).map((user: any) => ({
+      id: user.id,
+      name: user.name || 'User',
+      email: user.email || '',
+      role: user.role === 'admin' ? 'admin' : 'member',
       profile: {
-        id: profile.id,
-        name: profile.name,
-        avatar_url: profile.avatar_url,
-        role: profile.role === 'admin' ? 'admin' : 'member',
-        created_at: profile.created_at,
-        updated_at: profile.updated_at
+        id: user.id,
+        name: user.name,
+        avatar_url: user.avatar_url,
+        role: user.role === 'admin' ? 'admin' : 'member',
+        created_at: user.created_at,
+        updated_at: user.updated_at
       },
       roles: []
     }));
+  },
+
+  async createUser(userData: { name: string; email: string; password: string; avatar_url?: string }, accountIds: string[] = []): Promise<User | null> {
+    // Criar usuário na auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: userData.email,
+      password: userData.password,
+      options: {
+        data: {
+          name: userData.name,
+          avatar_url: userData.avatar_url
+        }
+      }
+    });
+
+    if (authError) {
+      console.error('Error creating user:', authError);
+      return null;
+    }
+
+    if (!authData.user) {
+      console.error('User creation failed: no user returned');
+      return null;
+    }
+
+    // Vincular usuário às contas selecionadas
+    if (accountIds.length > 0) {
+      const userAccountLinks = accountIds.map(accountId => ({
+        user_id: authData.user!.id,
+        account_id: accountId
+      }));
+
+      const { error: linkError } = await supabase
+        .from('user_accounts')
+        .insert(userAccountLinks);
+
+      if (linkError) {
+        console.error('Error linking user to accounts:', linkError);
+      }
+    }
+
+    return {
+      id: authData.user.id,
+      name: userData.name,
+      email: userData.email,
+      role: 'member',
+      profile: {
+        id: authData.user.id,
+        name: userData.name,
+        avatar_url: userData.avatar_url,
+        role: 'member',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      roles: []
+    };
   },
 
   async updateProfile(userId: string, profileData: any): Promise<any> {

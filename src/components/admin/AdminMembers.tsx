@@ -31,16 +31,17 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { userService, accountService } from '@/services/supabaseService';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { Member } from '@/types';
+import { User } from '@/types';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
 
 const AdminMembers: React.FC = () => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editingMember, setEditingMember] = useState<User | null>(null);
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null);
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   
@@ -48,10 +49,10 @@ const AdminMembers: React.FC = () => {
     name: '',
     email: '',
     password: '',
-    profile_image: '',
+    avatar_url: '',
   });
 
-  const { data: members = [], isLoading: membersLoading } = useQuery({
+  const { data: members = [], isLoading: membersLoading, refetch } = useQuery({
     queryKey: ['admin-members'],
     queryFn: () => userService.getAll(),
   });
@@ -61,43 +62,27 @@ const AdminMembers: React.FC = () => {
     queryFn: () => accountService.getAll(),
   });
 
-  // Transform users to members format for compatibility
-  const transformedMembers = members.map(user => ({
-    id: user.id,
-    name: user.name,
-    email: user.email || '',
-    password: '', // Not available from users
-    psn_id: '', // Not available from users  
-    profile_image: user.profile?.avatar_url || '',
-    isApproved: true, // Assume approved if they exist
-    created_at: user.profile?.created_at || '',
-    updated_at: user.profile?.updated_at || '',
-    accounts: accounts.filter(account => 
-      account.slots?.some(slot => slot.user_id === user.id)
-    ),
-  }));
-
   const resetForm = () => {
     setFormData({
       name: '',
       email: '',
       password: '',
-      profile_image: '',
+      avatar_url: '',
     });
     setSelectedAccounts([]);
     setEditingMember(null);
   };
 
-  const handleEdit = (member: Member) => {
+  const handleEdit = (member: User) => {
     setEditingMember(member);
     setFormData({
       name: member.name,
       email: member.email,
-      password: member.password || '',
-      profile_image: member.profile_image || '',
+      password: '',
+      avatar_url: member.profile?.avatar_url || '',
     });
     
-    // Find selected accounts for this member
+    // Encontrar contas selecionadas para este membro
     const memberAccounts = accounts.filter(account => 
       account.slots?.some(slot => slot.user_id === member.id)
     ).map(account => account.id);
@@ -114,7 +99,7 @@ const AdminMembers: React.FC = () => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.email) {
@@ -126,14 +111,58 @@ const AdminMembers: React.FC = () => {
       return;
     }
 
-    // For now, show a success message since the backend integration is not complete
-    toast({
-      title: editingMember ? "Membro atualizado" : "Membro criado",
-      description: editingMember ? "O membro foi atualizado com sucesso." : "O novo membro foi criado com sucesso.",
-    });
-    
-    setIsDialogOpen(false);
-    resetForm();
+    if (!editingMember && !formData.password) {
+      toast({
+        title: "Erro",
+        description: "Senha é obrigatória para novos usuários.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (editingMember) {
+        // Atualizar usuário existente
+        await userService.updateProfile(editingMember.id, {
+          name: formData.name,
+          avatar_url: formData.avatar_url || null,
+        });
+
+        toast({
+          title: "Sucesso",
+          description: "Membro atualizado com sucesso.",
+        });
+      } else {
+        // Criar novo usuário
+        const newUser = await userService.createUser({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          avatar_url: formData.avatar_url || undefined,
+        }, selectedAccounts);
+
+        if (newUser) {
+          toast({
+            title: "Sucesso",
+            description: "Membro criado com sucesso.",
+          });
+        } else {
+          throw new Error('Falha ao criar usuário');
+        }
+      }
+
+      // Atualizar a lista
+      refetch();
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error saving member:', error);
+      toast({
+        title: "Erro",
+        description: editingMember ? "Erro ao atualizar membro." : "Erro ao criar membro.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteConfirm = () => {
@@ -180,13 +209,13 @@ const AdminMembers: React.FC = () => {
               <TableHead className="w-16">Foto</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead>Contas Ativadas</TableHead>
-              <TableHead>Status</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transformedMembers.map(member => {
+            {members.map(member => {
               const memberAccounts = getMemberAccounts(member.id);
               
               return (
@@ -194,7 +223,7 @@ const AdminMembers: React.FC = () => {
                   <TableCell>
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">
                       <ImagePlaceholder
-                        src={member.profile_image}
+                        src={member.profile?.avatar_url}
                         alt={member.name}
                         className="w-full h-full object-cover"
                       />
@@ -202,6 +231,11 @@ const AdminMembers: React.FC = () => {
                   </TableCell>
                   <TableCell className="font-medium">{member.name}</TableCell>
                   <TableCell>{member.email}</TableCell>
+                  <TableCell>
+                    <Badge variant={member.role === 'admin' ? "default" : "secondary"}>
+                      {member.role === 'admin' ? 'Admin' : 'Membro'}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     {memberAccounts.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
@@ -214,11 +248,6 @@ const AdminMembers: React.FC = () => {
                     ) : (
                       <span className="text-muted-foreground text-sm">Nenhuma conta</span>
                     )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={member.isApproved ? "default" : "secondary"}>
-                      {member.isApproved ? 'Aprovado' : 'Pendente'}
-                    </Badge>
                   </TableCell>
                   {isAdmin && (
                     <TableCell className="text-right">
@@ -279,27 +308,30 @@ const AdminMembers: React.FC = () => {
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   required
+                  disabled={!!editingMember}
                 />
               </div>
             </div>
             
             <div>
-              <Label htmlFor="password">Senha *</Label>
+              <Label htmlFor="password">
+                Senha {editingMember ? '(deixe em branco para manter a atual)' : '*'}
+              </Label>
               <Input
                 id="password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                required
+                required={!editingMember}
               />
             </div>
             
             <div>
-              <Label htmlFor="profile_image">URL da Foto</Label>
+              <Label htmlFor="avatar_url">URL da Foto</Label>
               <Input
-                id="profile_image"
-                value={formData.profile_image}
-                onChange={(e) => setFormData(prev => ({ ...prev, profile_image: e.target.value }))}
+                id="avatar_url"
+                value={formData.avatar_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, avatar_url: e.target.value }))}
                 placeholder="https://exemplo.com/foto.jpg"
               />
             </div>
