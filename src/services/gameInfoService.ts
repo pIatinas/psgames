@@ -1,5 +1,4 @@
-
-import { Game } from '@/types';
+import { Game, GamePlatform } from '@/types';
 
 interface RawgGame {
   id: number;
@@ -69,7 +68,7 @@ export const gameInfoService = {
   },
 
   mapRawgToGame(rawgGame: RawgGame): Partial<Game> {
-    const platformMap: Record<string, string> = {
+    const platformMap: Record<string, GamePlatform> = {
       'PlayStation 5': 'PS5',
       'PlayStation 4': 'PS4',
       'PlayStation 3': 'PS3',
@@ -78,18 +77,18 @@ export const gameInfoService = {
 
     const platforms = rawgGame.platforms?.map(p => {
       const platformName = p.platform.name;
-      return platformMap[platformName] || platformName;
-    }).filter(p => ['PS5', 'PS4', 'PS3', 'VITA'].includes(p)) || [];
+      return platformMap[platformName];
+    }).filter((p): p is GamePlatform => p !== undefined) || [];
 
     return {
       name: rawgGame.name,
       image: rawgGame.background_image,
       banner: rawgGame.background_image_additional || rawgGame.background_image,
       platform: platforms,
-      description: rawgGame.description_raw,
-      developer: rawgGame.developers?.[0]?.name,
-      genre: rawgGame.genres?.[0]?.name,
-      release_date: rawgGame.released,
+      description: rawgGame.description_raw || '',
+      developer: rawgGame.developers?.[0]?.name || '',
+      genre: rawgGame.genres?.[0]?.name || '',
+      release_date: rawgGame.released || '',
       rawg_id: rawgGame.id,
     };
   },

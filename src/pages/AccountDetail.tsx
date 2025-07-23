@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, Check, X } from 'lucide-react';
+import { ArrowLeft, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -23,24 +23,20 @@ const AccountDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [openCredentialsDialog, setOpenCredentialsDialog] = React.useState(false);
   
-  // Encontrar a conta pelo ID
   const account = accounts.find(account => account.id === id);
   
-  // Se a conta não for encontrada
   if (!account) {
     return <AccountNotFound />;
   }
 
-  // Verificar se o membro atual está usando um slot nesta conta
-  const isUsingSlot = currentUser?.member && account.slots?.some(slot => 
-    slot.user_id === currentUser.member?.id
+  const isUsingSlot = currentUser && account.slots?.some(slot => 
+    slot.user_id === currentUser.id
   );
   
-  // Verificar se há slots disponíveis
   const availableSlots = 2 - (account.slots?.length || 0);
   
   const handleUseSlot = (slotNumber: 1 | 2) => {
-    if (!currentUser || !currentUser.member) {
+    if (!currentUser) {
       toast({
         title: "Login necessário",
         description: "Você precisa fazer login para utilizar esta conta",
@@ -50,7 +46,6 @@ const AccountDetail = () => {
       return;
     }
     
-    // Update account with new slot
     if (!account.slots) {
       account.slots = [];
     }
@@ -59,12 +54,11 @@ const AccountDetail = () => {
       id: `slot-${Date.now()}`,
       account_id: account.id,
       slot_number: slotNumber,
-      user_id: currentUser.member.id,
+      user_id: currentUser.id,
       entered_at: new Date().toISOString(),
       created_at: new Date().toISOString()
     });
     
-    // Show credentials dialog
     setOpenCredentialsDialog(true);
     
     toast({
@@ -74,9 +68,8 @@ const AccountDetail = () => {
   };
   
   const handleReleaseAccount = () => {
-    if (currentUser?.member && account.slots) {
-      // Remove member from slot
-      account.slots = account.slots.filter(slot => slot.user_id !== currentUser.member?.id);
+    if (currentUser && account.slots) {
+      account.slots = account.slots.filter(slot => slot.user_id !== currentUser.id);
       
       toast({
         title: "Conta devolvida",
@@ -85,7 +78,6 @@ const AccountDetail = () => {
     }
   };
 
-  // Helper functions for slot management
   const getSlotByNumber = (slotNumber: number) => {
     return account.slots?.find(slot => slot.slot_number === slotNumber);
   };
@@ -114,13 +106,10 @@ const AccountDetail = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Coluna principal */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Jogos da conta */}
               <AccountGamesList games={account.games} />
             </div>
             
-            {/* Barra lateral */}
             <div>
               <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20 space-y-6">
                 <div>
@@ -147,7 +136,7 @@ const AccountDetail = () => {
                               Utilizar
                             </Button>
                           ) : (
-                            getSlotByNumber(1)?.user?.name || 'Ocupado'
+                            'Ocupado'
                           )}
                         </div>
                       </div>
@@ -171,7 +160,7 @@ const AccountDetail = () => {
                               Utilizar
                             </Button>
                           ) : (
-                            getSlotByNumber(2)?.user?.name || 'Ocupado'
+                            'Ocupado'
                           )}
                         </div>
                       </div>
@@ -201,7 +190,6 @@ const AccountDetail = () => {
 
       <Footer />
       
-      {/* Dialog para mostrar credenciais de acesso */}
       <Dialog open={openCredentialsDialog} onOpenChange={setOpenCredentialsDialog}>
         <DialogContent>
           <DialogHeader>

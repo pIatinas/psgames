@@ -16,6 +16,16 @@ export interface Game {
 
 export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA";
 
+export interface Payment {
+  id: string;
+  member_id: string;
+  month: number;
+  year: number;
+  amount: number;
+  paid_at: string;
+  status: 'paid' | 'pending';
+}
+
 export interface Account {
   id: string;
   email: string;
@@ -37,6 +47,10 @@ export interface AccountSlot {
   user_id?: string;
   entered_at?: string;
   created_at: string;
+  user?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface Member {
@@ -50,6 +64,7 @@ export interface Member {
   created_at: string;
   updated_at: string;
   accounts?: Account[];
+  payments?: Payment[];
 }
 
 export type UserRole = 'admin' | 'member';

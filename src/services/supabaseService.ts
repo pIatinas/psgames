@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Game, Account, User, GamePlatform } from '@/types';
 
@@ -17,7 +16,11 @@ export const gameService = {
     
     return (data || []).map(game => ({
       ...game,
-      platform: game.platform as GamePlatform[]
+      platform: (game.platform as GamePlatform[]) || [],
+      description: game.description || '',
+      developer: game.developer || '',
+      genre: game.genre || '',
+      release_date: game.release_date || ''
     }));
   },
 
@@ -42,7 +45,17 @@ export const gameService = {
   async create(game: Omit<Game, 'id' | 'created_at' | 'updated_at'>): Promise<Game | null> {
     const { data, error } = await supabase
       .from('games')
-      .insert(game)
+      .insert({
+        name: game.name,
+        image: game.image,
+        banner: game.banner,
+        platform: game.platform,
+        description: game.description || '',
+        developer: game.developer || '',
+        genre: game.genre || '',
+        release_date: game.release_date || '',
+        rawg_id: game.rawg_id
+      })
       .select()
       .single();
     
@@ -116,7 +129,10 @@ export const accountService = {
         ...ag.games,
         platform: ag.games.platform as GamePlatform[]
       })) || [],
-      slots: account.account_slots || []
+      slots: (account.account_slots || []).map((slot: any) => ({
+        ...slot,
+        slot_number: slot.slot_number as 1 | 2
+      }))
     }));
   },
 
@@ -144,14 +160,24 @@ export const accountService = {
         ...ag.games,
         platform: ag.games.platform as GamePlatform[]
       })) || [],
-      slots: data.account_slots || []
+      slots: (data.account_slots || []).map((slot: any) => ({
+        ...slot,
+        slot_number: slot.slot_number as 1 | 2
+      }))
     };
   },
 
   async create(account: Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>): Promise<Account | null> {
     const { data, error } = await supabase
       .from('accounts')
-      .insert(account)
+      .insert({
+        email: account.email,
+        password: account.password,
+        birthday: account.birthday,
+        security_answer: account.security_answer,
+        codes: account.codes,
+        qr_code: account.qr_code
+      })
       .select()
       .single();
     

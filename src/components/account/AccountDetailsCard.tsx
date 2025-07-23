@@ -16,7 +16,6 @@ interface AccountDetailsCardProps {
 }
 
 const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({ account, usedBy }) => {
-  // Calculate available slots
   const usedSlots = account.slots?.length || 0;
   const availableSlots = 2 - usedSlots;
 
@@ -46,10 +45,10 @@ const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({ account, usedBy
                 <div key={slotNumber} className={`text-sm px-3 py-2 rounded-md ${isOccupied ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
                   <div className="font-medium">Slot {slotNumber}</div>
                   <div>{isOccupied ? 'Em uso' : 'Disponível'}</div>
-                  {isOccupied && slot?.user && (
+                  {isOccupied && slot?.user_id && (
                     <div className="flex items-center mt-1 text-xs gap-1">
                       <User className="h-3 w-3" />
-                      {slot.user.name}
+                      Usuário ocupando
                     </div>
                   )}
                 </div>
