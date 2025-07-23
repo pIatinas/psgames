@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -6,7 +7,7 @@ import SectionTitle from '@/components/SectionTitle';
 import { games, accounts } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, ArrowLeft, Trophy, Check, X, User } from 'lucide-react';
+import { Calendar, ArrowLeft, Trophy, Check, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchGameInfo } from '@/services/gameInfoService';
 import { Account } from '@/types';
@@ -207,19 +208,6 @@ const GameDetail = () => {
                     )}
                   </div>
                 )}
-                
-                {game.referenceLink && (
-                  <div className="mt-4">
-                    <a 
-                      href={game.referenceLink} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      Ver mais informações sobre este jogo
-                    </a>
-                  </div>
-                )}
               </div>
               
               {/* Accounts with this game */}
@@ -251,6 +239,15 @@ const GameDetail = () => {
 
 // Updated account card component to show member names
 const AccountCard = ({ account }: { account: Account }) => {
+  // Helper functions for slot management
+  const getSlotByNumber = (slotNumber: number) => {
+    return account.slots?.find(slot => slot.slot_number === slotNumber);
+  };
+
+  const isSlotOccupied = (slotNumber: number) => {
+    return getSlotByNumber(slotNumber) !== undefined;
+  };
+
   return (
     <div className="border rounded-lg p-4">
       <div className="flex justify-between mb-2">
@@ -263,12 +260,12 @@ const AccountCard = ({ account }: { account: Account }) => {
       </div>
       
       <div className="grid grid-cols-2 gap-2 mt-4">
-        <div className={`p-3 rounded text-center ${!account.slot1 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+        <div className={`p-3 rounded text-center ${!isSlotOccupied(1) ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
           <div className="text-xs">Slot 1</div>
-          {account.slot1 ? (
+          {isSlotOccupied(1) ? (
             <div className="flex items-center justify-center mt-1 flex-col">
               <User className="h-4 w-4" />
-              <span className="text-xs mt-1">{account.slot1.member.name}</span>
+              <span className="text-xs mt-1">Ocupado</span>
             </div>
           ) : (
             <div className="flex justify-center mt-1">
@@ -277,12 +274,12 @@ const AccountCard = ({ account }: { account: Account }) => {
           )}
         </div>
         
-        <div className={`p-3 rounded text-center ${!account.slot2 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+        <div className={`p-3 rounded text-center ${!isSlotOccupied(2) ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
           <div className="text-xs">Slot 2</div>
-          {account.slot2 ? (
+          {isSlotOccupied(2) ? (
             <div className="flex items-center justify-center mt-1 flex-col">
               <User className="h-4 w-4" />
-              <span className="text-xs mt-1">{account.slot2.member.name}</span>
+              <span className="text-xs mt-1">Ocupado</span>
             </div>
           ) : (
             <div className="flex justify-center mt-1">

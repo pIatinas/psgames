@@ -25,20 +25,10 @@ export const gameService = {
     return data;
   },
 
-  async create(game: Omit<Game, 'id' | 'created_at' | 'updated_at'>): Promise<Game> {
+  async create(game: { name: string; image?: string; banner?: string; platform: string[]; description?: string; developer?: string; genre?: string; release_date?: string; rawg_id?: number }): Promise<Game> {
     const { data, error } = await supabase
       .from('games')
-      .insert({
-        name: game.name,
-        image: game.image,
-        banner: game.banner,
-        platform: game.platform,
-        description: game.description,
-        developer: game.developer,
-        genre: game.genre,
-        release_date: game.release_date,
-        rawg_id: game.rawg_id
-      })
+      .insert(game)
       .select()
       .single();
     
@@ -132,17 +122,10 @@ export const accountService = {
     };
   },
 
-  async create(account: Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>, gameIds: string[] = []): Promise<Account> {
+  async create(account: { email: string; password: string; birthday?: string; security_answer?: string; codes?: string; qr_code?: string }, gameIds: string[] = []): Promise<Account> {
     const { data: accountData, error: accountError } = await supabase
       .from('accounts')
-      .insert({
-        email: account.email,
-        password: account.password,
-        birthday: account.birthday,
-        security_answer: account.security_answer,
-        codes: account.codes,
-        qr_code: account.qr_code
-      })
+      .insert(account)
       .select()
       .single();
     
@@ -248,12 +231,7 @@ export const userService = {
   async getAll(): Promise<User[]> {
     const { data, error } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        user_accounts(
-          accounts(*)
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
@@ -262,21 +240,19 @@ export const userService = {
       id: profile.id,
       name: profile.name || 'User',
       email: '', // Will be populated from auth.users if needed
-      role: profile.role as 'admin' | 'member',
-      profile,
-      accounts: profile.user_accounts?.map((ua: any) => ua.accounts) || []
+      role: (profile.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member',
+      profile: {
+        ...profile,
+        role: (profile.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member'
+      },
+      accounts: [] // Will be populated if needed
     }));
   },
 
   async getById(id: string): Promise<User | null> {
     const { data, error } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        user_accounts(
-          accounts(*)
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .maybeSingle();
     
@@ -287,9 +263,12 @@ export const userService = {
       id: data.id,
       name: data.name || 'User',
       email: '', // Will be populated from auth.users if needed
-      role: data.role as 'admin' | 'member',
-      profile: data,
-      accounts: data.user_accounts?.map((ua: any) => ua.accounts) || []
+      role: (data.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member',
+      profile: {
+        ...data,
+        role: (data.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member'
+      },
+      accounts: [] // Will be populated if needed
     };
   },
 
@@ -302,7 +281,11 @@ export const userService = {
       .single();
     
     if (error) throw error;
-    return data;
+    
+    return {
+      ...data,
+      role: (data.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member'
+    };
   },
 
   async assignAccount(userId: string, accountId: string): Promise<void> {

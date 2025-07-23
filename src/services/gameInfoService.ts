@@ -1,3 +1,4 @@
+
 import { Game } from '@/types';
 
 interface RawgGame {
@@ -16,6 +17,32 @@ interface RawgGame {
   }>;
   metacritic?: number;
   rating?: number;
+}
+
+interface TrophyInfo {
+  bronze: number;
+  silver: number;
+  gold: number;
+  platinum: number;
+  total: number;
+}
+
+interface GameInfo {
+  trophyInfo?: TrophyInfo;
+  description?: string;
+  developer?: string;
+  genre?: string;
+  releaseDate?: string;
+}
+
+interface MemberTrophyStats {
+  platinum: number;
+  gold: number;
+  silver: number;
+  bronze: number;
+  totalTrophies: number;
+  level: number;
+  recentlyPlayed?: string[];
 }
 
 export const gameInfoService = {
@@ -111,4 +138,45 @@ export const gameInfoService = {
       rawg_id: mappedGame.rawg_id,
     };
   }
+};
+
+// Mock implementation for fetchGameInfo
+export const fetchGameInfo = async (game: Game): Promise<GameInfo> => {
+  // Mock trophy data
+  const mockTrophyInfo: TrophyInfo = {
+    bronze: Math.floor(Math.random() * 50) + 10,
+    silver: Math.floor(Math.random() * 20) + 5,
+    gold: Math.floor(Math.random() * 10) + 2,
+    platinum: Math.random() > 0.3 ? 1 : 0,
+    total: 0
+  };
+  
+  mockTrophyInfo.total = mockTrophyInfo.bronze + mockTrophyInfo.silver + mockTrophyInfo.gold + mockTrophyInfo.platinum;
+
+  return {
+    trophyInfo: mockTrophyInfo,
+    description: game.description || `This is an exclusive game available in our sharing system.`,
+    developer: game.developer,
+    genre: game.genre,
+    releaseDate: game.release_date
+  };
+};
+
+// Mock implementation for fetchMemberTrophyStats
+export const fetchMemberTrophyStats = async (psnId: string): Promise<MemberTrophyStats> => {
+  // Mock data based on PSN ID
+  return {
+    platinum: Math.floor(Math.random() * 50) + 10,
+    gold: Math.floor(Math.random() * 200) + 50,
+    silver: Math.floor(Math.random() * 500) + 100,
+    bronze: Math.floor(Math.random() * 1000) + 200,
+    totalTrophies: 0,
+    level: Math.floor(Math.random() * 500) + 100,
+    recentlyPlayed: [
+      'God of War',
+      'Spider-Man',
+      'The Last of Us Part II',
+      'Ghost of Tsushima'
+    ].slice(0, Math.floor(Math.random() * 4) + 1)
+  };
 };
