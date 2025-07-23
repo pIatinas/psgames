@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +33,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Game, GamePlatform } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { gameService, accountService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -449,7 +448,7 @@ const AdminGames: React.FC = () => {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </Dialog>
+      </AlertDialog>
     </div>
   );
 };
