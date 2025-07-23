@@ -55,6 +55,7 @@ export interface User {
   email: string;
   role: 'admin' | 'member';
   profile?: Profile;
+  member?: Member;
   accounts?: Account[];
 }
 

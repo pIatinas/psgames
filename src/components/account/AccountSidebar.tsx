@@ -27,12 +27,11 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
   const [openDialog, setOpenDialog] = React.useState(false);
   
   // Verificar se o membro atual está usando um slot nesta conta
-  const isUsingSlot = 
-    (account.slot1 && account.slot1.member.id === currentMemberId) || 
-    (account.slot2 && account.slot2.member.id === currentMemberId);
+  const isUsingSlot = account.slots?.some(slot => slot.user_id === currentMemberId);
   
   // Verificar se há slots disponíveis
-  const hasAvailableSlot = !account.slot1 || !account.slot2;
+  const usedSlots = account.slots?.length || 0;
+  const hasAvailableSlot = usedSlots < 2;
   
   const handleUseAccount = () => {
     if (!isLoggedIn) {
@@ -70,7 +69,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
         <div className="flex items-center justify-center">
           <div className="w-32 h-32 p-2 rounded-lg neon-blue-border bg-secondary/10">
             <img 
-              src={account.qrcode} 
+              src={account.qr_code} 
               alt="QR Code"
               className="w-full h-full object-contain"
             />
@@ -82,7 +81,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
             <Users className="h-5 w-5 text-secondary" />
             <div>
               <h3 className="font-semibold">
-                {2 - (account.slot1 ? 1 : 0) - (account.slot2 ? 1 : 0)} slots disponíveis
+                {2 - usedSlots} slots disponíveis
               </h3>
             </div>
           </div>
@@ -149,7 +148,7 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
               </div>
               <div>
                 <div className="font-medium">Código de Acesso</div>
-                <div className="p-2 bg-muted rounded-md">{account.code}</div>
+                <div className="p-2 bg-muted rounded-md">{account.codes}</div>
               </div>
             </div>
           </div>

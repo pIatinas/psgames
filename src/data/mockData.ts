@@ -1,13 +1,19 @@
 import { Account, Game, GamePlatform, Member, Payment, SlotOccupation, User } from "../types";
 
 // Helper para criar datas em um formato mais legível
+const createDate = (daysAgo = 0): Date => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date;
+};
+
 const createDateString = (daysAgo = 0): string => {
   const date = new Date();
   date.setDate(date.getDate() - daysAgo);
   return date.toISOString();
 };
 
-// Dados de jogos - mantidos para compatibilidade mas não usados mais
+// Dados de jogos
 export const games: Game[] = [
   {
     id: "1",
@@ -119,7 +125,7 @@ export const games: Game[] = [
   }
 ];
 
-// Dados de contas - mantidos para compatibilidade mas não usados mais
+// Dados de contas
 export const accounts: Account[] = [
   {
     id: "1",
@@ -198,7 +204,7 @@ export const members: Member[] = [
     password: "senha123",
     psn_id: "joaosilva_psn",
     profile_image: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&h=100&fit=crop",
-    created_at: createDateString(30),
+    created_at: createDate(30),
     isApproved: true,
     payments: [
       {
@@ -207,7 +213,7 @@ export const members: Member[] = [
         month: new Date().getMonth(),
         year: new Date().getFullYear(),
         amount: 30.0,
-        paid_at: createDateString(5),
+        paid_at: createDate(5),
         status: "paid",
       },
     ],
@@ -219,7 +225,7 @@ export const members: Member[] = [
     password: "senha456",
     psn_id: "maria_oliveira",
     profile_image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&h=100&fit=crop",
-    created_at: createDateString(25),
+    created_at: createDate(25),
     isApproved: true,
     payments: [
       {
@@ -228,7 +234,7 @@ export const members: Member[] = [
         month: new Date().getMonth(),
         year: new Date().getFullYear(),
         amount: 30.0,
-        paid_at: createDateString(3),
+        paid_at: createDate(3),
         status: "paid",
       },
     ],
@@ -240,7 +246,7 @@ export const members: Member[] = [
     password: "senha789",
     psn_id: "pedro_santos",
     profile_image: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=100&h=100&fit=crop",
-    created_at: createDateString(20),
+    created_at: createDate(20),
     isApproved: true,
     payments: [
       {
@@ -249,7 +255,7 @@ export const members: Member[] = [
         month: new Date().getMonth(),
         year: new Date().getFullYear(),
         amount: 30.0,
-        paid_at: createDateString(2),
+        paid_at: createDate(2),
         status: "paid",
       },
     ],
@@ -261,7 +267,7 @@ export const members: Member[] = [
     password: "senhaABC",
     psn_id: "ana_costa",
     profile_image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=100&h=100&fit=crop",
-    created_at: createDateString(15),
+    created_at: createDate(15),
     isApproved: true,
     payments: [
       {
@@ -270,7 +276,7 @@ export const members: Member[] = [
         month: new Date().getMonth(),
         year: new Date().getFullYear(),
         amount: 30.0,
-        paid_at: createDateString(1),
+        paid_at: createDate(1),
         status: "paid",
       },
     ],
@@ -282,7 +288,7 @@ export const members: Member[] = [
     password: "senhaDEF",
     psn_id: "lucas_ferreira",
     profile_image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&h=100&fit=crop",
-    created_at: createDateString(10),
+    created_at: createDate(10),
     isApproved: false,
     payments: [],
   },
@@ -293,13 +299,13 @@ export const members: Member[] = [
     password: "senhaGHI",
     psn_id: "juliana_rocha",
     profile_image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&h=100&fit=crop",
-    created_at: createDateString(5),
+    created_at: createDate(5),
     isApproved: false,
     payments: [],
   }
 ];
 
-// Configurando o uso de slots para alguns membros e conectando membros às contas
+// Configurando o uso de slots para alguns membros
 const now = new Date();
 accounts[0].slots = [{
   id: "s1",

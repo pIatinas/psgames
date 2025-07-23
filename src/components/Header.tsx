@@ -66,7 +66,7 @@ const Header: React.FC = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2 flex items-center text-white">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={currentUser.member?.profile_image} />
+                    <AvatarImage src={currentUser.profile?.avatar_url} />
                     <AvatarFallback>{getUserInitials()}</AvatarFallback>
                   </Avatar>
                   <span className="max-w-24 truncate">{currentUser.name}</span>

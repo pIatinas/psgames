@@ -63,8 +63,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateCurrentUser = (updatedUser: User) => {
     setCurrentUser(updatedUser);
     
-    // Update the member record in Supabase if member data exists
-    if (updatedUser.member && session?.user) {
+    // Update the profile in Supabase if user data exists
+    if (session?.user) {
       updateUserProfile(updatedUser, session.user.id);
     }
   };

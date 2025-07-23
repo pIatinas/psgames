@@ -17,9 +17,8 @@ interface AccountDetailsCardProps {
 
 const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({ account, usedBy }) => {
   // Calculate available slots
-  const availableSlots = 2 - 
-    (account.slot1 ? 1 : 0) - 
-    (account.slot2 ? 1 : 0);
+  const usedSlots = account.slots?.length || 0;
+  const availableSlots = 2 - usedSlots;
 
   return (
     <Card>
@@ -39,26 +38,23 @@ const AccountDetailsCard: React.FC<AccountDetailsCardProps> = ({ account, usedBy
         <div>
           <div className="text-sm font-medium">Status dos Slots</div>
           <div className="grid grid-cols-2 gap-4 mt-2">
-            <div className={`text-sm px-3 py-2 rounded-md ${account.slot1 ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
-              <div className="font-medium">Slot 1</div>
-              <div>{account.slot1 ? 'Em uso' : 'Disponível'}</div>
-              {account.slot1 && (
-                <div className="flex items-center mt-1 text-xs gap-1">
-                  <User className="h-3 w-3" />
-                  {account.slot1.member.name}
+            {[1, 2].map(slotNumber => {
+              const slot = account.slots?.find(s => s.slot_number === slotNumber);
+              const isOccupied = !!slot;
+              
+              return (
+                <div key={slotNumber} className={`text-sm px-3 py-2 rounded-md ${isOccupied ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
+                  <div className="font-medium">Slot {slotNumber}</div>
+                  <div>{isOccupied ? 'Em uso' : 'Disponível'}</div>
+                  {isOccupied && slot?.user && (
+                    <div className="flex items-center mt-1 text-xs gap-1">
+                      <User className="h-3 w-3" />
+                      {slot.user.name}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className={`text-sm px-3 py-2 rounded-md ${account.slot2 ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
-              <div className="font-medium">Slot 2</div>
-              <div>{account.slot2 ? 'Em uso' : 'Disponível'}</div>
-              {account.slot2 && (
-                <div className="flex items-center mt-1 text-xs gap-1">
-                  <User className="h-3 w-3" />
-                  {account.slot2.member.name}
-                </div>
-              )}
-            </div>
+              );
+            })}
           </div>
         </div>
 

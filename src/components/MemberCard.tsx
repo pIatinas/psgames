@@ -15,8 +15,7 @@ interface MemberCardProps {
 const MemberCard: React.FC<MemberCardProps> = ({ member, className = '' }) => {
   // Calcular quantas contas o membro está usando
   const activeAccounts = accounts.filter(account => 
-    (account.slot1 && account.slot1.member.id === member.id) ||
-    (account.slot2 && account.slot2.member.id === member.id)
+    account.slots?.some(slot => slot.user_id === member.id)
   );
   
   // Obter as iniciais do nome
