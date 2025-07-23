@@ -7,33 +7,63 @@ import {
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { useMemberManagement } from '@/hooks/useMemberManagement';
+import { userService, accountService } from '@/services/supabaseService';
+import { useQuery } from '@tanstack/react-query';
 import MembersList from './members/MembersList';
-import MemberForm from './members/MemberForm';
 
 const AdminMembers: React.FC = () => {
   const { toast } = useToast();
-  const {
-    members,
-    accounts,
-    newMember,
-    setNewMember,
-    selectedAccounts,
-    setSelectedAccounts,
-    isEditing,
-    setIsEditing,
-    open,
-    setOpen,
-    handleAccountToggle,
-    handleSaveMember,
-    handleEditMember,
-    handleDeleteMember,
-  } = useMemberManagement();
+
+  const { data: members = [], isLoading: membersLoading } = useQuery({
+    queryKey: ['admin-members'],
+    queryFn: () => userService.getAll(),
+  });
+
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['admin-accounts'],
+    queryFn: () => accountService.getAll(),
+  });
+
+  // Transform users to members format for compatibility
+  const transformedMembers = members.map(user => ({
+    id: user.id,
+    name: user.name,
+    email: user.email || '',
+    password: '', // Not available from users
+    psn_id: '', // Not available from users  
+    profile_image: user.profile?.avatar_url || '',
+    isApproved: true, // Assume approved if they exist
+    created_at: user.profile?.created_at || '',
+    updated_at: user.profile?.updated_at || '',
+  }));
+
+  const handleEditMember = (member: any) => {
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: "A edição de membros estará disponível em breve.",
+    });
+  };
+
+  const handleDeleteMember = (id: string) => {
+    toast({
+      title: "Funcionalidade em desenvolvimento", 
+      description: "A exclusão de membros estará disponível em breve.",
+    });
+  };
+
+  if (membersLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg text-muted-foreground">Carregando membros...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <div className="flex justify-end mb-6">
-        <Dialog open={open} onOpenChange={setOpen}>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-white">Gerenciar Membros</h2>
+        <Dialog>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -42,29 +72,17 @@ const AdminMembers: React.FC = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{isEditing ? 'Editar Membro' : 'Adicionar Novo Membro'}</DialogTitle>
+              <DialogTitle>Adicionar Novo Membro</DialogTitle>
               <DialogDescription>
-                Preencha os detalhes do membro abaixo.
+                Funcionalidade em desenvolvimento. Em breve você poderá adicionar novos membros.
               </DialogDescription>
             </DialogHeader>
-            
-            <MemberForm
-              newMember={newMember}
-              setNewMember={setNewMember}
-              selectedAccounts={selectedAccounts}
-              setSelectedAccounts={setSelectedAccounts}
-              accounts={accounts}
-              handleAccountToggle={handleAccountToggle}
-              handleSaveMember={handleSaveMember}
-              isEditing={isEditing}
-              setOpen={setOpen}
-            />
           </DialogContent>
         </Dialog>
       </div>
       
       <MembersList
-        members={members}
+        members={transformedMembers}
         accounts={accounts}
         handleEditMember={handleEditMember}
         handleDeleteMember={handleDeleteMember}

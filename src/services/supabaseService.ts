@@ -1,8 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Game, Account, User, Profile, AccountSlot } from '@/types';
+import { Game, Account, User } from '@/types';
 
-// Games Service
+// Game service
 export const gameService = {
   async getAll(): Promise<Game[]> {
     const { data, error } = await supabase
@@ -10,7 +10,11 @@ export const gameService = {
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching games:', error);
+      return [];
+    }
+    
     return data || [];
   },
 
@@ -19,58 +23,63 @@ export const gameService = {
       .from('games')
       .select('*')
       .eq('id', id)
-      .maybeSingle();
+      .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching game:', error);
+      return null;
+    }
+    
     return data;
   },
 
-  async create(game: { name: string; image?: string; banner?: string; platform: string[]; description?: string; developer?: string; genre?: string; release_date?: string; rawg_id?: number }): Promise<Game> {
+  async create(game: Omit<Game, 'id' | 'created_at' | 'updated_at'>): Promise<Game | null> {
     const { data, error } = await supabase
       .from('games')
       .insert(game)
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating game:', error);
+      return null;
+    }
+    
     return data;
   },
 
-  async update(id: string, game: Partial<Game>): Promise<Game> {
-    const updateData: any = {};
-    
-    if (game.name !== undefined) updateData.name = game.name;
-    if (game.image !== undefined) updateData.image = game.image;
-    if (game.banner !== undefined) updateData.banner = game.banner;
-    if (game.platform !== undefined) updateData.platform = game.platform;
-    if (game.description !== undefined) updateData.description = game.description;
-    if (game.developer !== undefined) updateData.developer = game.developer;
-    if (game.genre !== undefined) updateData.genre = game.genre;
-    if (game.release_date !== undefined) updateData.release_date = game.release_date;
-    if (game.rawg_id !== undefined) updateData.rawg_id = game.rawg_id;
-    
+  async update(id: string, game: Partial<Game>): Promise<Game | null> {
     const { data, error } = await supabase
       .from('games')
-      .update(updateData)
+      .update(game)
       .eq('id', id)
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating game:', error);
+      return null;
+    }
+    
     return data;
   },
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<boolean> {
     const { error } = await supabase
       .from('games')
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting game:', error);
+      return false;
+    }
+    
+    return true;
   }
 };
 
-// Accounts Service
+// Account service
 export const accountService = {
   async getAll(): Promise<Account[]> {
     const { data, error } = await supabase
@@ -80,15 +89,16 @@ export const accountService = {
         account_games(
           games(*)
         ),
-        account_slots(
-          *,
-          user_id
-        )
+        account_slots(*)
       `)
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching accounts:', error);
+      return [];
+    }
     
+    // Transform the data to match our Account interface
     return (data || []).map(account => ({
       ...account,
       games: account.account_games?.map((ag: any) => ag.games) || [],
@@ -104,17 +114,16 @@ export const accountService = {
         account_games(
           games(*)
         ),
-        account_slots(
-          *,
-          user_id
-        )
+        account_slots(*)
       `)
       .eq('id', id)
-      .maybeSingle();
+      .single();
     
-    if (error) throw error;
-    if (!data) return null;
-
+    if (error) {
+      console.error('Error fetching account:', error);
+      return null;
+    }
+    
     return {
       ...data,
       games: data.account_games?.map((ag: any) => ag.games) || [],
@@ -122,215 +131,89 @@ export const accountService = {
     };
   },
 
-  async create(account: { email: string; password: string; birthday?: string; security_answer?: string; codes?: string; qr_code?: string }, gameIds: string[] = []): Promise<Account> {
-    const { data: accountData, error: accountError } = await supabase
+  async create(account: Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>): Promise<Account | null> {
+    const { data, error } = await supabase
       .from('accounts')
       .insert(account)
       .select()
       .single();
     
-    if (accountError) throw accountError;
-
-    // Link games to account
-    if (gameIds.length > 0) {
-      const gameLinks = gameIds.map(gameId => ({
-        account_id: accountData.id,
-        game_id: gameId
-      }));
-
-      const { error: gameError } = await supabase
-        .from('account_games')
-        .insert(gameLinks);
-      
-      if (gameError) throw gameError;
+    if (error) {
+      console.error('Error creating account:', error);
+      return null;
     }
-
-    return this.getById(accountData.id) as Promise<Account>;
+    
+    return { ...data, games: [], slots: [] };
   },
 
-  async update(id: string, account: Partial<Account>, gameIds?: string[]): Promise<Account> {
-    const updateData: any = {};
-    
-    if (account.email !== undefined) updateData.email = account.email;
-    if (account.password !== undefined) updateData.password = account.password;
-    if (account.birthday !== undefined) updateData.birthday = account.birthday;
-    if (account.security_answer !== undefined) updateData.security_answer = account.security_answer;
-    if (account.codes !== undefined) updateData.codes = account.codes;
-    if (account.qr_code !== undefined) updateData.qr_code = account.qr_code;
-    
+  async update(id: string, account: Partial<Account>): Promise<Account | null> {
     const { data, error } = await supabase
       .from('accounts')
-      .update(updateData)
+      .update(account)
       .eq('id', id)
       .select()
       .single();
     
-    if (error) throw error;
-
-    // Update game links if provided
-    if (gameIds !== undefined) {
-      // Remove existing links
-      await supabase
-        .from('account_games')
-        .delete()
-        .eq('account_id', id);
-
-      // Add new links
-      if (gameIds.length > 0) {
-        const gameLinks = gameIds.map(gameId => ({
-          account_id: id,
-          game_id: gameId
-        }));
-
-        const { error: gameError } = await supabase
-          .from('account_games')
-          .insert(gameLinks);
-        
-        if (gameError) throw gameError;
-      }
+    if (error) {
+      console.error('Error updating account:', error);
+      return null;
     }
-
-    return this.getById(id) as Promise<Account>;
+    
+    return { ...data, games: [], slots: [] };
   },
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<boolean> {
     const { error } = await supabase
       .from('accounts')
       .delete()
       .eq('id', id);
     
-    if (error) throw error;
-  },
-
-  async occupySlot(accountId: string, slotNumber: number, userId: string): Promise<void> {
-    const { error } = await supabase
-      .from('account_slots')
-      .upsert({
-        account_id: accountId,
-        slot_number: slotNumber,
-        user_id: userId,
-        entered_at: new Date().toISOString()
-      });
+    if (error) {
+      console.error('Error deleting account:', error);
+      return false;
+    }
     
-    if (error) throw error;
-  },
-
-  async freeSlot(accountId: string, slotNumber: number): Promise<void> {
-    const { error } = await supabase
-      .from('account_slots')
-      .delete()
-      .eq('account_id', accountId)
-      .eq('slot_number', slotNumber);
-    
-    if (error) throw error;
+    return true;
   }
 };
 
-// Users Service
+// User service
 export const userService = {
   async getAll(): Promise<User[]> {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select(`
+        *,
+        user_roles(*)
+      `)
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
-    
-    return (data || []).map(profile => ({
-      id: profile.id,
-      name: profile.name || 'User',
-      email: '', // Will be populated from auth.users if needed
-      role: (profile.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member',
-      profile: {
-        ...profile,
-        role: (profile.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member'
-      },
-      accounts: [] // Will be populated if needed
-    }));
-  },
-
-  async getById(id: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-    
-    if (error) throw error;
-    if (!data) return null;
-
-    return {
-      id: data.id,
-      name: data.name || 'User',
-      email: '', // Will be populated from auth.users if needed
-      role: (data.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member',
-      profile: {
-        ...data,
-        role: (data.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member'
-      },
-      accounts: [] // Will be populated if needed
-    };
-  },
-
-  async updateProfile(id: string, profile: Partial<Profile>): Promise<Profile> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(profile)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    return {
-      ...data,
-      role: (data.role === 'admin' ? 'admin' : 'member') as 'admin' | 'member'
-    };
-  },
-
-  async assignAccount(userId: string, accountId: string): Promise<void> {
-    const { error } = await supabase
-      .from('user_accounts')
-      .insert({
-        user_id: userId,
-        account_id: accountId
-      });
-    
-    if (error) throw error;
-  },
-
-  async removeAccount(userId: string, accountId: string): Promise<void> {
-    const { error } = await supabase
-      .from('user_accounts')
-      .delete()
-      .eq('user_id', userId)
-      .eq('account_id', accountId);
-    
-    if (error) throw error;
-  }
-};
-
-// RAWG API Service for game data
-export const rawgService = {
-  async searchGame(query: string): Promise<any[]> {
-    try {
-      const response = await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&page_size=10`);
-      const data = await response.json();
-      return data.results || [];
-    } catch (error) {
-      console.error('Error fetching from RAWG API:', error);
+    if (error) {
+      console.error('Error fetching users:', error);
       return [];
     }
-  },
-
-  async getGameById(id: number): Promise<any | null> {
-    try {
-      const response = await fetch(`https://api.rawg.io/api/games/${id}`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching game details from RAWG API:', error);
-      return null;
-    }
+    
+    // Transform the data to match our User interface
+    return (data || []).map(profile => {
+      const roles = profile.user_roles || [];
+      const hasAdminRole = roles.some((role: any) => role.role === 'admin');
+      const userRole = hasAdminRole ? 'admin' : 'member';
+      
+      return {
+        id: profile.id,
+        name: profile.name || 'User',
+        email: '', // Email not available in profiles table
+        role: userRole,
+        profile: {
+          id: profile.id,
+          name: profile.name,
+          avatar_url: profile.avatar_url,
+          role: userRole,
+          created_at: profile.created_at,
+          updated_at: profile.updated_at
+        },
+        roles: roles
+      };
+    });
   }
 };

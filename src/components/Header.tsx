@@ -20,6 +20,8 @@ const Header: React.FC = () => {
       .toUpperCase();
   };
 
+  const isAdmin = currentUser?.role === 'admin';
+
   return (
     <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-lg border-b">
       <div className="container flex h-16 items-center justify-between">
@@ -47,7 +49,7 @@ const Header: React.FC = () => {
             <Link to="/members" className="text-sm font-medium text-white hover:text-primary transition-colors">
               Membros
             </Link>
-            {currentUser && currentUser.role === 'admin' && (
+            {isAdmin && (
               <Link to="/admin" className="text-sm font-medium text-white transition-colors flex items-center">
                 <Settings className="h-4 w-4 mr-1" />
                 Admin
@@ -79,6 +81,20 @@ const Header: React.FC = () => {
                 <DropdownMenuItem asChild>
                   <Link to="/my-accounts">Minhas Contas</Link>
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/games">Jogos</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/accounts">Contas</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/members">Membros</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-red-500 focus:text-red-500">
                   <LogOut className="mr-2 h-4 w-4" />

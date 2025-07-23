@@ -1,88 +1,77 @@
-
-export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA";
-
 export interface Game {
   id: string;
   name: string;
-  image?: string;
-  banner?: string;
-  platform: string[];
-  description?: string;
-  developer?: string;
-  genre?: string;
-  release_date?: string;
+  image: string;
+  banner: string;
+  platform: GamePlatform[];
+  description: string;
+  developer: string;
+  genre: string;
+  release_date: string;
   rawg_id?: number;
   created_at: string;
   updated_at: string;
 }
 
+export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA";
+
 export interface Account {
   id: string;
   email: string;
-  password: string;
+  password?: string;
   birthday?: string;
   security_answer?: string;
   codes?: string;
   qr_code?: string;
-  created_at: string;
-  updated_at: string;
   games?: Game[];
   slots?: AccountSlot[];
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AccountSlot {
   id: string;
   account_id: string;
-  slot_number: number;
+  slot_number: 1 | 2;
   user_id?: string;
   entered_at?: string;
   created_at: string;
-  user?: User;
 }
 
-export interface Profile {
-  id: string;
-  name?: string;
-  avatar_url?: string;
-  role: 'admin' | 'member';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'member';
-  profile?: Profile;
-  member?: Member;
-  accounts?: Account[];
-}
-
-// Legacy interfaces for backward compatibility
 export interface Member {
   id: string;
   name: string;
   email: string;
-  password: string;
+  password?: string;
   psn_id: string;
-  profile_image: string;
-  created_at: Date;
+  profile_image?: string;
   isApproved: boolean;
-  payments: Payment[];
+  created_at: string;
+  updated_at: string;
 }
 
-export interface Payment {
+export type UserRole = 'admin' | 'member';
+
+export interface UserRoleData {
   id: string;
-  member_id: string;
-  amount: number;
-  status: 'paid' | 'pending' | 'failed';
-  month: number;
-  year: number;
-  paid_at: Date;
+  user_id: string;
+  role: UserRole;
+  created_at: string;
 }
 
-export interface SlotOccupation {
-  member: Member;
-  entered_at: Date;
+// Update User interface to include roles
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  profile?: {
+    id: string;
+    name?: string;
+    avatar_url?: string;
+    role: UserRole;
+    created_at: string;
+    updated_at: string;
+  };
+  roles?: UserRoleData[];
 }

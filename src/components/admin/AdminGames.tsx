@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,11 +17,12 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Edit, Trash, Gamepad2 } from 'lucide-react';
 import { Game, GamePlatform } from '@/types';
-import { games as gamesData } from '@/data/mockData';
 import { useToast } from '@/components/ui/use-toast';
+import { gameService } from '@/services/supabaseService';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import ImagePlaceholder from '@/components/ui/image-placeholder';
 
 const AdminGames: React.FC = () => {
-  const [games, setGames] = useState<Game[]>(gamesData);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<Game | null>(null);
   const [formData, setFormData] = useState<Partial<Game>>({
@@ -34,6 +36,12 @@ const AdminGames: React.FC = () => {
     release_date: '',
   });
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: games = [], isLoading } = useQuery({
+    queryKey: ['admin-games'],
+    queryFn: () => gameService.getAll(),
+  });
 
   useEffect(() => {
     if (editingGame) {
@@ -64,15 +72,24 @@ const AdminGames: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteGame = (gameId: string) => {
-    setGames(games.filter(game => game.id !== gameId));
-    toast({
-      title: "Jogo removido",
-      description: "O jogo foi removido com sucesso.",
-    });
+  const handleDeleteGame = async (gameId: string) => {
+    const success = await gameService.delete(gameId);
+    if (success) {
+      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
+      toast({
+        title: "Jogo removido",
+        description: "O jogo foi removido com sucesso.",
+      });
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o jogo.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSaveGame = () => {
+  const handleSaveGame = async () => {
     if (!formData.name || !formData.platform || formData.platform.length === 0) {
       toast({
         title: "Erro",
@@ -82,41 +99,28 @@ const AdminGames: React.FC = () => {
       return;
     }
 
+    let result;
     if (editingGame) {
-      // Update existing game
-      const updatedGame = {
-        ...editingGame,
-        ...formData,
-        updated_at: new Date().toISOString(),
-      } as Game;
-      
-      setGames(games.map(game => 
-        game.id === editingGame.id ? updatedGame : game
-      ));
-      
-      toast({
-        title: "Jogo atualizado",
-        description: "O jogo foi atualizado com sucesso.",
-      });
+      result = await gameService.update(editingGame.id, formData);
     } else {
-      // Add new game
-      const newGame: Game = {
-        ...formData,
-        id: `game-${Date.now()}`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      } as Game;
-      
-      setGames([...games, newGame]);
-      
-      toast({
-        title: "Jogo adicionado",
-        description: "O jogo foi adicionado com sucesso.",
-      });
+      result = await gameService.create(formData as Omit<Game, 'id' | 'created_at' | 'updated_at'>);
     }
 
-    setIsDialogOpen(false);
-    setEditingGame(null);
+    if (result) {
+      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
+      toast({
+        title: editingGame ? "Jogo atualizado" : "Jogo adicionado",
+        description: editingGame ? "O jogo foi atualizado com sucesso." : "O jogo foi adicionado com sucesso.",
+      });
+      setIsDialogOpen(false);
+      setEditingGame(null);
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o jogo.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePlatformChange = (platform: GamePlatform, checked: boolean) => {
@@ -132,6 +136,14 @@ const AdminGames: React.FC = () => {
       });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg text-muted-foreground">Carregando jogos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -151,17 +163,12 @@ const AdminGames: React.FC = () => {
         {games.map((game) => (
           <Card key={game.id} className="overflow-hidden">
             <div className="aspect-[3/4] relative">
-              {game.image ? (
-                <img 
-                  src={game.image} 
-                  alt={game.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <Gamepad2 className="h-12 w-12 text-muted-foreground" />
-                </div>
-              )}
+              <ImagePlaceholder
+                src={game.image}
+                alt={game.name}
+                icon={Gamepad2}
+                className="w-full h-full object-cover"
+              />
             </div>
             <CardContent className="p-4">
               <h3 className="font-semibold text-lg mb-2">{game.name}</h3>

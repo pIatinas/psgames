@@ -11,13 +11,14 @@ import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { accounts, games } from '@/data/mockData';
+import { accountService, gameService } from '@/services/supabaseService';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const AdminAccounts: React.FC = () => {
-  const [accountsList, setAccountsList] = useState<Account[]>(accounts);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
+  const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState<Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>>({
     email: '',
@@ -28,6 +29,16 @@ const AdminAccounts: React.FC = () => {
     qr_code: ''
   });
   const [selectedGames, setSelectedGames] = useState<string[]>([]);
+
+  const { data: accounts = [], isLoading: accountsLoading } = useQuery({
+    queryKey: ['admin-accounts'],
+    queryFn: () => accountService.getAll(),
+  });
+
+  const { data: games = [] } = useQuery({
+    queryKey: ['admin-games'],
+    queryFn: () => gameService.getAll(),
+  });
 
   const resetForm = () => {
     setFormData({
@@ -42,7 +53,7 @@ const AdminAccounts: React.FC = () => {
     setEditingAccount(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.email || !formData.password) {
@@ -54,38 +65,28 @@ const AdminAccounts: React.FC = () => {
       return;
     }
 
+    let result;
     if (editingAccount) {
-      // Edit existing account
-      const updatedAccount: Account = {
-        ...editingAccount,
-        ...formData,
-        games: games.filter(game => selectedGames.includes(game.id)),
-        updated_at: new Date().toISOString(),
-      };
-      setAccountsList(prev => prev.map(acc => acc.id === editingAccount.id ? updatedAccount : acc));
-      toast({
-        title: "Conta atualizada",
-        description: "A conta foi atualizada com sucesso.",
-      });
+      result = await accountService.update(editingAccount.id, formData);
     } else {
-      // Create new account
-      const newAccount: Account = {
-        id: `account-${Date.now()}`,
-        ...formData,
-        games: games.filter(game => selectedGames.includes(game.id)),
-        slots: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      setAccountsList(prev => [...prev, newAccount]);
-      toast({
-        title: "Conta criada",
-        description: "A nova conta foi criada com sucesso.",
-      });
+      result = await accountService.create(formData);
     }
 
-    setIsDialogOpen(false);
-    resetForm();
+    if (result) {
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      toast({
+        title: editingAccount ? "Conta atualizada" : "Conta criada",
+        description: editingAccount ? "A conta foi atualizada com sucesso." : "A nova conta foi criada com sucesso.",
+      });
+      setIsDialogOpen(false);
+      resetForm();
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar a conta.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEdit = (account: Account) => {
@@ -102,12 +103,21 @@ const AdminAccounts: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (accountId: string) => {
-    setAccountsList(prev => prev.filter(acc => acc.id !== accountId));
-    toast({
-      title: "Conta excluída",
-      description: "A conta foi excluída com sucesso.",
-    });
+  const handleDelete = async (accountId: string) => {
+    const success = await accountService.delete(accountId);
+    if (success) {
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      toast({
+        title: "Conta excluída",
+        description: "A conta foi excluída com sucesso.",
+      });
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a conta.",
+        variant: "destructive",
+      });
+    }
   };
 
   const togglePasswordVisibility = (accountId: string) => {
@@ -133,6 +143,14 @@ const AdminAccounts: React.FC = () => {
   const isSlotOccupied = (account: Account, slotNumber: number) => {
     return getSlotByNumber(account, slotNumber) !== undefined;
   };
+
+  if (accountsLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg text-muted-foreground">Carregando contas...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -214,24 +232,6 @@ const AdminAccounts: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <Label>Jogos Associados</Label>
-                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded p-2">
-                  {games.map(game => (
-                    <div key={game.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`game-${game.id}`}
-                        checked={selectedGames.includes(game.id)}
-                        onCheckedChange={(checked) => handleGameSelection(game.id, checked as boolean)}
-                      />
-                      <Label htmlFor={`game-${game.id}`} className="text-sm">
-                        {game.name}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
@@ -246,7 +246,7 @@ const AdminAccounts: React.FC = () => {
       </div>
 
       <div className="grid gap-4">
-        {accountsList.map(account => (
+        {accounts.map(account => (
           <Card key={account.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
