@@ -1,29 +1,60 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
 import SectionTitle from '@/components/SectionTitle';
-import { games } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
-import { GamePlatform } from '@/types';
+import { GamePlatform, Game } from '@/types';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
+import { gameService } from '@/services/supabaseService';
 
 const GameList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState<GamePlatform | null>(null);
+  const [games, setGames] = useState<Game[]>([]);
+  const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
   
-  // Available platforms 
-  const platforms: GamePlatform[] = ['PS5', 'PS4', 'PS3', 'VITA', 'VR'];
+  // Available platforms (removed VR)
+  const platforms: GamePlatform[] = ['PS5', 'PS4', 'PS3', 'VITA'];
+  
+  useEffect(() => {
+    const loadGames = async () => {
+      try {
+        const gamesData = await gameService.getAll();
+        setGames(gamesData);
+      } catch (error) {
+        console.error('Error loading games:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadGames();
+  }, []);
   
   const filteredGames = games.filter(game => {
     const matchesSearch = game.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlatform = selectedPlatform ? game.platform.includes(selectedPlatform) : true;
     return matchesSearch && matchesPlatform;
   });
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow container py-8">
+          <div className="text-center">
+            <p className="text-lg text-white">Carregando jogos...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">

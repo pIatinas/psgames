@@ -1,10 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AccountCard from '@/components/AccountCard';
 import SectionTitle from '@/components/SectionTitle';
-import { accounts } from '@/data/mockData';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,12 +12,30 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { Separator } from '@/components/ui/separator';
-import { Account } from '@/types';
+import { Account, Game } from '@/types';
+import { accountService } from '@/services/supabaseService';
 
 const AccountList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGameIds, setSelectedGameIds] = useState<string[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
+  
+  useEffect(() => {
+    const loadAccounts = async () => {
+      try {
+        const accountsData = await accountService.getAll();
+        setAccounts(accountsData);
+      } catch (error) {
+        console.error('Error loading accounts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadAccounts();
+  }, []);
   
   // Get unique games from accounts
   const allGames = accounts.flatMap(account => account.games || []);
@@ -40,6 +57,20 @@ const AccountList: React.FC = () => {
       
     return (matchesEmail || hasMatchingGame) && matchesGames;
   });
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow container py-8">
+          <div className="text-center">
+            <p className="text-lg text-white">Carregando contas...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">

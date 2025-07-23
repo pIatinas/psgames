@@ -15,8 +15,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, getPlatformColor }) => {
       "PS5": "bg-blue-500 text-white",
       "PS4": "bg-indigo-500 text-white",
       "PS3": "bg-purple-500 text-white",
-      "VITA": "bg-green-500 text-white",
-      "VR": "bg-red-500 text-white"
+      "VITA": "bg-green-500 text-white"
     };
     
     return colorMap[platform] || "bg-gray-500 text-white";
@@ -41,7 +40,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, getPlatformColor }) => {
             {game.platform.map(platform => (
               <span 
                 key={platform} 
-                className={`text-xs px-2 py-1 rounded-full ${getColor(platform)}`}
+                className={`text-xs px-2 py-1 rounded-full ${getColor(platform as GamePlatform)}`}
               >
                 {platform}
               </span>

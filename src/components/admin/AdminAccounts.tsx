@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -250,7 +251,7 @@ const AdminAccounts: React.FC = () => {
             <DialogFooter>
               <Button variant="outline" onClick={() => {
                 setOpen(false);
-                setNewAccount({ email: '', password: '', code: '', qrcode: '', image: '' });
+                setNewAccount({ email: '', password: '', codes: '', qr_code: '', birthday: '', security_answer: '' });
                 setSelectedGames([]);
                 setIsEditing(false);
               }}>
@@ -276,9 +277,7 @@ const AdminAccounts: React.FC = () => {
           <TableBody>
             {accounts.map(account => {
               // Calculate available slots
-              const availableSlots = 2 - 
-                (account.slot1 ? 1 : 0) - 
-                (account.slot2 ? 1 : 0);
+              const availableSlots = 2 - (account.slots?.length || 0);
               
               return (
                 <TableRow key={account.id}>

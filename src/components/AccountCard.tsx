@@ -12,16 +12,16 @@ interface AccountCardProps {
 
 const AccountCard: React.FC<AccountCardProps> = ({ account, className = '' }) => {
   // Calcular quantos slots estão ocupados
-  const usedSlots = [account.slot1, account.slot2].filter(Boolean).length;
+  const usedSlots = account.slots?.length || 0;
   const totalSlots = 2;
   
   return (
     <Link to={`/accounts/${account.id}`} className={`block ${className}`}>
       <Card className="group overflow-hidden transition-all hover:-translate-y-1 hover:neon-blue-border rounded-lg h-full">
         <div className="relative aspect-square bg-muted/50 flex justify-center items-center">
-          {account.image ? (
+          {account.qr_code ? (
             <img 
-              src={account.image} 
+              src={account.qr_code} 
               alt={account.email} 
               className="w-full h-full object-cover"
             />
@@ -50,18 +50,13 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, className = '' }) =>
               {account.games.map(game => game.name).join(', ')}
             </div>
           )}
-          {(account.slot1 || account.slot2) && (
+          {account.slots && account.slots.length > 0 && (
             <div className="text-xs mt-2 space-y-1">
-              {account.slot1 && (
-                <div className="bg-red-500/20 text-red-500 rounded px-2 py-1">
-                  Slot 1: {account.slot1.member.name}
+              {account.slots.map(slot => (
+                <div key={slot.id} className="bg-red-500/20 text-red-500 rounded px-2 py-1">
+                  Slot {slot.slot_number}: {slot.user?.name || 'Usuário'}
                 </div>
-              )}
-              {account.slot2 && (
-                <div className="bg-red-500/20 text-red-500 rounded px-2 py-1">
-                  Slot 2: {account.slot2.member.name}
-                </div>
-              )}
+              ))}
             </div>
           )}
         </CardContent>

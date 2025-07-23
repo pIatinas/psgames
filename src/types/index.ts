@@ -1,5 +1,5 @@
 
-export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA" | "VR";
+export type GamePlatform = "PS5" | "PS4" | "PS3" | "VITA";
 
 export interface Game {
   id: string;
