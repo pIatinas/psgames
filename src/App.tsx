@@ -40,14 +40,14 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/games" element={<GameList />} />
-            <Route path="/games/:id" element={<GameDetail />} />
+            <Route path="/games/:slug" element={<GameDetail />} />
             <Route path="/accounts" element={<AccountList />} />
             <Route path="/accounts/:id" element={<AccountDetail />} />
             <Route path="/members" element={<MemberList />} />
             <Route path="/members/:id" element={<MemberDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/profile" element={<MyProfile />} />
+            <Route path="/my-profile" element={<MyProfile />} />
             <Route path="/my-accounts" element={<MyAccounts />} />
             
             {/* Admin Routes */}

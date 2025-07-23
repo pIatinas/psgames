@@ -21,28 +21,31 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-primary text-primary-foreground py-4 shadow-md">
+    <header className="bg-gray-900 text-white py-4 shadow-md">
       <div className="container flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold flex items-center gap-2">
           <Gamepad2 className="h-8 w-8" />
-          GameShare
+          PSGames
         </Link>
         
         <nav className="flex items-center space-x-6">
-          <Link to="/games" className="hover:text-primary-foreground/80 transition-colors">
+          <Link to="/" className="hover:text-gray-300 transition-colors">
+            Home
+          </Link>
+          <Link to="/games" className="hover:text-gray-300 transition-colors">
             Jogos
           </Link>
-          <Link to="/accounts" className="hover:text-primary-foreground/80 transition-colors">
+          <Link to="/accounts" className="hover:text-gray-300 transition-colors">
             Contas
           </Link>
-          <Link to="/members" className="hover:text-primary-foreground/80 transition-colors">
+          <Link to="/members" className="hover:text-gray-300 transition-colors">
             Membros
           </Link>
           
           {currentUser ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="text-primary bg-primary-foreground hover:bg-primary-foreground/90">
+                <Button variant="outline" size="sm" className="text-gray-900 bg-white hover:bg-gray-100">
                   <User className="h-4 w-4 mr-2" />
                   {currentUser.name}
                 </Button>
@@ -76,7 +79,7 @@ const Header = () => {
             </DropdownMenu>
           ) : (
             <div className="space-x-2">
-              <Button asChild variant="outline" size="sm" className="text-primary bg-primary-foreground hover:bg-primary-foreground/90">
+              <Button asChild variant="outline" size="sm" className="text-gray-900 bg-white hover:bg-gray-100">
                 <Link to="/login">Entrar</Link>
               </Button>
               <Button asChild variant="secondary" size="sm">

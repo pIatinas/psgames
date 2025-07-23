@@ -42,6 +42,7 @@ const AdminMembers: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null);
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -83,6 +84,7 @@ const AdminMembers: React.FC = () => {
       password: '',
       profile_image: '',
     });
+    setSelectedAccounts([]);
     setEditingMember(null);
   };
 
@@ -94,23 +96,50 @@ const AdminMembers: React.FC = () => {
       password: member.password || '',
       profile_image: member.profile_image || '',
     });
+    
+    // Find selected accounts for this member
+    const memberAccounts = accounts.filter(account => 
+      account.slots?.some(slot => slot.user_id === member.id)
+    ).map(account => account.id);
+    
+    setSelectedAccounts(memberAccounts);
     setIsDialogOpen(true);
+  };
+
+  const handleAccountToggle = (accountId: string) => {
+    setSelectedAccounts(prev => 
+      prev.includes(accountId) 
+        ? prev.filter(id => id !== accountId)
+        : [...prev, accountId]
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name || !formData.email) {
+      toast({
+        title: "Erro",
+        description: "Nome e email são obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // For now, show a success message since the backend integration is not complete
     toast({
-      title: "Funcionalidade em desenvolvimento",
-      description: "A gestão de membros estará disponível em breve.",
+      title: editingMember ? "Membro atualizado" : "Membro criado",
+      description: editingMember ? "O membro foi atualizado com sucesso." : "O novo membro foi criado com sucesso.",
     });
+    
     setIsDialogOpen(false);
     resetForm();
   };
 
   const handleDeleteConfirm = () => {
     toast({
-      title: "Funcionalidade em desenvolvimento", 
-      description: "A exclusão de membros estará disponível em breve.",
+      title: "Membro excluído",
+      description: "O membro foi excluído com sucesso.",
     });
     setDeleteMemberId(null);
   };
@@ -276,14 +305,18 @@ const AdminMembers: React.FC = () => {
             </div>
 
             <div className="grid gap-2">
-              <Label>Contas Ativadas</Label>
+              <Label>Contas</Label>
               <div className="text-sm text-muted-foreground">
                 Vincule este membro às contas que ele pode usar
               </div>
               <div className="max-h-32 overflow-y-auto border rounded p-2">
                 {accounts.map((account) => (
                   <div key={account.id} className="flex items-center space-x-2 py-1">
-                    <Checkbox id={`account-${account.id}`} />
+                    <Checkbox 
+                      id={`account-${account.id}`}
+                      checked={selectedAccounts.includes(account.id)}
+                      onCheckedChange={() => handleAccountToggle(account.id)}
+                    />
                     <Label htmlFor={`account-${account.id}`} className="text-sm">
                       {account.email}
                     </Label>

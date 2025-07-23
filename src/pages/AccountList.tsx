@@ -7,7 +7,6 @@ import SectionTitle from '@/components/SectionTitle';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { accountService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
 import { GamePlatform } from '@/types';

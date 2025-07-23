@@ -7,7 +7,6 @@ import SectionTitle from '@/components/SectionTitle';
 import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { gameService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
 import { GamePlatform } from '@/types';
@@ -24,8 +23,7 @@ const GameList = () => {
   const platforms: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA"];
   
   const filteredGames = games.filter(game => {
-    const matchesSearch = game.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         game.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = game.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlatform = selectedPlatforms.length === 0 || 
                            selectedPlatforms.some(platform => game.platform.includes(platform));
     return matchesSearch && matchesPlatform;
@@ -59,8 +57,8 @@ const GameList = () => {
 
       <main className="flex-grow container py-8">
         <SectionTitle 
-          title="Catálogo de Jogos" 
-          subtitle="Explore nossa coleção de jogos disponíveis para compartilhamento"
+          title="Biblioteca de Jogos" 
+          subtitle="Descubra todos os jogos disponíveis em nossas contas"
         />
         
         {/* Filtros */}
@@ -103,7 +101,7 @@ const GameList = () => {
         </div>
         
         {/* Grid de jogos - 5 por linha */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {filteredGames.map(game => (
             <GameCard key={game.id} game={game} />
           ))}
