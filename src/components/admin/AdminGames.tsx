@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +34,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Edit, Trash } from 'lucide-react';
 import { Game, GamePlatform } from '@/types';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { gameService, accountService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,7 +44,6 @@ const AdminGames: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<Game | null>(null);
   const [deleteGameId, setDeleteGameId] = useState<string | null>(null);
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [formData, setFormData] = useState<Partial<Game>>({
     name: '',
     description: '',
@@ -71,11 +71,6 @@ const AdminGames: React.FC = () => {
   useEffect(() => {
     if (editingGame) {
       setFormData(editingGame);
-      // Encontrar contas que possuem este jogo
-      const gameAccounts = accounts.filter(account => 
-        account.games?.some(game => game.id === editingGame.id)
-      ).map(account => account.id);
-      setSelectedAccounts(gameAccounts);
     } else {
       setFormData({
         name: '',
@@ -87,9 +82,8 @@ const AdminGames: React.FC = () => {
         genre: '',
         release_date: '',
       });
-      setSelectedAccounts([]);
     }
-  }, [editingGame, accounts]);
+  }, [editingGame]);
 
   const platforms: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA"];
 
@@ -135,14 +129,13 @@ const AdminGames: React.FC = () => {
 
     let result;
     if (editingGame) {
-      result = await gameService.update(editingGame.id, formData, selectedAccounts);
+      result = await gameService.update(editingGame.id, formData);
     } else {
-      result = await gameService.create(formData as Omit<Game, 'id' | 'created_at' | 'updated_at'>, selectedAccounts);
+      result = await gameService.create(formData as Omit<Game, 'id' | 'created_at' | 'updated_at'>);
     }
 
     if (result) {
       queryClient.invalidateQueries({ queryKey: ['admin-games'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
       toast({
         title: editingGame ? "Jogo atualizado" : "Jogo adicionado",
         description: editingGame ? "O jogo foi atualizado com sucesso." : "O jogo foi adicionado com sucesso.",
@@ -170,14 +163,6 @@ const AdminGames: React.FC = () => {
         platform: (formData.platform || []).filter(p => p !== platform)
       });
     }
-  };
-
-  const handleAccountToggle = (accountId: string) => {
-    setSelectedAccounts(prev => 
-      prev.includes(accountId) 
-        ? prev.filter(id => id !== accountId)
-        : [...prev, accountId]
-    );
   };
 
   const isAdmin = currentUser?.role === 'admin';
@@ -209,83 +194,64 @@ const AdminGames: React.FC = () => {
             <TableRow>
               <TableHead className="w-16">Imagem</TableHead>
               <TableHead>Nome</TableHead>
+              <TableHead>Descrição</TableHead>
               <TableHead>Plataformas</TableHead>
               <TableHead>Desenvolvedor</TableHead>
               <TableHead>Gênero</TableHead>
-              <TableHead>Contas</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {games.map((game) => {
-              const gameAccounts = accounts.filter(account => 
-                account.games?.some(g => g.id === game.id)
-              );
-              
-              return (
-                <TableRow key={game.id}>
-                  <TableCell>
-                    <div className="w-12 h-12">
-                      <ImagePlaceholder
-                        src={game.image}
-                        alt={game.name}
-                        className="w-full h-full object-cover rounded aspect-square"
-                      />
+            {games.map((game) => (
+              <TableRow key={game.id}>
+                <TableCell>
+                  <div className="w-12 h-12">
+                    <ImagePlaceholder
+                      src={game.image}
+                      alt={game.name}
+                      className="w-full h-full object-cover rounded aspect-square"
+                    />
+                  </div>
+                </TableCell>
+                <TableCell className="font-medium">{game.name}</TableCell>
+                <TableCell className="max-w-xs">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {game.description}
+                  </p>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {game.platform.map((platform) => (
+                      <Badge key={platform} variant="secondary" className="text-xs">
+                        {platform}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>{game.developer}</TableCell>
+                <TableCell>{game.genre}</TableCell>
+                {isAdmin && (
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditGame(game)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setDeleteGameId(game.id)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{game.name}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {game.platform.map((platform) => (
-                        <Badge key={platform} variant="secondary" className="text-xs">
-                          {platform}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>{game.developer}</TableCell>
-                  <TableCell>{game.genre}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {gameAccounts.length > 0 ? (
-                        gameAccounts.slice(0, 2).map(account => (
-                          <Badge key={account.id} variant="outline" className="text-xs">
-                            {account.email.split('@')[0]}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-xs text-muted-foreground">Nenhuma</span>
-                      )}
-                      {gameAccounts.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{gameAccounts.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  {isAdmin && (
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditGame(game)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => setDeleteGameId(game.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  )}
-                </TableRow>
-              );
-            })}
+                )}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
@@ -407,11 +373,7 @@ const AdminGames: React.FC = () => {
               <div className="max-h-32 overflow-y-auto border rounded p-2">
                 {accounts.map((account) => (
                   <div key={account.id} className="flex items-center space-x-2 py-1">
-                    <Checkbox 
-                      id={`account-${account.id}`}
-                      checked={selectedAccounts.includes(account.id)}
-                      onCheckedChange={() => handleAccountToggle(account.id)}
-                    />
+                    <Checkbox id={`account-${account.id}`} />
                     <Label htmlFor={`account-${account.id}`} className="text-sm">
                       {account.email}
                     </Label>

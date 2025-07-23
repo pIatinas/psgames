@@ -248,18 +248,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_all_users_with_profiles: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          id: string
-          email: string
-          name: string
-          avatar_url: string
-          role: string
-          created_at: string
-          updated_at: string
-        }[]
-      }
       has_role: {
         Args: {
           _user_id: string
