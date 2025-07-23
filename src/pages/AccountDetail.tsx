@@ -32,15 +32,12 @@ const AccountDetail = () => {
   }
 
   // Verificar se o membro atual está usando um slot nesta conta
-  const isUsingSlot = currentUser?.member && (
-    (account.slot1 && account.slot1.member.id === currentUser.member.id) || 
-    (account.slot2 && account.slot2.member.id === currentUser.member.id)
+  const isUsingSlot = currentUser?.member && account.slots?.some(slot => 
+    slot.user_id === currentUser.member?.id
   );
   
   // Verificar se há slots disponíveis
-  const availableSlots = 2 - 
-    (account.slot1 ? 1 : 0) - 
-    (account.slot2 ? 1 : 0);
+  const availableSlots = 2 - (account.slots?.length || 0);
   
   const handleUseSlot = (slotNumber: 1 | 2) => {
     if (!currentUser || !currentUser.member) {
@@ -54,17 +51,18 @@ const AccountDetail = () => {
     }
     
     // Update account with new slot
-    if (slotNumber === 1) {
-      account.slot1 = {
-        member: currentUser.member,
-        entered_at: new Date()
-      };
-    } else {
-      account.slot2 = {
-        member: currentUser.member,
-        entered_at: new Date()
-      };
+    if (!account.slots) {
+      account.slots = [];
     }
+    
+    account.slots.push({
+      id: `slot-${Date.now()}`,
+      account_id: account.id,
+      slot_number: slotNumber,
+      user_id: currentUser.member.id,
+      entered_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    });
     
     // Show credentials dialog
     setOpenCredentialsDialog(true);
@@ -76,20 +74,24 @@ const AccountDetail = () => {
   };
   
   const handleReleaseAccount = () => {
-    if (currentUser?.member) {
+    if (currentUser?.member && account.slots) {
       // Remove member from slot
-      if (account.slot1 && account.slot1.member.id === currentUser.member.id) {
-        account.slot1 = undefined;
-      }
-      if (account.slot2 && account.slot2.member.id === currentUser.member.id) {
-        account.slot2 = undefined;
-      }
+      account.slots = account.slots.filter(slot => slot.user_id !== currentUser.member?.id);
       
       toast({
         title: "Conta devolvida",
         description: "Você devolveu a conta com sucesso.",
       });
     }
+  };
+
+  // Helper functions for slot management
+  const getSlotByNumber = (slotNumber: number) => {
+    return account.slots?.find(slot => slot.slot_number === slotNumber);
+  };
+
+  const isSlotOccupied = (slotNumber: number) => {
+    return getSlotByNumber(slotNumber) !== undefined;
   };
 
   return (
@@ -121,33 +123,21 @@ const AccountDetail = () => {
             {/* Barra lateral */}
             <div>
               <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20 space-y-6">
-                {account.image && (
-                  <div className="mb-4 flex justify-center">
-                    <div className="w-32 h-32 rounded-lg overflow-hidden border border-gray-700">
-                      <img 
-                        src={account.image} 
-                        alt="Account" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-                )}
-                
                 <div>
                   <h3 className="font-semibold text-lg mb-2 text-white">Status da Conta</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className={`p-3 rounded-lg ${!account.slot1 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                      <div className={`p-3 rounded-lg ${!isSlotOccupied(1) ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                         <div className="text-lg font-bold">Slot 1</div>
                         <div className="flex items-center justify-center mt-2">
-                          {!account.slot1 ? (
+                          {!isSlotOccupied(1) ? (
                             <Check className="h-5 w-5" />
                           ) : (
                             <X className="h-5 w-5" />
                           )}
                         </div>
                         <div className="text-sm mt-2">
-                          {!account.slot1 ? (
+                          {!isSlotOccupied(1) ? (
                             <Button 
                               size="sm" 
                               onClick={() => handleUseSlot(1)} 
@@ -157,21 +147,21 @@ const AccountDetail = () => {
                               Utilizar
                             </Button>
                           ) : (
-                            account.slot1.member.name
+                            getSlotByNumber(1)?.user?.name || 'Ocupado'
                           )}
                         </div>
                       </div>
-                      <div className={`p-3 rounded-lg ${!account.slot2 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                      <div className={`p-3 rounded-lg ${!isSlotOccupied(2) ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                         <div className="text-lg font-bold">Slot 2</div>
                         <div className="flex items-center justify-center mt-2">
-                          {!account.slot2 ? (
+                          {!isSlotOccupied(2) ? (
                             <Check className="h-5 w-5" />
                           ) : (
                             <X className="h-5 w-5" />
                           )}
                         </div>
                         <div className="text-sm mt-2">
-                          {!account.slot2 ? (
+                          {!isSlotOccupied(2) ? (
                             <Button 
                               size="sm" 
                               onClick={() => handleUseSlot(2)} 
@@ -181,7 +171,7 @@ const AccountDetail = () => {
                               Utilizar
                             </Button>
                           ) : (
-                            account.slot2.member.name
+                            getSlotByNumber(2)?.user?.name || 'Ocupado'
                           )}
                         </div>
                       </div>
@@ -240,7 +230,7 @@ const AccountDetail = () => {
               </div>
               <div>
                 <div className="font-medium">Código de Acesso</div>
-                <div className="p-2 bg-muted rounded-md">{account.code}</div>
+                <div className="p-2 bg-muted rounded-md">{account.codes}</div>
               </div>
             </div>
           </div>

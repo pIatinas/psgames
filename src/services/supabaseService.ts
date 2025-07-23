@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Game, Account, User, Profile, AccountSlot } from '@/types';
 
@@ -24,10 +25,20 @@ export const gameService = {
     return data;
   },
 
-  async create(game: Partial<Game>): Promise<Game> {
+  async create(game: Omit<Game, 'id' | 'created_at' | 'updated_at'>): Promise<Game> {
     const { data, error } = await supabase
       .from('games')
-      .insert(game)
+      .insert({
+        name: game.name,
+        image: game.image,
+        banner: game.banner,
+        platform: game.platform,
+        description: game.description,
+        developer: game.developer,
+        genre: game.genre,
+        release_date: game.release_date,
+        rawg_id: game.rawg_id
+      })
       .select()
       .single();
     
@@ -36,9 +47,21 @@ export const gameService = {
   },
 
   async update(id: string, game: Partial<Game>): Promise<Game> {
+    const updateData: any = {};
+    
+    if (game.name !== undefined) updateData.name = game.name;
+    if (game.image !== undefined) updateData.image = game.image;
+    if (game.banner !== undefined) updateData.banner = game.banner;
+    if (game.platform !== undefined) updateData.platform = game.platform;
+    if (game.description !== undefined) updateData.description = game.description;
+    if (game.developer !== undefined) updateData.developer = game.developer;
+    if (game.genre !== undefined) updateData.genre = game.genre;
+    if (game.release_date !== undefined) updateData.release_date = game.release_date;
+    if (game.rawg_id !== undefined) updateData.rawg_id = game.rawg_id;
+    
     const { data, error } = await supabase
       .from('games')
-      .update(game)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -109,10 +132,17 @@ export const accountService = {
     };
   },
 
-  async create(account: Partial<Account>, gameIds: string[] = []): Promise<Account> {
+  async create(account: Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>, gameIds: string[] = []): Promise<Account> {
     const { data: accountData, error: accountError } = await supabase
       .from('accounts')
-      .insert(account)
+      .insert({
+        email: account.email,
+        password: account.password,
+        birthday: account.birthday,
+        security_answer: account.security_answer,
+        codes: account.codes,
+        qr_code: account.qr_code
+      })
       .select()
       .single();
     
@@ -136,9 +166,18 @@ export const accountService = {
   },
 
   async update(id: string, account: Partial<Account>, gameIds?: string[]): Promise<Account> {
+    const updateData: any = {};
+    
+    if (account.email !== undefined) updateData.email = account.email;
+    if (account.password !== undefined) updateData.password = account.password;
+    if (account.birthday !== undefined) updateData.birthday = account.birthday;
+    if (account.security_answer !== undefined) updateData.security_answer = account.security_answer;
+    if (account.codes !== undefined) updateData.codes = account.codes;
+    if (account.qr_code !== undefined) updateData.qr_code = account.qr_code;
+    
     const { data, error } = await supabase
       .from('accounts')
-      .update(account)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();

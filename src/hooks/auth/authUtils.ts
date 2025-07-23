@@ -42,7 +42,14 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
       name: profileData?.name || 'User',
       email: '', // Will be populated from auth if needed
       role: userRole,
-      profile: profileData as ProfileData
+      profile: profileData ? {
+        id: profileData.id,
+        name: profileData.name,
+        avatar_url: profileData.avatar_url,
+        role: userRole, // Use the properly typed role
+        created_at: profileData.created_at,
+        updated_at: profileData.updated_at
+      } : undefined
     };
 
     return user;

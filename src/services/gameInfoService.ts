@@ -1,150 +1,114 @@
-
 import { Game } from '@/types';
 
-interface TrophyInfo {
-  bronze: number;
-  silver: number;
-  gold: number;
-  platinum: number;
-  total: number;
+interface RawgGame {
+  id: number;
+  name: string;
+  background_image?: string;
+  background_image_additional?: string;
+  description_raw?: string;
+  developers?: Array<{ name: string }>;
+  genres?: Array<{ name: string }>;
+  released?: string;
+  platforms?: Array<{
+    platform: {
+      name: string;
+    };
+  }>;
+  metacritic?: number;
+  rating?: number;
 }
 
-interface GameExtendedInfo {
-  trophyInfo?: TrophyInfo;
-  description?: string;
-  releaseDate?: string;
-  developer?: string;
-  genre?: string;
-  referenceLink?: string;
-}
+export const gameInfoService = {
+  async searchGames(query: string): Promise<RawgGame[]> {
+    try {
+      const response = await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&page_size=10`);
+      const data = await response.json();
+      return data.results || [];
+    } catch (error) {
+      console.error('Error searching games:', error);
+      return [];
+    }
+  },
 
-/**
- * Busca informações detalhadas de um jogo no Exophase e PSNProfiles
- * @param game O objeto do jogo para o qual buscar informações
- * @returns Promise com as informações estendidas do jogo
- */
-export const fetchGameInfo = async (game: Game): Promise<GameExtendedInfo> => {
-  try {
-    console.log(`Buscando informações para o jogo: ${game.name}`);
-    
-    // Em um ambiente real, aqui fariam as chamadas para as APIs do Exophase e PSNProfiles
-    // ou realizariam web scraping com base no referenceLink
-    let referenceUrl = game.referenceLink;
-    
-    // Simulando o tempo de uma requisição real
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Simulando os dados retornados com base no referenceLink (mais consistentes)
-    const trophyInfo: TrophyInfo = {
-      bronze: Math.floor(Math.random() * 20) + 10,
-      silver: Math.floor(Math.random() * 15) + 5,
-      gold: Math.floor(Math.random() * 8) + 1,
-      platinum: game.name.length % 2 === 0 ? 1 : 0, // Torna mais consistente
-      total: 0 // Vamos calcular abaixo
-    };
-    
-    // Calcular total de troféus
-    trophyInfo.total = trophyInfo.bronze + trophyInfo.silver + trophyInfo.gold + trophyInfo.platinum;
-    
-    // Gerar outros dados ficcionais com base no nome do jogo e referenceLink
-    const gameInfo: GameExtendedInfo = {
-      trophyInfo,
-      description: `${game.name} é um exclusivo para PlayStation com uma história envolvente e jogabilidade inovadora.`,
-      releaseDate: new Date(Date.now() - Math.random() * 31536000000).toISOString().split('T')[0],
-      developer: ['Sony Interactive', 'Naughty Dog', 'Santa Monica Studio', 'Insomniac Games'][Math.floor(Math.random() * 4)],
-      genre: ['Ação', 'Aventura', 'RPG', 'Esporte', 'Corrida'][Math.floor(Math.random() * 5)],
-      referenceLink: referenceUrl
-    };
-    
-    console.log(`Informações obtidas com sucesso para: ${game.name}`, gameInfo);
-    return gameInfo;
-    
-  } catch (error) {
-    console.error(`Erro ao buscar informações do jogo ${game.name}:`, error);
-    throw new Error(`Falha ao obter informações do jogo ${game.name}`);
-  }
-};
+  async getGameDetails(rawgId: number): Promise<RawgGame | null> {
+    try {
+      const response = await fetch(`https://api.rawg.io/api/games/${rawgId}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching game details:', error);
+      return null;
+    }
+  },
 
-/**
- * Hook para integração com componentes de criação/edição de jogos
- * Deve ser chamado quando um novo jogo for criado ou editado
- */
-export const enrichGameWithExternalInfo = async (gameData: Partial<Game>): Promise<Partial<Game>> => {
-  if (!gameData.name) {
-    console.error('Nome do jogo é obrigatório para buscar informações externas');
-    return gameData;
-  }
-  
-  try {
-    // Criamos um objeto Game temporário para passar para o fetchGameInfo
-    const tempGame: Game = {
-      id: 'temp-id',
-      name: gameData.name,
-      image: gameData.image || '',
-      banner: gameData.banner || '',
-      platform: gameData.platform || ['PS5'],
-      created_at: new Date(),
-      referenceLink: gameData.referenceLink || ''
+  mapRawgToGame(rawgGame: RawgGame): Partial<Game> {
+    const platformMap: Record<string, string> = {
+      'PlayStation 5': 'PS5',
+      'PlayStation 4': 'PS4',
+      'PlayStation 3': 'PS3',
+      'PS Vita': 'VITA',
     };
-    
-    // Buscar informações externas
-    const extendedInfo = await fetchGameInfo(tempGame);
-    
-    // Retornar o jogo com as informações adicionais
-    console.log('Jogo enriquecido com informações externas:', {
-      ...gameData,
-      // Aqui podemos incorporar as informações ao modelo Game
-      description: extendedInfo.description,
-      releaseDate: extendedInfo.releaseDate,
-      developer: extendedInfo.developer,
-      genre: extendedInfo.genre
-    });
-    
+
+    const platforms = rawgGame.platforms?.map(p => {
+      const platformName = p.platform.name;
+      return platformMap[platformName] || platformName;
+    }).filter(p => ['PS5', 'PS4', 'PS3', 'VITA'].includes(p)) || [];
+
     return {
-      ...gameData,
-      description: extendedInfo.description,
-      releaseDate: extendedInfo.releaseDate,
-      developer: extendedInfo.developer,
-      genre: extendedInfo.genre
+      name: rawgGame.name,
+      image: rawgGame.background_image,
+      banner: rawgGame.background_image_additional || rawgGame.background_image,
+      platform: platforms,
+      description: rawgGame.description_raw,
+      developer: rawgGame.developers?.[0]?.name,
+      genre: rawgGame.genres?.[0]?.name,
+      release_date: rawgGame.released,
+      rawg_id: rawgGame.id,
     };
-    
-  } catch (error) {
-    console.error('Erro ao enriquecer jogo com informações externas:', error);
-    return gameData;
-  }
-};
+  },
 
-/**
- * Busca informações de troféus para um membro usando sua PSN ID
- * @param psnId A PSN ID do membro
- * @returns Promise com as estatísticas de troféus do usuário
- */
-export const fetchMemberTrophyStats = async (psnId: string) => {
-  try {
-    console.log(`Buscando estatísticas de troféus para PSN ID: ${psnId}`);
+  async enrichGameData(game: Partial<Game>): Promise<Partial<Game>> {
+    if (!game.rawg_id) return game;
+
+    try {
+      const rawgGame = await this.getGameDetails(game.rawg_id);
+      if (!rawgGame) return game;
+
+      const enrichedData = this.mapRawgToGame(rawgGame);
+      
+      return {
+        ...game,
+        ...enrichedData,
+        // Keep original data if it exists
+        name: game.name || enrichedData.name,
+        image: game.image || enrichedData.image,
+        banner: game.banner || enrichedData.banner,
+        platform: game.platform || enrichedData.platform,
+        description: game.description || enrichedData.description,
+        developer: game.developer || enrichedData.developer,
+        genre: game.genre || enrichedData.genre,
+        release_date: game.release_date || enrichedData.release_date,
+      };
+    } catch (error) {
+      console.error('Error enriching game data:', error);
+      return game;
+    }
+  },
+
+  async createGameFromRawg(rawgGame: RawgGame): Promise<Partial<Game>> {
+    const mappedGame = this.mapRawgToGame(rawgGame);
     
-    // Simulando o tempo de uma requisição real
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Simulando dados de troféus de um usuário
-    const stats = {
-      totalTrophies: Math.floor(Math.random() * 1000) + 100,
-      platinum: Math.floor(Math.random() * 30) + 1,
-      gold: Math.floor(Math.random() * 100) + 20,
-      silver: Math.floor(Math.random() * 300) + 50,
-      bronze: Math.floor(Math.random() * 700) + 100,
-      level: Math.floor(Math.random() * 500) + 100,
-      recentlyPlayed: [
-        "God of War Ragnarök",
-        "Gran Turismo 7",
-        "Horizon Forbidden West"
-      ]
+    // Ensure required fields are present
+    return {
+      name: mappedGame.name || 'Unknown Game',
+      image: mappedGame.image,
+      banner: mappedGame.banner,
+      platform: mappedGame.platform || [],
+      description: mappedGame.description,
+      developer: mappedGame.developer,
+      genre: mappedGame.genre,
+      release_date: mappedGame.release_date,
+      rawg_id: mappedGame.rawg_id,
     };
-    
-    return stats;
-    
-  } catch (error) {
-    console.error(`Erro ao buscar estatísticas de troféus para ${psnId}:`, error);
-    return null;
   }
 };

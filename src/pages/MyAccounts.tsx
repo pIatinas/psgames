@@ -30,24 +30,17 @@ const MyAccounts: React.FC = () => {
   }
 
   // Get active accounts for the current member
-  const activeAccounts = accounts.filter(account => {
-    return (
-      (account.slot1 && account.slot1.member.id === currentUser.member?.id) ||
-      (account.slot2 && account.slot2.member.id === currentUser.member?.id)
-    );
-  });
+  const activeAccounts = accounts.filter(account => 
+    account.slots?.some(slot => slot.user_id === currentUser.member?.id)
+  );
 
   // Get slot information for a specific account
   const getMemberSlot = (account: Account) => {
-    if (account.slot1?.member.id === currentUser.member?.id) {
-      return { slotNumber: 1, data: account.slot1 };
-    } else if (account.slot2?.member.id === currentUser.member?.id) {
-      return { slotNumber: 2, data: account.slot2 };
-    }
-    return null;
+    const slot = account.slots?.find(slot => slot.user_id === currentUser.member?.id);
+    return slot ? { slotNumber: slot.slot_number, data: slot } : null;
   };
 
-  const calculateDaysUsing = (enteredDate: Date) => {
+  const calculateDaysUsing = (enteredDate: string) => {
     const now = new Date();
     const entered = new Date(enteredDate);
     const diffTime = Math.abs(now.getTime() - entered.getTime());
@@ -56,15 +49,9 @@ const MyAccounts: React.FC = () => {
   };
 
   const handleReleaseAccount = (account: Account) => {
-    const slot = getMemberSlot(account);
-    
-    if (slot) {
-      // Remove member from slot (in a real app, this would be an API call)
-      if (slot.slotNumber === 1) {
-        account.slot1 = undefined;
-      } else {
-        account.slot2 = undefined;
-      }
+    if (account.slots && currentUser.member) {
+      // Remove member from slot
+      account.slots = account.slots.filter(slot => slot.user_id !== currentUser.member?.id);
       
       toast({
         title: "Conta devolvida",
@@ -87,7 +74,7 @@ const MyAccounts: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {activeAccounts.map(account => {
               const slot = getMemberSlot(account);
-              const daysUsing = slot?.data ? calculateDaysUsing(slot.data.entered_at) : 0;
+              const daysUsing = slot?.data ? calculateDaysUsing(slot.data.entered_at || '') : 0;
               
               return (
                 <Card key={account.id} className="overflow-hidden">
