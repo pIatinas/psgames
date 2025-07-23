@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Game, Account, User, GamePlatform } from '@/types';
 
@@ -131,7 +132,7 @@ export const accountService = {
       })) || [],
       slots: (account.account_slots || []).map((slot: any) => ({
         ...slot,
-        slot_number: slot.slot_number as 1 | 2
+        slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1
       }))
     }));
   },
@@ -162,7 +163,7 @@ export const accountService = {
       })) || [],
       slots: (data.account_slots || []).map((slot: any) => ({
         ...slot,
-        slot_number: slot.slot_number as 1 | 2
+        slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1
       }))
     };
   },
@@ -240,10 +241,7 @@ export const userService = {
   async getAll(): Promise<User[]> {
     const { data, error } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        user_roles(*)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -251,27 +249,21 @@ export const userService = {
       return [];
     }
     
-    return (data || []).map(profile => {
-      const roles = profile.user_roles || [];
-      const hasAdminRole = roles.some((role: any) => role.role === 'admin');
-      const userRole = hasAdminRole ? 'admin' : 'member';
-      
-      return {
+    return (data || []).map(profile => ({
+      id: profile.id,
+      name: profile.name || 'User',
+      email: '', // Email not available in profiles table
+      role: profile.role === 'admin' ? 'admin' : 'member',
+      profile: {
         id: profile.id,
-        name: profile.name || 'User',
-        email: '', // Email not available in profiles table
-        role: userRole,
-        profile: {
-          id: profile.id,
-          name: profile.name,
-          avatar_url: profile.avatar_url,
-          role: userRole,
-          created_at: profile.created_at,
-          updated_at: profile.updated_at
-        },
-        roles: roles
-      };
-    });
+        name: profile.name,
+        avatar_url: profile.avatar_url,
+        role: profile.role === 'admin' ? 'admin' : 'member',
+        created_at: profile.created_at,
+        updated_at: profile.updated_at
+      },
+      roles: []
+    }));
   },
 
   async updateProfile(userId: string, profileData: any): Promise<any> {

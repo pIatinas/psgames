@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -25,10 +24,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash, Gamepad2 } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Plus, Edit, Trash } from 'lucide-react';
 import { Game, GamePlatform } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
-import { gameService } from '@/services/supabaseService';
+import { gameService, accountService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
@@ -54,6 +61,11 @@ const AdminGames: React.FC = () => {
   const { data: games = [], isLoading } = useQuery({
     queryKey: ['admin-games'],
     queryFn: () => gameService.getAll(),
+  });
+
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['admin-accounts'],
+    queryFn: () => accountService.getAll(),
   });
 
   useEffect(() => {
@@ -153,18 +165,6 @@ const AdminGames: React.FC = () => {
     }
   };
 
-  const truncateText = (text: string, lines: number = 2) => {
-    const words = text.split(' ');
-    const wordsPerLine = 8;
-    const maxWords = lines * wordsPerLine;
-    
-    if (words.length <= maxWords) {
-      return text;
-    }
-    
-    return words.slice(0, maxWords).join(' ') + '...';
-  };
-
   const isAdmin = currentUser?.role === 'admin';
 
   if (isLoading) {
@@ -178,9 +178,7 @@ const AdminGames: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <p className="text-muted-foreground">Adicione, edite ou remova jogos do catálogo</p>
-        </div>
+        <div />
         {isAdmin && (
           <Button onClick={handleAddGame}>
             <Plus className="mr-2 h-4 w-4" />
@@ -189,54 +187,73 @@ const AdminGames: React.FC = () => {
         )}
       </div>
 
-      {/* Games Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {games.map((game) => (
-          <Card key={game.id} className="overflow-hidden">
-            <div className="aspect-square relative">
-              <ImagePlaceholder
-                src={game.image}
-                alt={game.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-lg mb-2">{game.name}</h3>
-              {game.description && (
-                <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-                  {truncateText(game.description, 2)}
-                </p>
-              )}
-              <div className="flex flex-wrap gap-1 mb-3">
-                {game.platform.map((platform) => (
-                  <Badge key={platform} variant="secondary">
-                    {platform}
-                  </Badge>
-                ))}
-              </div>
-              {isAdmin && (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditGame(game)}
-                    className="flex-1"
-                  >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Editar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setDeleteGameId(game.id)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+      {/* Games Table */}
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-16">Imagem</TableHead>
+              <TableHead>Nome</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Plataformas</TableHead>
+              <TableHead>Desenvolvedor</TableHead>
+              <TableHead>Gênero</TableHead>
+              {isAdmin && <TableHead className="text-right">Ações</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {games.map((game) => (
+              <TableRow key={game.id}>
+                <TableCell>
+                  <div className="w-12 h-12">
+                    <ImagePlaceholder
+                      src={game.image}
+                      alt={game.name}
+                      className="w-full h-full object-cover rounded aspect-square"
+                    />
+                  </div>
+                </TableCell>
+                <TableCell className="font-medium">{game.name}</TableCell>
+                <TableCell className="max-w-xs">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {game.description}
+                  </p>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {game.platform.map((platform) => (
+                      <Badge key={platform} variant="secondary" className="text-xs">
+                        {platform}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>{game.developer}</TableCell>
+                <TableCell>{game.genre}</TableCell>
+                {isAdmin && (
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditGame(game)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setDeleteGameId(game.id)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Add/Edit Game Dialog */}
@@ -346,6 +363,23 @@ const AdminGames: React.FC = () => {
                 value={formData.release_date || ''}
                 onChange={(e) => setFormData({ ...formData, release_date: e.target.value })}
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Contas</Label>
+              <div className="text-sm text-muted-foreground">
+                Vincule este jogo às contas onde ele está disponível
+              </div>
+              <div className="max-h-32 overflow-y-auto border rounded p-2">
+                {accounts.map((account) => (
+                  <div key={account.id} className="flex items-center space-x-2 py-1">
+                    <Checkbox id={`account-${account.id}`} />
+                    <Label htmlFor={`account-${account.id}`} className="text-sm">
+                      {account.email}
+                    </Label>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           

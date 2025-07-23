@@ -20,21 +20,24 @@ const AdminLayout = () => {
       <Header />
       
       <main className="flex-grow container py-8">
-        <div className="flex gap-4 mb-8 border-b">
-          {adminPages.map((page) => (
-            <Button
-              key={page.path}
-              variant={location.pathname === page.path ? "default" : "ghost"}
-              asChild
-              className={cn(
-                "rounded-b-none border-b-2 border-transparent pb-3",
-                location.pathname === page.path && "border-primary bg-primary text-primary-foreground",
-                location.pathname !== page.path && "hover:text-white"
-              )}
-            >
-              <Link to={page.path}>{page.name}</Link>
-            </Button>
-          ))}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Gerenciar</h1>
+          <div className="flex gap-4 border-b">
+            {adminPages.map((page) => (
+              <Button
+                key={page.path}
+                variant={location.pathname === page.path ? "default" : "ghost"}
+                asChild
+                className={cn(
+                  "rounded-b-none border-b-2 border-transparent pb-3",
+                  location.pathname === page.path && "border-primary bg-primary text-primary-foreground",
+                  location.pathname !== page.path && "hover:text-white"
+                )}
+              >
+                <Link to={page.path}>{page.name}</Link>
+              </Button>
+            ))}
+          </div>
         </div>
         
         <Outlet />

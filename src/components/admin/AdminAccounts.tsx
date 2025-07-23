@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit, Plus, Eye, EyeOff } from 'lucide-react';
 import { Account } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,10 +20,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { accountService } from '@/services/supabaseService';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { accountService, gameService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import ImagePlaceholder from '@/components/ui/image-placeholder';
 
 const AdminAccounts: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -46,6 +53,11 @@ const AdminAccounts: React.FC = () => {
   const { data: accounts = [], isLoading: accountsLoading } = useQuery({
     queryKey: ['admin-accounts'],
     queryFn: () => accountService.getAll(),
+  });
+
+  const { data: games = [] } = useQuery({
+    queryKey: ['admin-games'],
+    queryFn: () => gameService.getAll(),
   });
 
   const resetForm = () => {
@@ -136,13 +148,9 @@ const AdminAccounts: React.FC = () => {
     }));
   };
 
-  // Helper functions for slot management
-  const getSlotByNumber = (account: Account, slotNumber: number) => {
-    return account.slots?.find(slot => slot.slot_number === slotNumber);
-  };
-
-  const isSlotOccupied = (account: Account, slotNumber: number) => {
-    return getSlotByNumber(account, slotNumber) !== undefined;
+  const getSlotOccupant = (account: Account, slotNumber: number) => {
+    const slot = account.slots?.find(slot => slot.slot_number === slotNumber);
+    return slot ? 'Ocupado' : 'Livre';
   };
 
   const isAdmin = currentUser?.role === 'admin';
@@ -158,220 +166,216 @@ const AdminAccounts: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <p className="text-muted-foreground">Gerencie as contas do sistema</p>
-        </div>
+        <div />
         {isAdmin && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Conta
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingAccount ? 'Editar Conta' : 'Nova Conta'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="password">Senha *</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={formData.password}
-                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="birthday">Data de Nascimento</Label>
-                      <Input
-                        id="birthday"
-                        type="date"
-                        value={formData.birthday}
-                        onChange={(e) => setFormData(prev => ({ ...prev, birthday: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="security_answer">Resposta de Segurança</Label>
-                      <Input
-                        id="security_answer"
-                        value={formData.security_answer}
-                        onChange={(e) => setFormData(prev => ({ ...prev, security_answer: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="codes">Códigos de Acesso</Label>
-                      <Textarea
-                        id="codes"
-                        value={formData.codes}
-                        onChange={(e) => setFormData(prev => ({ ...prev, codes: e.target.value }))}
-                        placeholder="Digite os códigos de acesso"
-                        rows={3}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="qr_code">QR Code</Label>
-                      <Input
-                        id="qr_code"
-                        value={formData.qr_code}
-                        onChange={(e) => setFormData(prev => ({ ...prev, qr_code: e.target.value }))}
-                        placeholder="URL do QR Code"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit">
-                    {editingAccount ? 'Atualizar' : 'Criar'} Conta
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Conta
+          </Button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {accounts.map(account => (
-          <Card key={account.id} className="overflow-hidden">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{account.email}</CardTitle>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="outline">
-                      {account.games?.length || 0} jogos
-                    </Badge>
-                    <Badge 
-                      variant={isSlotOccupied(account, 1) ? "destructive" : "secondary"}
+      {/* Accounts Table */}
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Email</TableHead>
+              <TableHead>Senha</TableHead>
+              <TableHead>Jogos</TableHead>
+              <TableHead>Slot 1</TableHead>
+              <TableHead>Slot 2</TableHead>
+              <TableHead>Resp. Segurança</TableHead>
+              <TableHead>Códigos</TableHead>
+              {isAdmin && <TableHead className="text-right">Ações</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {accounts.map(account => (
+              <TableRow key={account.id}>
+                <TableCell className="font-medium">{account.email}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm">
+                      {showPasswords[account.id] ? account.password : '••••••••'}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => togglePasswordVisibility(account.id)}
                     >
-                      Slot 1: {isSlotOccupied(account, 1) ? 'Ocupado' : 'Livre'}
-                    </Badge>
-                    <Badge 
-                      variant={isSlotOccupied(account, 2) ? "destructive" : "secondary"}
-                    >
-                      Slot 2: {isSlotOccupied(account, 2) ? 'Ocupado' : 'Livre'}
-                    </Badge>
+                      {showPasswords[account.id] ? 
+                        <EyeOff className="h-4 w-4" /> : 
+                        <Eye className="h-4 w-4" />
+                      }
+                    </Button>
                   </div>
-                </div>
+                </TableCell>
+                <TableCell>
+                  {account.games && account.games.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {account.games.slice(0, 2).map(game => (
+                        <Badge key={game.id} variant="secondary" className="text-xs">
+                          {game.name}
+                        </Badge>
+                      ))}
+                      {account.games.length > 2 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{account.games.length - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">Nenhum jogo</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={getSlotOccupant(account, 1) === 'Ocupado' ? "destructive" : "secondary"}>
+                    {getSlotOccupant(account, 1)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={getSlotOccupant(account, 2) === 'Ocupado' ? "destructive" : "secondary"}>
+                    {getSlotOccupant(account, 2)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm text-muted-foreground">
+                    {account.security_answer || '-'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm text-muted-foreground">
+                    {account.codes ? 'Sim' : '-'}
+                  </span>
+                </TableCell>
                 {isAdmin && (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(account)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setDeleteAccountId(account.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-6 text-sm">
-                <div className="space-y-3">
-                  <div>
-                    <strong>Email:</strong>
-                    <div className="text-muted-foreground">{account.email}</div>
-                  </div>
-                  <div>
-                    <strong>Senha:</strong>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-muted-foreground">
-                        {showPasswords[account.id] ? account.password : '••••••••'}
-                      </span>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        onClick={() => togglePasswordVisibility(account.id)}
+                        onClick={() => handleEdit(account)}
                       >
-                        {showPasswords[account.id] ? 
-                          <EyeOff className="h-4 w-4" /> : 
-                          <Eye className="h-4 w-4" />
-                        }
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setDeleteAccountId(account.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                  {account.games && account.games.length > 0 && (
-                    <div>
-                      <strong>Jogos:</strong>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {account.games.slice(0, 3).map(game => (
-                          <Badge key={game.id} variant="secondary" className="text-xs">
-                            {game.name}
-                          </Badge>
-                        ))}
-                        {account.games.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{account.games.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Add/Edit Account Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingAccount ? 'Editar Conta' : 'Nova Conta'}
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
                 </div>
-                
-                <div className="space-y-3">
-                  {account.security_answer && (
-                    <div>
-                      <strong>Resp. Segurança:</strong>
-                      <div className="text-muted-foreground text-xs">{account.security_answer}</div>
-                    </div>
-                  )}
-                  {account.codes && (
-                    <div>
-                      <strong>Códigos:</strong>
-                      <div className="text-muted-foreground text-xs whitespace-pre-line">{account.codes}</div>
-                    </div>
-                  )}
-                  {account.qr_code && (
-                    <div>
-                      <strong>QR Code:</strong>
-                      <div className="mt-2">
-                        <ImagePlaceholder
-                          src={account.qr_code}
-                          alt="QR Code"
-                          className="w-20 h-20 rounded"
-                        />
-                      </div>
-                    </div>
-                  )}
+                <div>
+                  <Label htmlFor="password">Senha *</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="birthday">Data de Nascimento</Label>
+                  <Input
+                    id="birthday"
+                    type="date"
+                    value={formData.birthday}
+                    onChange={(e) => setFormData(prev => ({ ...prev, birthday: e.target.value }))}
+                  />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="security_answer">Resposta de Segurança</Label>
+                  <Input
+                    id="security_answer"
+                    value={formData.security_answer}
+                    onChange={(e) => setFormData(prev => ({ ...prev, security_answer: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="codes">Códigos de Acesso</Label>
+                  <Textarea
+                    id="codes"
+                    value={formData.codes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, codes: e.target.value }))}
+                    placeholder="Digite os códigos de acesso"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="qr_code">QR Code</Label>
+                  <Input
+                    id="qr_code"
+                    value={formData.qr_code}
+                    onChange={(e) => setFormData(prev => ({ ...prev, qr_code: e.target.value }))}
+                    placeholder="URL do QR Code"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Jogos</Label>
+              <div className="text-sm text-muted-foreground">
+                Vincule esta conta aos jogos disponíveis
+              </div>
+              <div className="max-h-32 overflow-y-auto border rounded p-2">
+                {games.map((game) => (
+                  <div key={game.id} className="flex items-center space-x-2 py-1">
+                    <Checkbox id={`game-${game.id}`} />
+                    <Label htmlFor={`game-${game.id}`} className="text-sm">
+                      {game.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">
+                {editingAccount ? 'Atualizar' : 'Criar'} Conta
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteAccountId} onOpenChange={() => setDeleteAccountId(null)}>

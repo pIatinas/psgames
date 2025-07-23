@@ -1,54 +1,51 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
 import SectionTitle from '@/components/SectionTitle';
-import { Badge } from '@/components/ui/badge';
-import { GamePlatform, Game } from '@/types';
-import { Search } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { gameService } from '@/services/supabaseService';
+import { useQuery } from '@tanstack/react-query';
+import { GamePlatform } from '@/types';
 
-const GameList: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPlatform, setSelectedPlatform] = useState<GamePlatform | null>(null);
-  const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { currentUser } = useAuth();
+const GameList = () => {
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [selectedPlatforms, setSelectedPlatforms] = React.useState<GamePlatform[]>([]);
   
-  // Available platforms (removed VR)
-  const platforms: GamePlatform[] = ['PS5', 'PS4', 'PS3', 'VITA'];
+  const { data: games = [], isLoading } = useQuery({
+    queryKey: ['games'],
+    queryFn: () => gameService.getAll(),
+  });
   
-  useEffect(() => {
-    const loadGames = async () => {
-      try {
-        const gamesData = await gameService.getAll();
-        setGames(gamesData);
-      } catch (error) {
-        console.error('Error loading games:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadGames();
-  }, []);
+  const platforms: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA"];
   
   const filteredGames = games.filter(game => {
-    const matchesSearch = game.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlatform = selectedPlatform ? game.platform.includes(selectedPlatform) : true;
+    const matchesSearch = game.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         game.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesPlatform = selectedPlatforms.length === 0 || 
+                           selectedPlatforms.some(platform => game.platform.includes(platform));
     return matchesSearch && matchesPlatform;
   });
 
-  if (loading) {
+  const togglePlatform = (platform: GamePlatform) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platform) 
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    );
+  };
+
+  if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow container py-8">
-          <div className="text-center">
-            <p className="text-lg text-white">Carregando jogos...</p>
+          <div className="text-center py-12">
+            <p className="text-lg text-muted-foreground">Carregando jogos...</p>
           </div>
         </main>
         <Footer />
@@ -62,13 +59,13 @@ const GameList: React.FC = () => {
 
       <main className="flex-grow container py-8">
         <SectionTitle 
-          title="Biblioteca de Jogos" 
-          subtitle="Explore nossa coleção completa de jogos"
+          title="Catálogo de Jogos" 
+          subtitle="Explore nossa coleção de jogos disponíveis para compartilhamento"
         />
         
         {/* Filtros */}
-        <div className="mb-8 flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
+        <div className="mb-8 space-y-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Pesquisar jogos..."
@@ -78,22 +75,35 @@ const GameList: React.FC = () => {
             />
           </div>
           
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Plataformas:</span>
+            </div>
             {platforms.map(platform => (
-              <Badge 
+              <Button
                 key={platform}
-                variant={selectedPlatform === platform ? "default" : "outline"}
-                className={`cursor-pointer ${selectedPlatform === platform ? 'bg-primary hover:bg-primary/90' : 'hover:bg-primary/10'} text-white`}
-                onClick={() => setSelectedPlatform(prev => prev === platform ? null : platform)}
+                variant={selectedPlatforms.includes(platform) ? "default" : "outline"}
+                size="sm"
+                onClick={() => togglePlatform(platform)}
               >
                 {platform}
-              </Badge>
+              </Button>
             ))}
+            {selectedPlatforms.length > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setSelectedPlatforms([])}
+              >
+                Limpar
+              </Button>
+            )}
           </div>
         </div>
         
-        {/* Grid de jogos - 4 por linha */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {/* Grid de jogos - 5 por linha */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {filteredGames.map(game => (
             <GameCard key={game.id} game={game} />
           ))}
@@ -102,7 +112,7 @@ const GameList: React.FC = () => {
         {/* Mensagem quando não há jogos */}
         {filteredGames.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-lg text-white">
+            <p className="text-lg text-muted-foreground">
               Nenhum jogo encontrado com os filtros atuais.
             </p>
           </div>

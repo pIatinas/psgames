@@ -1,47 +1,62 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Game } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Eye } from 'lucide-react';
+import { Game } from '@/types';
+import { Link } from 'react-router-dom';
+import { generateGameSlug } from '@/utils/gameUtils';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
 
 interface GameCardProps {
   game: Game;
-  className?: string;
 }
 
-const GameCard: React.FC<GameCardProps> = ({ game, className = '' }) => {
-  const gamePlaceholder = `https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=600&fit=crop`;
+const GameCard: React.FC<GameCardProps> = ({ game }) => {
+  const truncateText = (text: string, lines: number = 2) => {
+    const words = text.split(' ');
+    const wordsPerLine = 8;
+    const maxWords = lines * wordsPerLine;
+    
+    if (words.length <= maxWords) {
+      return text;
+    }
+    
+    return words.slice(0, maxWords).join(' ') + '...';
+  };
 
   return (
-    <Link to={`/games/${game.id}`} className={`block ${className}`}>
-      <Card className="group overflow-hidden transition-all hover:-translate-y-1 hover:neon-blue-border rounded-lg h-full">
+    <Card className="h-full hover:shadow-lg transition-shadow overflow-hidden">
+      <div className="aspect-square relative">
         <ImagePlaceholder
           src={game.image}
           alt={game.name}
-          fallbackSrc={gamePlaceholder}
-          className="aspect-[3/4]"
+          className="w-full h-full object-cover"
         />
-        <CardContent className="p-3">
-          <h3 className="font-semibold text-sm line-clamp-2 mb-2">{game.name}</h3>
-          {game.platform && game.platform.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {game.platform.slice(0, 2).map(platform => (
-                <Badge key={platform} variant="outline" className="text-xs">
-                  {platform}
-                </Badge>
-              ))}
-              {game.platform.length > 2 && (
-                <Badge variant="outline" className="text-xs">
-                  +{game.platform.length - 2}
-                </Badge>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </Link>
+      </div>
+      <CardContent className="p-4">
+        <h3 className="font-semibold text-lg mb-2 line-clamp-1">{game.name}</h3>
+        {game.description && (
+          <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+            {truncateText(game.description, 2)}
+          </p>
+        )}
+        <div className="flex flex-wrap gap-1 mb-3">
+          {game.platform.map((platform) => (
+            <Badge key={platform} variant="secondary" className="text-xs">
+              {platform}
+            </Badge>
+          ))}
+        </div>
+        <Button asChild className="w-full" size="sm">
+          <Link to={`/games/${generateGameSlug(game.id, game.name)}`}>
+            <Eye className="h-4 w-4 mr-2" />
+            Ver Detalhes
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 
