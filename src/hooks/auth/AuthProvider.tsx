@@ -5,7 +5,7 @@ import { User } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { AuthContextType } from './authTypes';
-import { fetchUserProfile, setUserAsAdmin, updateUserProfile } from './authUtils';
+import { fetchUserProfile, setUserAsAdmin } from './authUtils';
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
@@ -62,73 +62,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateCurrentUser = (updatedUser: User) => {
     setCurrentUser(updatedUser);
-    
-    // Update the profile in Supabase if user data exists
-    if (session?.user) {
-      updateUserProfile(updatedUser, session.user.id);
-    }
   };
 
   const login = async (emailOrPsn: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
     try {
-      // First try to login with email and password through Supabase auth
+      // Try to login with email and password through Supabase auth
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailOrPsn, // Assume it's an email first
+        email: emailOrPsn,
         password: password
       });
 
       if (error) {
-        // If direct login fails, check if it's a PSN ID instead
-        interface MemberRecord {
-          user_id: string;
-          email: string;
-        }
-
-        const { data: members, error: memberError } = await supabase
-          .from('members')
-          .select('user_id, email')
-          .eq('psn_id', emailOrPsn)
-          .maybeSingle();
-
-        if (memberError || !members) {
-          toast({
-            title: "Erro de login",
-            description: "Credenciais inválidas.",
-            variant: "destructive",
-          });
-          return false;
-        }
-
-        // If we found a member by PSN ID, try to login with their email
-        const typedMember = members as unknown as MemberRecord;
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email: typedMember.email,
-          password: password
-        });
-
-        if (authError) {
-          toast({
-            title: "Erro de login",
-            description: "Senha incorreta.",
-            variant: "destructive",
-          });
-          return false;
-        }
-
-        // Special case for admin login
-        if (emailOrPsn === 'wallace_erick@hotmail.com' && authData.user) {
-          await setUserAsAdmin(authData.user.id);
-        }
-
-        setSession(authData.session);
         toast({
-          title: "Login bem-sucedido",
-          description: "Bem-vindo de volta!",
+          title: "Erro de login",
+          description: "Credenciais inválidas.",
+          variant: "destructive",
         });
-        
-        return true;
+        return false;
       }
 
       // If login was successful

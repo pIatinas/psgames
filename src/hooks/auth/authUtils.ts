@@ -2,48 +2,29 @@
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types';
 import { toast } from '@/components/ui/use-toast';
-import { Database } from '@/integrations/supabase/types';
 
 // Define types for Supabase database tables
 interface ProfileData {
-  role?: string;
-}
-
-interface MemberData {
   id: string;
-  name: string;
-  email: string;
-  psn_id: string;
-  profile_image?: string;
+  name?: string;
+  avatar_url?: string;
+  role?: string;
   created_at: string;
-  is_approved: boolean;
-  user_id: string;
+  updated_at: string;
 }
 
 // Fetch user profile from Supabase
 export const fetchUserProfile = async (userId: string): Promise<User | null> => {
   try {
-    // First check for role in profiles
+    // Get profile data
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('role')
+      .select('*')
       .eq('id', userId)
-      .maybeSingle() as { data: ProfileData | null, error: any };
+      .maybeSingle();
 
     if (profileError && profileError.code !== 'PGRST116') {
       console.error("Error fetching profile:", profileError);
-      return null;
-    }
-
-    // Then get member data
-    const { data: memberData, error: memberError } = await supabase
-      .from('members')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle() as { data: MemberData | null, error: any };
-
-    if (memberError && memberError.code !== 'PGRST116') {
-      console.error("Error fetching member:", memberError);
       return null;
     }
 
@@ -58,25 +39,11 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
     // Construct user object with null checks
     const user: User = {
       id: userId,
-      name: memberData?.name || 'User',
-      email: memberData?.email || '',
-      role: userRole
+      name: profileData?.name || 'User',
+      email: '', // Will be populated from auth if needed
+      role: userRole,
+      profile: profileData as ProfileData
     };
-
-    // Add member data if available
-    if (memberData) {
-      user.member = {
-        id: memberData.id,
-        name: memberData.name,
-        email: memberData.email,
-        psn_id: memberData.psn_id,
-        password: '', // Secure placeholder as we don't store or display passwords
-        profile_image: memberData.profile_image || '',
-        created_at: new Date(memberData.created_at),
-        isApproved: memberData.is_approved,
-        payments: [] // We'd fetch payments separately if needed
-      };
-    }
 
     return user;
   } catch (error) {
@@ -88,21 +55,19 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
 // Update user profile in Supabase
 export const updateUserProfile = async (user: User, sessionUserId: string): Promise<boolean> => {
   try {
-    if (!user.member || !sessionUserId) {
+    if (!sessionUserId) {
       return false;
     }
     
     const updateData = {
       name: user.name,
-      email: user.email,
-      psn_id: user.member.psn_id,
-      profile_image: user.member.profile_image
+      avatar_url: user.profile?.avatar_url
     };
     
     const { error } = await supabase
-      .from('members')
+      .from('profiles')
       .update(updateData)
-      .eq('user_id', sessionUserId) as { error: any };
+      .eq('id', sessionUserId);
 
     if (error) {
       console.error('Failed to update profile:', error);
@@ -129,7 +94,7 @@ export const setUserAsAdmin = async (userId: string): Promise<void> => {
     const { error } = await supabase
       .from('profiles')
       .update(roleData)
-      .eq('id', userId) as { error: any };
+      .eq('id', userId);
       
     if (error) {
       console.error("Error setting user as admin:", error);

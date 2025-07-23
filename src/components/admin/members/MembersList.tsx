@@ -24,10 +24,7 @@ const MembersList: React.FC<MembersListProps> = ({
   // Get member's active accounts
   const getMemberAccounts = (memberId: string): Account[] => {
     return accounts.filter(account => {
-      return (
-        (account.slot1 && account.slot1.member.id === memberId) ||
-        (account.slot2 && account.slot2.member.id === memberId)
-      );
+      return account.slots?.some(slot => slot.user_id === memberId);
     });
   };
 

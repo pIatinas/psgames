@@ -43,11 +43,8 @@ export const useMemberManagement = () => {
       
       // First, remove member from all slots
       updatedAccounts.forEach(account => {
-        if (account.slot1 && account.slot1.member.id === updatedMember.id) {
-          account.slot1 = undefined;
-        }
-        if (account.slot2 && account.slot2.member.id === updatedMember.id) {
-          account.slot2 = undefined;
+        if (account.slots) {
+          account.slots = account.slots.filter(slot => slot.user_id !== updatedMember.id);
         }
       });
       
@@ -57,11 +54,17 @@ export const useMemberManagement = () => {
         const accountIndex = updatedAccounts.findIndex(a => a.id === accountId);
         
         if (accountIndex !== -1) {
-          const slot = `slot${slotNumber}` as 'slot1' | 'slot2';
-          updatedAccounts[accountIndex][slot] = {
-            member: updatedMember,
-            entered_at: new Date()
-          };
+          if (!updatedAccounts[accountIndex].slots) {
+            updatedAccounts[accountIndex].slots = [];
+          }
+          updatedAccounts[accountIndex].slots?.push({
+            id: `slot-${Date.now()}-${Math.random()}`,
+            account_id: accountId,
+            slot_number: parseInt(slotNumber),
+            user_id: updatedMember.id,
+            entered_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          });
         }
       });
       
@@ -85,11 +88,17 @@ export const useMemberManagement = () => {
         const accountIndex = updatedAccounts.findIndex(a => a.id === accountId);
         
         if (accountIndex !== -1) {
-          const slot = `slot${slotNumber}` as 'slot1' | 'slot2';
-          updatedAccounts[accountIndex][slot] = {
-            member: memberToAdd,
-            entered_at: new Date()
-          };
+          if (!updatedAccounts[accountIndex].slots) {
+            updatedAccounts[accountIndex].slots = [];
+          }
+          updatedAccounts[accountIndex].slots?.push({
+            id: `slot-${Date.now()}-${Math.random()}`,
+            account_id: accountId,
+            slot_number: parseInt(slotNumber),
+            user_id: memberToAdd.id,
+            entered_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          });
         }
       });
       
@@ -110,12 +119,11 @@ export const useMemberManagement = () => {
     // Find accounts where this member is using slots
     const memberAccountSlots: string[] = [];
     accounts.forEach(account => {
-      if (account.slot1 && account.slot1.member.id === member.id) {
-        memberAccountSlots.push(`${account.id}-1`);
-      }
-      if (account.slot2 && account.slot2.member.id === member.id) {
-        memberAccountSlots.push(`${account.id}-2`);
-      }
+      account.slots?.forEach(slot => {
+        if (slot.user_id === member.id) {
+          memberAccountSlots.push(`${account.id}-${slot.slot_number}`);
+        }
+      });
     });
     
     setSelectedAccounts(memberAccountSlots);
@@ -127,11 +135,8 @@ export const useMemberManagement = () => {
     // Remove member from all account slots
     const updatedAccounts = accounts.map(account => {
       const updatedAccount = {...account};
-      if (account.slot1 && account.slot1.member.id === id) {
-        updatedAccount.slot1 = undefined;
-      }
-      if (account.slot2 && account.slot2.member.id === id) {
-        updatedAccount.slot2 = undefined;
+      if (updatedAccount.slots) {
+        updatedAccount.slots = updatedAccount.slots.filter(slot => slot.user_id !== id);
       }
       return updatedAccount;
     });

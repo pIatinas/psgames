@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Account, SlotOccupation } from '@/types';
+import { Account } from '@/types';
 import SectionTitle from '@/components/SectionTitle';
 import { CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,20 +15,12 @@ interface MemberActiveAccountsProps {
 const MemberActiveAccounts: React.FC<MemberActiveAccountsProps> = ({ accounts, memberId }) => {
   // Filter accounts where member is using a slot
   const activeAccounts = accounts.filter(account => {
-    return (
-      (account.slot1 && account.slot1.member.id === memberId) ||
-      (account.slot2 && account.slot2.member.id === memberId)
-    );
+    return account.slots?.some(slot => slot.user_id === memberId);
   });
 
   // Get slot information for a specific account
-  const getMemberSlot = (account: Account): SlotOccupation | undefined => {
-    if (account.slot1?.member.id === memberId) {
-      return account.slot1;
-    } else if (account.slot2?.member.id === memberId) {
-      return account.slot2;
-    }
-    return undefined;
+  const getMemberSlot = (account: Account) => {
+    return account.slots?.find(slot => slot.user_id === memberId);
   };
 
   return (
@@ -42,7 +34,7 @@ const MemberActiveAccounts: React.FC<MemberActiveAccountsProps> = ({ accounts, m
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {activeAccounts.map(account => {
             const slot = getMemberSlot(account);
-            const slotNumber = account.slot1?.member.id === memberId ? 1 : 2;
+            const slotNumber = slot?.slot_number || 1;
             const gameCount = account.games?.length || 0;
             
             return (

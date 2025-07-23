@@ -99,22 +99,22 @@ const MemberForm: React.FC<MemberFormProps> = ({
                   <Checkbox 
                     id={`account-${account.id}-1`}
                     checked={selectedAccounts.includes(`${account.id}-1`)}
-                    disabled={account.slot1 && account.slot1.member.id !== (newMember.id || '')}
+                    disabled={account.slots?.some(slot => slot.slot_number === 1 && slot.user_id !== (newMember.id || ''))}
                     onCheckedChange={() => handleAccountToggle(account.id, 1)}
                   />
                   <Label htmlFor={`account-${account.id}-1`} className="cursor-pointer">
-                    Slot 1 {account.slot1 && account.slot1.member.id !== (newMember.id || '') ? '(Em uso)' : ''}
+                    Slot 1 {account.slots?.some(slot => slot.slot_number === 1 && slot.user_id !== (newMember.id || '')) ? '(Em uso)' : ''}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id={`account-${account.id}-2`}
                     checked={selectedAccounts.includes(`${account.id}-2`)}
-                    disabled={account.slot2 && account.slot2.member.id !== (newMember.id || '')}
+                    disabled={account.slots?.some(slot => slot.slot_number === 2 && slot.user_id !== (newMember.id || ''))}
                     onCheckedChange={() => handleAccountToggle(account.id, 2)}
                   />
                   <Label htmlFor={`account-${account.id}-2`} className="cursor-pointer">
-                    Slot 2 {account.slot2 && account.slot2.member.id !== (newMember.id || '') ? '(Em uso)' : ''}
+                    Slot 2 {account.slots?.some(slot => slot.slot_number === 2 && slot.user_id !== (newMember.id || '')) ? '(Em uso)' : ''}
                   </Label>
                 </div>
               </div>

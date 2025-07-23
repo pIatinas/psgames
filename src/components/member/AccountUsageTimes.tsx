@@ -12,12 +12,11 @@ interface AccountUsageTimesProps {
 const AccountUsageTimes: React.FC<AccountUsageTimesProps> = ({ accounts, memberId }) => {
   // Get member's active accounts
   const memberAccounts = accounts.filter(account => 
-    (account.slot1 && account.slot1.member.id === memberId) || 
-    (account.slot2 && account.slot2.member.id === memberId)
+    account.slots?.some(slot => slot.user_id === memberId)
   );
   
   // Calculate days using the account
-  const calculateDaysSince = (date: Date) => {
+  const calculateDaysSince = (date: Date | string) => {
     const now = new Date();
     const enteredDate = new Date(date);
     const diffTime = Math.abs(now.getTime() - enteredDate.getTime());
@@ -28,11 +27,11 @@ const AccountUsageTimes: React.FC<AccountUsageTimesProps> = ({ accounts, memberI
   return (
     <div>
       {memberAccounts.map(account => {
-        // Determine which slot this member is using
-        const slot = account.slot1?.member.id === memberId ? account.slot1 : account.slot2;
+        // Find the slot this member is using
+        const slot = account.slots?.find(slot => slot.user_id === memberId);
         if (!slot) return null;
         
-        const daysSince = calculateDaysSince(slot.entered_at);
+        const daysSince = calculateDaysSince(slot.entered_at || new Date());
         
         return (
           <Card key={account.id} className="mb-4">
