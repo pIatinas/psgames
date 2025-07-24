@@ -16,7 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Account } from '@/types';
 
 interface AdminAccountsProps {
-  onOpenModal: () => void;
+  onOpenModal?: () => void;
 }
 
 const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {

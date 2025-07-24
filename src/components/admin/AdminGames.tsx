@@ -17,7 +17,7 @@ import { Game, GamePlatform } from '@/types';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
 
 interface AdminGamesProps {
-  onOpenModal: () => void;
+  onOpenModal?: () => void;
 }
 
 const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {

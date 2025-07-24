@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AdminMembersProps {
-  onOpenModal: () => void;
+  onOpenModal?: () => void;
 }
 
 const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
