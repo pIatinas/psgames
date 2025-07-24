@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Game, Account, User, GamePlatform } from '@/types';
+import { User, Account, Game, UserRole } from '@/types';
 
 // Game service
 export const gameService = {
@@ -353,39 +353,74 @@ export const accountService = {
 // User service
 export const userService = {
   async getAll(): Promise<User[]> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching users:', error);
-      return [];
-    }
+    try {
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    // Get auth users to get email information
-    const { data: authUsers } = await supabase.auth.admin.listUsers();
-    
-    return (data || []).map(profile => {
-      const authUser = authUsers?.users.find(u => u.id === profile.id);
-      return {
+      if (error) {
+        console.error('Error fetching users:', error);
+        return [];
+      }
+
+      if (!profiles) return [];
+
+      return profiles.map(profile => ({
         id: profile.id,
         name: profile.name || 'User',
-        email: authUser?.email || '',
-        role: profile.role === 'admin' ? 'admin' : 'member',
+        email: '',
+        role: (profile.role as UserRole) || 'member',
         active: profile.active || false,
         profile: {
           id: profile.id,
           name: profile.name,
           avatar_url: profile.avatar_url,
-          role: profile.role === 'admin' ? 'admin' : 'member',
+          role: (profile.role as UserRole) || 'member',
           active: profile.active || false,
           created_at: profile.created_at,
           updated_at: profile.updated_at
-        },
-        roles: []
+        }
+      }));
+    } catch (error) {
+      console.error('Error in getAll:', error);
+      return [];
+    }
+  },
+
+  async getById(id: string): Promise<User | null> {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error || !profile) {
+        console.error('Error fetching user:', error);
+        return null;
+      }
+
+      return {
+        id: profile.id,
+        name: profile.name || 'User',
+        email: '',
+        role: (profile.role as UserRole) || 'member',
+        active: profile.active || false,
+        profile: {
+          id: profile.id,
+          name: profile.name,
+          avatar_url: profile.avatar_url,
+          role: (profile.role as UserRole) || 'member',
+          active: profile.active || false,
+          created_at: profile.created_at,
+          updated_at: profile.updated_at
+        }
       };
-    });
+    } catch (error) {
+      console.error('Error in getById:', error);
+      return null;
+    }
   },
 
   async createUser(userData: {
@@ -428,20 +463,23 @@ export const userService = {
     }
   },
 
-  async updateProfile(userId: string, profileData: { name?: string; role?: string; active?: boolean }): Promise<any> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(profileData)
-      .eq('id', userId)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Error updating profile:', error);
-      throw error;
+  async updateProfile(userId: string, updates: { name?: string; role?: UserRole; active?: boolean }): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in updateProfile:', error);
+      return false;
     }
-    
-    return data;
   },
 
   async toggleUserActive(userId: string, active: boolean): Promise<boolean> {
@@ -450,15 +488,15 @@ export const userService = {
         .from('profiles')
         .update({ active })
         .eq('id', userId);
-      
+
       if (error) {
         console.error('Error toggling user active status:', error);
         return false;
       }
-      
+
       return true;
     } catch (error) {
-      console.error('Error toggling user active status:', error);
+      console.error('Error in toggleUserActive:', error);
       return false;
     }
   },

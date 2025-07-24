@@ -94,11 +94,15 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
       return false;
     }
     
-    const updateData = {
+    const updateData: { name?: string; avatar_url?: string; active?: boolean } = {
       name: user.name,
-      avatar_url: user.profile?.avatar_url,
       active: user.active
     };
+
+    // Only include avatar_url if it exists
+    if (user.profile?.avatar_url) {
+      updateData.avatar_url = user.profile.avatar_url;
+    }
     
     const { error } = await supabase
       .from('profiles')

@@ -1,3 +1,4 @@
+
 import { Account, Game, GamePlatform, Member, Payment, User } from "../types";
 
 // Helper para criar datas em um formato mais legível
@@ -413,24 +414,28 @@ export const users: User[] = [
     name: "Administrador",
     email: "admin@example.com",
     role: "admin",
+    active: true,
   },
   {
     id: members[0].id,
     name: members[0].name,
     email: members[0].email,
     role: "member",
+    active: true,
   },
   {
     id: members[1].id,
     name: members[1].name,
     email: members[1].email,
     role: "member",
+    active: true,
   },
   {
     id: members[2].id,
     name: members[2].name,
     email: members[2].email,
     role: "member",
+    active: true,
   },
 ];
 
