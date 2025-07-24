@@ -152,7 +152,7 @@ export const accountService = {
     // Get all user profiles to match with slots
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, name');
+      .select('id, name, active');
     
     return (data || []).map(account => ({
       ...account,
@@ -167,7 +167,8 @@ export const accountService = {
           slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1,
           user: userProfile ? {
             id: userProfile.id,
-            name: userProfile.name || 'Usuário'
+            name: userProfile.name || 'Usuário',
+            active: userProfile.active
           } : undefined
         };
       })
@@ -195,7 +196,7 @@ export const accountService = {
     // Get all user profiles to match with slots
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, name');
+      .select('id, name, active');
     
     return {
       ...data,
@@ -210,7 +211,8 @@ export const accountService = {
           slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1,
           user: userProfile ? {
             id: userProfile.id,
-            name: userProfile.name || 'Usuário'
+            name: userProfile.name || 'Usuário',
+            active: userProfile.active
           } : undefined
         };
       })
@@ -361,22 +363,70 @@ export const userService = {
       console.error('Error fetching users:', error);
       return [];
     }
+
+    // Get auth users to get email information
+    const { data: authUsers } = await supabase.auth.admin.listUsers();
     
-    return (data || []).map(profile => ({
-      id: profile.id,
-      name: profile.name || 'User',
-      email: '', // Email not available in profiles table
-      role: profile.role === 'admin' ? 'admin' : 'member',
-      profile: {
+    return (data || []).map(profile => {
+      const authUser = authUsers?.users.find(u => u.id === profile.id);
+      return {
         id: profile.id,
-        name: profile.name,
-        avatar_url: profile.avatar_url,
+        name: profile.name || 'User',
+        email: authUser?.email || '',
         role: profile.role === 'admin' ? 'admin' : 'member',
-        created_at: profile.created_at,
-        updated_at: profile.updated_at
-      },
-      roles: []
-    }));
+        active: profile.active || false,
+        profile: {
+          id: profile.id,
+          name: profile.name,
+          avatar_url: profile.avatar_url,
+          role: profile.role === 'admin' ? 'admin' : 'member',
+          active: profile.active || false,
+          created_at: profile.created_at,
+          updated_at: profile.updated_at
+        },
+        roles: []
+      };
+    });
+  },
+
+  async createUser(userData: {
+    name: string;
+    email: string;
+    password: string;
+    role: 'admin' | 'member';
+    active?: boolean;
+  }): Promise<{ user: any; error: any }> {
+    try {
+      // Create user in Supabase Auth
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: userData.email,
+        password: userData.password,
+        email_confirm: true, // Auto-confirm email
+        user_metadata: {
+          name: userData.name
+        }
+      });
+
+      if (error) {
+        return { user: null, error };
+      }
+
+      // Update the profile with additional data
+      if (data.user) {
+        await supabase
+          .from('profiles')
+          .update({
+            name: userData.name,
+            role: userData.role,
+            active: userData.active || false
+          })
+          .eq('id', data.user.id);
+      }
+
+      return { user: data.user, error: null };
+    } catch (error) {
+      return { user: null, error };
+    }
   },
 
   async updateProfile(userId: string, profileData: any): Promise<any> {
@@ -395,6 +445,25 @@ export const userService = {
     return data;
   },
 
+  async toggleUserActive(userId: string, active: boolean): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ active })
+        .eq('id', userId);
+      
+      if (error) {
+        console.error('Error toggling user active status:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error toggling user active status:', error);
+      return false;
+    }
+  },
+
   async createProfile(userId: string, profileData: any): Promise<any> {
     const { data, error } = await supabase
       .from('profiles')
@@ -402,7 +471,8 @@ export const userService = {
         id: userId,
         name: profileData.name,
         avatar_url: profileData.avatar_url,
-        role: profileData.role || 'member'
+        role: profileData.role || 'member',
+        active: profileData.active || false
       })
       .select()
       .single();

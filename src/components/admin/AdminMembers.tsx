@@ -3,18 +3,18 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash2, UserPlus } from 'lucide-react';
+import { Plus, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { userService, accountService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { User, Account } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AdminMembersProps {
@@ -34,7 +34,7 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     email: '',
     password: '',
     role: 'member' as 'admin' | 'member',
-    avatar_url: ''
+    active: false
   });
 
   const { data: members = [], isLoading: membersLoading } = useQuery({
@@ -53,7 +53,7 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
       email: '',
       password: '',
       role: 'member',
-      avatar_url: ''
+      active: false
     });
     setSelectedAccountSlots([]);
     setEditingMember(null);
@@ -71,7 +71,7 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
       email: member.email,
       password: '',
       role: member.role,
-      avatar_url: member.profile?.avatar_url || ''
+      active: member.profile?.active || false
     });
 
     // Get member's current account slots
@@ -101,6 +101,31 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     });
   };
 
+  const handleToggleActive = async (memberId: string, currentActive: boolean) => {
+    try {
+      const success = await userService.toggleUserActive(memberId, !currentActive);
+      if (success) {
+        toast({
+          title: "Status atualizado",
+          description: `Usuário ${!currentActive ? 'ativado' : 'desativado'} com sucesso.`
+        });
+        queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível atualizar o status do usuário.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status do usuário.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) {
@@ -117,8 +142,8 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
         // Update existing member profile
         await userService.updateProfile(editingMember.id, {
           name: formData.name,
-          avatar_url: formData.avatar_url,
-          role: formData.role
+          role: formData.role,
+          active: formData.active
         });
 
         // Update account slots
@@ -129,7 +154,7 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
           description: "O membro foi atualizado com sucesso."
         });
       } else {
-        // Create new member with auth
+        // Create new member
         if (!formData.password) {
           toast({
             title: "Erro",
@@ -139,36 +164,26 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
           return;
         }
 
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        const { user, error } = await userService.createUser({
+          name: formData.name,
           email: formData.email,
           password: formData.password,
-          options: {
-            data: {
-              name: formData.name,
-              role: formData.role
-            }
-          }
+          role: formData.role,
+          active: formData.active
         });
 
-        if (authError) {
+        if (error) {
           toast({
             title: "Erro",
-            description: "Não foi possível criar a conta do usuário.",
+            description: "Não foi possível criar o usuário.",
             variant: "destructive"
           });
           return;
         }
 
-        if (authData.user) {
-          // Create or update profile
-          await userService.createProfile(authData.user.id, {
-            name: formData.name,
-            avatar_url: formData.avatar_url,
-            role: formData.role
-          });
-
+        if (user) {
           // Link account slots
-          await userService.linkToAccounts(authData.user.id, selectedAccountSlots);
+          await userService.linkToAccounts(user.id, selectedAccountSlots);
 
           toast({
             title: "Membro criado",
@@ -195,13 +210,12 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     if (!deleteMemberId) return;
 
     try {
-      // Note: We can't delete auth users directly, but we can remove their profile
-      // and account associations
+      // Remove account associations
       await userService.linkToAccounts(deleteMemberId, []);
       
       toast({
-        title: "Membro removido",
-        description: "O membro foi removido com sucesso."
+        title: "Associações removidas",
+        description: "As associações de conta do membro foram removidas."
       });
       
       queryClient.invalidateQueries({ queryKey: ['admin-members'] });
@@ -209,7 +223,7 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível remover o membro.",
+        description: "Não foi possível remover as associações do membro.",
         variant: "destructive"
       });
     } finally {
@@ -248,7 +262,9 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Contas Ativas</TableHead>
               <TableHead>Criado em</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
@@ -263,10 +279,25 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
               return (
                 <TableRow key={member.id}>
                   <TableCell className="font-medium">{member.name}</TableCell>
+                  <TableCell>{member.email}</TableCell>
                   <TableCell>
                     <Badge variant={member.role === 'admin' ? 'default' : 'secondary'}>
                       {member.role === 'admin' ? 'Admin' : 'Membro'}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={member.active ? 'default' : 'destructive'}>
+                        {member.active ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                      {isAdmin && (
+                        <Switch
+                          checked={member.active}
+                          onCheckedChange={() => handleToggleActive(member.id, member.active)}
+                          size="sm"
+                        />
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
@@ -374,14 +405,12 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                 </Select>
               </div>
               
-              <div>
-                <Label htmlFor="avatar_url">URL do Avatar</Label>
-                <Input 
-                  id="avatar_url" 
-                  type="url" 
-                  value={formData.avatar_url} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, avatar_url: e.target.value }))}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={formData.active}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
                 />
+                <Label>Usuário Ativo</Label>
               </div>
             </div>
 

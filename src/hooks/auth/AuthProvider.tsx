@@ -24,15 +24,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         setSession(currentSession);
         if (currentSession?.user) {
-          // Defer the fetch to avoid auth deadlock
-          setTimeout(() => {
-            fetchUserProfile(currentSession.user.id).then(user => {
-              setCurrentUser(user);
+          // Check if user is active before setting as current user
+          const user = await fetchUserProfile(currentSession.user.id);
+          if (user && !user.profile?.active) {
+            // User is not active, sign them out
+            await supabase.auth.signOut();
+            toast({
+              title: "Conta inativa",
+              description: "Sua conta não está ativa. Entre em contato com o administrador.",
+              variant: "destructive",
             });
-          }, 0);
+            setCurrentUser(null);
+            return;
+          }
+          setCurrentUser(user);
         } else {
           setCurrentUser(null);
         }
@@ -42,11 +50,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for initial session
     const initializeAuth = async () => {
       const { data: { session: initialSession } } = await supabase.auth.getSession();
-      setSession(initialSession);
       
       if (initialSession?.user) {
         const user = await fetchUserProfile(initialSession.user.id);
-        setCurrentUser(user);
+        if (user && !user.profile?.active) {
+          // User is not active, sign them out
+          await supabase.auth.signOut();
+          toast({
+            title: "Conta inativa",
+            description: "Sua conta não está ativa. Entre em contato com o administrador.",
+            variant: "destructive",
+          });
+          setCurrentUser(null);
+          setSession(null);
+        } else {
+          setCurrentUser(user);
+          setSession(initialSession);
+        }
       }
       
       setIsLoading(false);
@@ -58,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   const updateCurrentUser = (updatedUser: User) => {
     setCurrentUser(updatedUser);
@@ -81,6 +101,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           variant: "destructive",
         });
         return false;
+      }
+
+      // Check if user is active
+      if (data.user) {
+        const userProfile = await fetchUserProfile(data.user.id);
+        if (userProfile && !userProfile.profile?.active) {
+          await supabase.auth.signOut();
+          toast({
+            title: "Conta inativa",
+            description: "Sua conta não está ativa. Entre em contato com o administrador.",
+            variant: "destructive",
+          });
+          return false;
+        }
       }
 
       // If login was successful
