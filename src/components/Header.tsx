@@ -14,7 +14,7 @@ const Header = () => {
     logout();
     navigate('/');
   };
-  return <header className="bg-gray-900 text-white py-4 shadow-md">
+  return <header className="text-white py-4 shadow-md bg-neutral-950">
       <div className="container flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold flex items-center gap-2">
           <Gamepad2 className="h-8 w-8" />
