@@ -1,27 +1,20 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Settings, Gamepad2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 const Header = () => {
-  const { currentUser, logout } = useAuth();
+  const {
+    currentUser,
+    logout
+  } = useAuth();
   const navigate = useNavigate();
-
   const handleLogout = () => {
     logout();
     navigate('/');
   };
-
-  return (
-    <header className="bg-gray-900 text-white py-4 shadow-md">
+  return <header className="bg-gray-900 text-white py-4 shadow-md">
       <div className="container flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold flex items-center gap-2">
           <Gamepad2 className="h-8 w-8" />
@@ -42,10 +35,9 @@ const Header = () => {
             Membros
           </Link>
           
-          {currentUser ? (
-            <DropdownMenu>
+          {currentUser ? <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="text-gray-900 bg-white hover:bg-gray-100">
+                <Button variant="outline" size="sm" className="font-bold text-slate-50 bg-gray-950 hover:bg-gray-800">
                   <User className="h-4 w-4 mr-2" />
                   {currentUser.name}
                 </Button>
@@ -63,34 +55,27 @@ const Header = () => {
                     Minhas Contas
                   </Link>
                 </DropdownMenuItem>
-                {currentUser.role === 'admin' && (
-                  <DropdownMenuItem asChild>
+                {currentUser.role === 'admin' && <DropdownMenuItem asChild>
                     <Link to="/admin/games" className="flex items-center">
                       <Settings className="h-4 w-4 mr-2" />
                       Gerenciar
                     </Link>
-                  </DropdownMenuItem>
-                )}
+                  </DropdownMenuItem>}
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                   <LogOut className="h-4 w-4 mr-2" />
                   Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="space-x-2">
+            </DropdownMenu> : <div className="space-x-2">
               <Button asChild variant="outline" size="sm" className="text-gray-900 bg-white hover:bg-gray-100">
                 <Link to="/login">Entrar</Link>
               </Button>
               <Button asChild variant="secondary" size="sm">
                 <Link to="/register">Cadastrar</Link>
               </Button>
-            </div>
-          )}
+            </div>}
         </nav>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Header;
