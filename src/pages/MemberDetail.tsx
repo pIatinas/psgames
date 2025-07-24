@@ -13,6 +13,7 @@ import AccountUsageTimes from '@/components/member/AccountUsageTimes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { parseMemberSlug } from '@/utils/gameUtils';
 import { useQuery } from '@tanstack/react-query';
+import { Member } from '@/types';
 
 const MemberDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -21,7 +22,7 @@ const MemberDetail = () => {
   const memberId = slug ? parseMemberSlug(slug) : null;
   
   // Fetch member data
-  const { data: members = [] } = useQuery({
+  const { data: users = [] } = useQuery({
     queryKey: ['users'],
     queryFn: () => userService.getAll(),
   });
@@ -32,11 +33,11 @@ const MemberDetail = () => {
     queryFn: () => accountService.getAll(),
   });
   
-  // Find the member
-  const member = members.find(m => m.id === memberId);
+  // Find the user
+  const user = users.find(u => u.id === memberId);
   
   // Se o membro não for encontrado
-  if (!member) {
+  if (!user) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
@@ -54,6 +55,23 @@ const MemberDetail = () => {
       </div>
     );
   }
+
+  // Transform User to Member format for compatibility
+  const member: Member = {
+    id: user.id,
+    name: user.name,
+    email: user.email || '',
+    password: '',
+    psn_id: user.profile?.name || user.name,
+    profile_image: user.profile?.avatar_url || '',
+    isApproved: true, // Assume approved if they exist
+    created_at: user.profile?.created_at || '',
+    updated_at: user.profile?.updated_at || '',
+    accounts: accounts.filter(account => 
+      account.slots?.some(slot => slot.user_id === user.id)
+    ),
+    payments: [] // Empty for now
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -81,7 +99,7 @@ const MemberDetail = () => {
               <MemberProfileHeader member={member} />
               
               {/* Troféus do PSN ID */}
-              <MemberTrophyStats psnId={member.profile?.name || member.name} />
+              <MemberTrophyStats psnId={member.psn_id || member.name} />
               
               {/* Contas ativas com detalhes de jogos e tempo de uso */}
               <Card>
@@ -119,8 +137,8 @@ const MemberDetail = () => {
                     <div>
                       <div className="text-sm font-medium">Status</div>
                       <div className="text-sm">
-                        <Badge className={member.role === 'admin' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}>
-                          {member.role === 'admin' ? 'Administrador' : 'Membro'}
+                        <Badge className={user.role === 'admin' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}>
+                          {user.role === 'admin' ? 'Administrador' : 'Membro'}
                         </Badge>
                       </div>
                     </div>
@@ -128,7 +146,7 @@ const MemberDetail = () => {
                     <div>
                       <div className="text-sm font-medium">Membro desde</div>
                       <div className="text-sm">
-                        {member.profile?.created_at ? new Date(member.profile.created_at).toLocaleDateString() : 'N/A'}
+                        {user.profile?.created_at ? new Date(user.profile.created_at).toLocaleDateString() : 'N/A'}
                       </div>
                     </div>
                   </div>
