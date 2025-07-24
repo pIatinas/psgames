@@ -68,7 +68,7 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
     setEditingAccount(account);
     setFormData({
       email: account.email,
-      password: account.password || '',
+      password: '', // Don't populate password for security
       birthday: account.birthday || '',
       security_answer: account.security_answer || '',
       codes: account.codes || '',
@@ -91,10 +91,10 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) {
+    if (!formData.email || (!editingAccount && !formData.password)) {
       toast({
         title: "Erro",
-        description: "Email e senha são obrigatórios.",
+        description: "Email é obrigatório. Senha é obrigatória para novas contas.",
         variant: "destructive"
       });
       return;
@@ -103,14 +103,20 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
     try {
       if (editingAccount) {
         // Update existing account
-        await accountService.update(editingAccount.id, {
+        const updateData: any = {
           email: formData.email,
-          password: formData.password,
           birthday: formData.birthday,
           security_answer: formData.security_answer,
           codes: formData.codes,
           qr_code: formData.qr_code
-        });
+        };
+        
+        // Only update password if a new one is provided
+        if (formData.password) {
+          updateData.password = formData.password;
+        }
+        
+        await accountService.update(editingAccount.id, updateData);
 
         // Link games to account
         await accountService.linkToGames(editingAccount.id, selectedGames);
@@ -317,13 +323,16 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
               </div>
               
               <div>
-                <Label htmlFor="password">Senha *</Label>
+                <Label htmlFor="password">
+                  Senha {editingAccount ? '(deixe em branco para manter a atual)' : '*'}
+                </Label>
                 <Input 
                   id="password" 
                   type="password" 
                   value={formData.password} 
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  required 
+                  required={!editingAccount}
+                  placeholder={editingAccount ? "Nova senha (opcional)" : "Senha obrigatória"}
                 />
               </div>
             </div>

@@ -144,7 +144,9 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
               </div>
               <div>
                 <div className="font-medium">Senha</div>
-                <div className="p-2 bg-muted rounded-md">{account.password}</div>
+                <div className="p-2 bg-muted rounded-md">
+                  {account.password ? '••••••••' : 'Não definida'}
+                </div>
               </div>
               <div>
                 <div className="font-medium">Código de Acesso</div>

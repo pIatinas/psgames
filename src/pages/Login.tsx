@@ -24,52 +24,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // Function to create admin user - moved inside component
-  const createAdminUser = async () => {
-    const adminEmail = 'wallace_erick@hotmail.com';
-    const adminPassword = 'password123'; // Updated password
-    
-    try {
-      // We'll check if the admin user exists by attempting to sign in
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: adminEmail,
-        password: adminPassword
-      });
-      
-      // If sign in works, the user exists
-      if (!signInError) {
-        console.log('Admin user already exists');
-        // Sign out immediately
-        await supabase.auth.signOut();
-        return;
-      }
-      
-      // Create the admin user if sign in failed
-      const { data, error } = await supabase.auth.signUp({
-        email: adminEmail,
-        password: adminPassword,
-        options: {
-          data: {
-            name: 'Wallace',
-            psn_id: 'admin_wallace'
-          }
-        }
-      });
-      
-      if (error) throw error;
-      
-      if (data.user) {
-        console.log('Admin user created successfully');
-      }
-    } catch (error) {
-      console.error('Error creating admin user:', error);
-    }
-  };
-  
-  // Try to create admin user on component mount
-  useEffect(() => {
-    createAdminUser();
-  }, []);
+  // Admin user should be created through Supabase dashboard for security
   
   // Redirect if already logged in
   useEffect(() => {

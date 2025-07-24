@@ -124,10 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Bem-vindo de volta!",
       });
       
-      // Special case for admin login
-      if (emailOrPsn === 'wallace_erick@hotmail.com' && data.user) {
-        await setUserAsAdmin(data.user.id);
-      }
+      // Admin role is managed through database triggers and manual assignment
 
       return true;
     } catch (error) {
