@@ -9,6 +9,7 @@ interface ProfileData {
   name?: string;
   avatar_url?: string;
   role?: string;
+  active?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -55,17 +56,24 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
       userRole = hasAdminRole ? 'admin' : 'member';
     }
 
+    // Use profile role if available, otherwise use role from user_roles
+    if (profileData?.role) {
+      userRole = profileData.role === 'admin' ? 'admin' : 'member';
+    }
+
     // Construct user object with null checks
     const user: User = {
       id: userId,
       name: profileData?.name || 'User',
       email: '', // Will be populated from auth if needed
       role: userRole,
+      active: profileData?.active || false,
       profile: profileData ? {
         id: profileData.id,
         name: profileData.name,
         avatar_url: profileData.avatar_url,
         role: userRole,
+        active: profileData.active || false,
         created_at: profileData.created_at,
         updated_at: profileData.updated_at
       } : undefined,
@@ -88,7 +96,8 @@ export const updateUserProfile = async (user: User, sessionUserId: string): Prom
     
     const updateData = {
       name: user.name,
-      avatar_url: user.profile?.avatar_url
+      avatar_url: user.profile?.avatar_url,
+      active: user.active
     };
     
     const { error } = await supabase

@@ -71,7 +71,7 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
       email: member.email,
       password: '',
       role: member.role,
-      active: member.profile?.active || false
+      active: member.active
     });
 
     // Get member's current account slots
@@ -294,7 +294,6 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                         <Switch
                           checked={member.active}
                           onCheckedChange={() => handleToggleActive(member.id, member.active)}
-                          size="sm"
                         />
                       )}
                     </div>

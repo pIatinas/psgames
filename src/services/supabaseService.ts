@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Game, Account, User, GamePlatform } from '@/types';
 
@@ -429,7 +428,7 @@ export const userService = {
     }
   },
 
-  async updateProfile(userId: string, profileData: any): Promise<any> {
+  async updateProfile(userId: string, profileData: { name?: string; role?: string; active?: boolean }): Promise<any> {
     const { data, error } = await supabase
       .from('profiles')
       .update(profileData)

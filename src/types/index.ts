@@ -50,6 +50,7 @@ export interface AccountSlot {
   user?: {
     id: string;
     name: string;
+    active: boolean;
   };
 }
 
@@ -81,11 +82,13 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  active: boolean;
   profile?: {
     id: string;
     name?: string;
     avatar_url?: string;
     role: UserRole;
+    active: boolean;
     created_at: string;
     updated_at: string;
   };

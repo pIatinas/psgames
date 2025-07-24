@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (currentSession?.user) {
           // Check if user is active before setting as current user
           const user = await fetchUserProfile(currentSession.user.id);
-          if (user && !user.profile?.active) {
+          if (user && !user.active) {
             // User is not active, sign them out
             await supabase.auth.signOut();
             toast({
@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (initialSession?.user) {
         const user = await fetchUserProfile(initialSession.user.id);
-        if (user && !user.profile?.active) {
+        if (user && !user.active) {
           // User is not active, sign them out
           await supabase.auth.signOut();
           toast({
@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Check if user is active
       if (data.user) {
         const userProfile = await fetchUserProfile(data.user.id);
-        if (userProfile && !userProfile.profile?.active) {
+        if (userProfile && !userProfile.active) {
           await supabase.auth.signOut();
           toast({
             title: "Conta inativa",
