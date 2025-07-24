@@ -6,22 +6,53 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { members, accounts } from '@/data/mockData';
+import { userService, accountService } from '@/services/supabaseService';
 import MemberProfileHeader from '@/components/member/MemberProfileHeader';
-import MemberNotFound from '@/components/member/MemberNotFound';
 import MemberTrophyStats from '@/components/member/MemberTrophyStats';
 import AccountUsageTimes from '@/components/member/AccountUsageTimes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { parseMemberSlug } from '@/utils/gameUtils';
+import { useQuery } from '@tanstack/react-query';
 
 const MemberDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   
-  // Encontrar o membro pelo ID
-  const member = members.find(member => member.id === id);
+  // Extract member ID from slug
+  const memberId = slug ? parseMemberSlug(slug) : null;
+  
+  // Fetch member data
+  const { data: members = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => userService.getAll(),
+  });
+  
+  // Fetch accounts data
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: () => accountService.getAll(),
+  });
+  
+  // Find the member
+  const member = members.find(m => m.id === memberId);
   
   // Se o membro não for encontrado
   if (!member) {
-    return <MemberNotFound />;
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow container py-16 flex flex-col items-center justify-center">
+          <h2 className="text-2xl font-bold mb-4 text-white">Membro não encontrado</h2>
+          <p className="text-white mb-6">Não foi possível encontrar o membro solicitado.</p>
+          <Button asChild>
+            <Link to="/members">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar para membros
+            </Link>
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   return (
@@ -50,7 +81,7 @@ const MemberDetail = () => {
               <MemberProfileHeader member={member} />
               
               {/* Troféus do PSN ID */}
-              <MemberTrophyStats psnId={member.psn_id} />
+              <MemberTrophyStats psnId={member.profile?.name || member.name} />
               
               {/* Contas ativas com detalhes de jogos e tempo de uso */}
               <Card>
@@ -59,7 +90,7 @@ const MemberDetail = () => {
                   <CardDescription>Contas que este membro está utilizando atualmente</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <AccountUsageTimes accounts={accounts} memberId={id || ''} />
+                  <AccountUsageTimes accounts={accounts} memberId={memberId || ''} />
                 </CardContent>
               </Card>
             </div>
@@ -88,27 +119,16 @@ const MemberDetail = () => {
                     <div>
                       <div className="text-sm font-medium">Status</div>
                       <div className="text-sm">
-                        <Badge className={member.isApproved ? 'bg-green-500 hover:bg-green-600' : 'bg-amber-500 hover:bg-amber-600'}>
-                          {member.isApproved ? 'Aprovado' : 'Pendente'}
+                        <Badge className={member.role === 'admin' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}>
+                          {member.role === 'admin' ? 'Administrador' : 'Membro'}
                         </Badge>
                       </div>
                     </div>
                     
                     <div>
-                      <div className="text-sm font-medium">Mês Atual</div>
+                      <div className="text-sm font-medium">Membro desde</div>
                       <div className="text-sm">
-                        {(() => {
-                          const currentMonth = new Date().getMonth();
-                          const currentYear = new Date().getFullYear();
-                          const currentPayment = member.payments.find(p => p.month === currentMonth && p.year === currentYear);
-                          const paymentStatus = currentPayment ? currentPayment.status : 'pending';
-                          
-                          return (
-                            <Badge className={paymentStatus === 'paid' ? 'bg-green-500 hover:bg-green-600' : 'bg-amber-500 hover:bg-amber-600'}>
-                              {paymentStatus === 'paid' ? 'Pago' : 'Pendente'}
-                            </Badge>
-                          );
-                        })()}
+                        {member.profile?.created_at ? new Date(member.profile.created_at).toLocaleDateString() : 'N/A'}
                       </div>
                     </div>
                   </div>

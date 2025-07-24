@@ -42,9 +42,9 @@ const App = () => (
             <Route path="/games" element={<GameList />} />
             <Route path="/games/:slug" element={<GameDetail />} />
             <Route path="/accounts" element={<AccountList />} />
-            <Route path="/accounts/:id" element={<AccountDetail />} />
+            <Route path="/accounts/:slug" element={<AccountDetail />} />
             <Route path="/members" element={<MemberList />} />
-            <Route path="/members/:id" element={<MemberDetail />} />
+            <Route path="/members/:slug" element={<MemberDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/my-profile" element={<MyProfile />} />

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
 import { Account } from '@/types';
 import { Link } from 'react-router-dom';
+import { generateAccountSlug } from '@/utils/gameUtils';
 
 interface AccountCardProps {
   account: Account;
@@ -30,7 +31,7 @@ const AccountCard: React.FC<AccountCardProps> = ({ account }) => {
 
   return (
     <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-      <Link to={`/accounts/${account.id}`} className="block">
+      <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`} className="block">
         <CardContent className="p-4 space-y-3">
           <div>
             <div className="text-sm font-medium mb-1">Email:</div>

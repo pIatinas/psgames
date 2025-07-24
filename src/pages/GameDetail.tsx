@@ -4,13 +4,15 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SectionTitle from '@/components/SectionTitle';
-import { games, accounts } from '@/data/mockData';
+import { gameService, accountService } from '@/services/supabaseService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, ArrowLeft, Trophy, Check, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchGameInfo } from '@/services/gameInfoService';
-import { Account } from '@/types';
+import { Game, Account } from '@/types';
+import { parseGameSlug, generateAccountSlug } from '@/utils/gameUtils';
+import { useQuery } from '@tanstack/react-query';
 
 // Interface for trophy data
 interface TrophyInfo {
@@ -22,18 +24,30 @@ interface TrophyInfo {
 }
 
 const GameDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const { currentUser } = useAuth();
   const [trophyInfo, setTrophyInfo] = useState<TrophyInfo | null>(null);
   const [gameDetails, setGameDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  // Encontrar o jogo pelo ID
-  const game = games.find(game => game.id === id);
+  // Extract game ID from slug
+  const gameId = slug ? parseGameSlug(slug) : null;
   
-  // Find accounts that have this game
-  const gameAccounts = accounts.filter(account => 
-    account.games?.some(g => g.id === id)
+  // Fetch game data
+  const { data: game, isLoading: gameLoading } = useQuery({
+    queryKey: ['game', gameId],
+    queryFn: () => gameId ? gameService.getById(gameId) : null,
+    enabled: !!gameId,
+  });
+
+  // Fetch accounts with this game
+  const { data: allAccounts = [] } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: () => accountService.getAll(),
+  });
+
+  const gameAccounts = allAccounts.filter(account => 
+    account.games?.some(g => g.id === gameId)
   );
   
   // Fetch trophy info and game details
@@ -56,15 +70,17 @@ const GameDetail = () => {
   }, [game]);
   
   // Se o jogo não for encontrado
-  if (!game) {
+  if (gameLoading || !game) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
         
         <main className="flex-grow container py-16 flex flex-col items-center justify-center">
-          <h2 className="text-2xl font-bold mb-4 text-white">Jogo não encontrado</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">
+            {gameLoading ? 'Carregando...' : 'Jogo não encontrado'}
+          </h2>
           <p className="text-white mb-6">
-            Não foi possível encontrar o jogo solicitado.
+            {gameLoading ? 'Carregando informações do jogo...' : 'Não foi possível encontrar o jogo solicitado.'}
           </p>
           <Button asChild>
             <Link to="/games">
@@ -94,6 +110,19 @@ const GameDetail = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent"></div>
           
           <div className="absolute bottom-0 left-0 right-0 container py-8">
+            <div className="flex items-center mb-4">
+              <Button 
+                variant="ghost" 
+                className="mr-4 text-white hover:text-foreground"
+                asChild
+              >
+                <Link to="/games">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Voltar
+                </Link>
+              </Button>
+            </div>
+            
             <div className="flex items-end gap-6">
               <div className="hidden md:block w-36 h-48 rounded-lg overflow-hidden shadow-lg">
                 <img 
@@ -291,7 +320,7 @@ const AccountCard = ({ account }: { account: Account }) => {
       
       <div className="mt-4">
         <Button variant="outline" className="w-full" asChild>
-          <Link to={`/accounts/${account.id}`}>Ver Detalhes</Link>
+          <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`}>Ver Detalhes</Link>
         </Button>
       </div>
     </div>

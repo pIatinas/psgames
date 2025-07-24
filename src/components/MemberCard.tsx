@@ -1,48 +1,37 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { User } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Gamepad2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { User } from '@/types';
+import { Link } from 'react-router-dom';
+import { generateMemberSlug } from '@/utils/gameUtils';
 
 interface MemberCardProps {
   member: User;
-  className?: string;
-  activeAccountsCount?: number;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({ member, className = '', activeAccountsCount = 0 }) => {
-  // Obter as iniciais do nome
-  const initials = member.name.split(' ').map(n => n[0]).join('').toUpperCase();
-  
-  const memberPlaceholder = `https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=200&h=200&fit=crop&crop=face`;
-  
+const MemberCard: React.FC<MemberCardProps> = ({ member }) => {
   return (
-    <Link to={`/members/${member.id}`} className={`block ${className}`}>
-      <Card className="overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md rounded-lg">
-        <div className="p-4 flex justify-center items-center">
-          <Avatar className="h-16 w-16 border-2 border-accent/50">
-            <AvatarImage src={member.profile?.avatar_url || memberPlaceholder} alt={member.name} />
-            <AvatarFallback className="bg-accent/20 text-accent">{initials}</AvatarFallback>
-          </Avatar>
-        </div>
-        <CardContent className="p-3 text-center">
-          <h3 className="font-semibold text-base">{member.name}</h3>
-          <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
-            <Gamepad2 className="h-3.5 w-3.5" />
-            {activeAccountsCount > 0 ? (
-              <span>{activeAccountsCount} {activeAccountsCount === 1 ? 'conta ativa' : 'contas ativas'}</span>
-            ) : (
-              <span>Nenhuma conta ativa</span>
-            )}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {member.role === 'admin' ? 'Administrador' : 'Membro'}
-          </p>
+    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+      <Link to={`/members/${generateMemberSlug(member.id, member.name)}`} className="block">
+        <CardContent className="p-4 text-center">
+          <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <span className="text-white font-semibold text-lg">
+              {member.name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          
+          <h3 className="font-semibold text-sm mb-2 truncate">{member.name}</h3>
+          
+          <Badge 
+            variant={member.role === 'admin' ? 'default' : 'secondary'}
+            className="text-xs"
+          >
+            {member.role === 'admin' ? 'Admin' : 'Membro'}
+          </Badge>
         </CardContent>
-      </Card>
-    </Link>
+      </Link>
+    </Card>
   );
 };
 

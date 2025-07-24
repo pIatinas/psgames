@@ -5,8 +5,7 @@ import { ArrowLeft, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { accounts } from '@/data/mockData';
-import AccountNotFound from '@/components/account/AccountNotFound';
+import { accountService } from '@/services/supabaseService';
 import AccountGamesList from '@/components/account/AccountGamesList';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,18 +14,56 @@ import {
   DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
 import { CheckCircle } from 'lucide-react';
+import { parseAccountSlug } from '@/utils/gameUtils';
+import { useQuery } from '@tanstack/react-query';
 
 const AccountDetail = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [openCredentialsDialog, setOpenCredentialsDialog] = React.useState(false);
   
-  const account = accounts.find(account => account.id === id);
+  // Extract account ID from slug
+  const accountId = slug ? parseAccountSlug(slug) : null;
+  
+  // Fetch account data
+  const { data: account, isLoading } = useQuery({
+    queryKey: ['account', accountId],
+    queryFn: () => accountId ? accountService.getById(accountId) : null,
+    enabled: !!accountId,
+  });
+  
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow container py-16 flex flex-col items-center justify-center">
+          <h2 className="text-2xl font-bold mb-4 text-white">Carregando...</h2>
+          <p className="text-white mb-6">Carregando informações da conta...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
   
   if (!account) {
-    return <AccountNotFound />;
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow container py-16 flex flex-col items-center justify-center">
+          <h2 className="text-2xl font-bold mb-4 text-white">Conta não encontrada</h2>
+          <p className="text-white mb-6">Não foi possível encontrar a conta solicitada.</p>
+          <Button asChild>
+            <Link to="/accounts">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar para contas
+            </Link>
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   const isUsingSlot = currentUser && account.slots?.some(slot => 
@@ -107,7 +144,7 @@ const AccountDetail = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <AccountGamesList games={account.games} />
+              <AccountGamesList games={account.games || []} />
             </div>
             
             <div>
