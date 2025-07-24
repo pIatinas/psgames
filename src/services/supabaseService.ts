@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { User, Account, Game, UserRole } from '@/types';
+import { User, Account, Game, UserRole, GamePlatform } from '@/types';
 
 // Game service
 export const gameService = {

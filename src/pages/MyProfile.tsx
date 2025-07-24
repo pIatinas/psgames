@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -14,6 +13,7 @@ import SectionTitle from '@/components/SectionTitle';
 import { userService, accountService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { UserRole } from '@/types';
 
 const MyProfile: React.FC = () => {
   const { currentUser, updateCurrentUser } = useAuth();
@@ -24,7 +24,7 @@ const MyProfile: React.FC = () => {
     name: '',
     email: '',
     avatar_url: '',
-    role: 'member'
+    role: 'member' as UserRole
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [bannerImage, setBannerImage] = useState<string | null>(null);
@@ -94,8 +94,7 @@ const MyProfile: React.FC = () => {
       // Update profile in Supabase
       const updatedProfile = await userService.updateProfile(currentUser.id, {
         name: formData.name,
-        avatar_url: formData.avatar_url,
-        role: formData.role
+        active: currentUser.active
       });
 
       // Update email if changed (requires auth update)
@@ -124,10 +123,10 @@ const MyProfile: React.FC = () => {
         ...currentUser,
         name: formData.name,
         email: formData.email,
-        profile: {
+        profile: currentUser.profile ? {
           ...currentUser.profile,
-          ...updatedProfile
-        }
+          name: formData.name
+        } : undefined
       };
 
       if (updateCurrentUser) {
