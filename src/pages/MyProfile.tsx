@@ -7,20 +7,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Camera, User } from 'lucide-react';
 import SectionTitle from '@/components/SectionTitle';
 import { userService, accountService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const MyProfile: React.FC = () => {
   const { currentUser, updateCurrentUser } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const [name, setName] = useState(currentUser?.name || '');
-  const [profileImage, setProfileImage] = useState<string | null>(currentUser?.profile?.avatar_url || null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    avatar_url: '',
+    role: 'member'
+  });
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,6 +46,15 @@ const MyProfile: React.FC = () => {
   useEffect(() => {
     if (!currentUser) {
       navigate('/login');
+    } else {
+      // Load current user data into form
+      setFormData({
+        name: currentUser.name || '',
+        email: currentUser.email || '',
+        avatar_url: currentUser.profile?.avatar_url || '',
+        role: currentUser.role || 'member'
+      });
+      setProfileImage(currentUser.profile?.avatar_url || null);
     }
   }, [currentUser, navigate]);
 
@@ -52,7 +67,9 @@ const MyProfile: React.FC = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setProfileImage(reader.result as string);
+        const result = reader.result as string;
+        setProfileImage(result);
+        setFormData(prev => ({ ...prev, avatar_url: result }));
       };
       reader.readAsDataURL(file);
     }
@@ -74,27 +91,53 @@ const MyProfile: React.FC = () => {
     setIsLoading(true);
 
     try {
-      if (currentUser.profile) {
-        const updatedProfile = await userService.updateProfile(currentUser.id, {
-          name,
-          avatar_url: profileImage || currentUser.profile.avatar_url,
+      // Update profile in Supabase
+      const updatedProfile = await userService.updateProfile(currentUser.id, {
+        name: formData.name,
+        avatar_url: formData.avatar_url,
+        role: formData.role
+      });
+
+      // Update email if changed (requires auth update)
+      if (formData.email !== currentUser.email) {
+        const { error: emailError } = await supabase.auth.updateUser({
+          email: formData.email
         });
-
-        const updatedUser = {
-          ...currentUser,
-          name,
-          profile: updatedProfile
-        };
-
-        if (updateCurrentUser) {
-          updateCurrentUser(updatedUser);
+        
+        if (emailError) {
+          console.error('Error updating email:', emailError);
+          toast({
+            title: "Aviso",
+            description: "Perfil atualizado, mas houve erro ao atualizar o email.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Email atualizado",
+            description: "Verifique sua caixa de entrada para confirmar o novo email.",
+          });
         }
-
-        toast({
-          title: "Perfil atualizado",
-          description: "Suas informações foram atualizadas com sucesso.",
-        });
       }
+
+      // Update local user state
+      const updatedUser = {
+        ...currentUser,
+        name: formData.name,
+        email: formData.email,
+        profile: {
+          ...currentUser.profile,
+          ...updatedProfile
+        }
+      };
+
+      if (updateCurrentUser) {
+        updateCurrentUser(updatedUser);
+      }
+
+      toast({
+        title: "Perfil atualizado",
+        description: "Suas informações foram atualizadas com sucesso.",
+      });
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       toast({
@@ -104,6 +147,34 @@ const MyProfile: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(currentUser.email || '', {
+        redirectTo: window.location.origin + '/login'
+      });
+      
+      if (error) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível enviar o email de redefinição de senha.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Email enviado",
+          description: "Verifique sua caixa de entrada para redefinir sua senha.",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao solicitar redefinição de senha:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao solicitar redefinição de senha.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -128,31 +199,64 @@ const MyProfile: React.FC = () => {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome</Label>
+                    <Label htmlFor="name">Nome *</Label>
                     <Input 
                       id="name" 
-                      value={name} 
-                      onChange={(e) => setName(e.target.value)}
+                      value={formData.name} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="Seu nome completo"
+                      required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Email</Label>
+                    <Label htmlFor="email">Email *</Label>
                     <Input 
+                      id="email"
                       type="email"
-                      value={currentUser.email || 'Email não disponível'} 
+                      value={formData.email} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="Seu email"
+                      required
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Alterar o email requer confirmação via email
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="avatar_url">URL do Avatar</Label>
+                    <Input 
+                      id="avatar_url"
+                      type="url"
+                      value={formData.avatar_url} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, avatar_url: e.target.value }))}
+                      placeholder="URL da imagem do seu avatar"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Função</Label>
+                    <Input 
+                      id="role"
+                      value={formData.role === 'admin' ? 'Administrador' : 'Membro'} 
                       disabled
                       className="bg-muted"
                     />
                     <p className="text-sm text-muted-foreground">
-                      O email não pode ser alterado
+                      A função não pode ser alterada
                     </p>
                   </div>
 
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Salvando..." : "Salvar Alterações"}
-                  </Button>
+                  <div className="flex gap-4">
+                    <Button type="submit" disabled={isLoading}>
+                      {isLoading ? "Salvando..." : "Salvar Alterações"}
+                    </Button>
+                    
+                    <Button type="button" variant="outline" onClick={handlePasswordChange}>
+                      Redefinir Senha
+                    </Button>
+                  </div>
                 </form>
               </CardContent>
             </Card>

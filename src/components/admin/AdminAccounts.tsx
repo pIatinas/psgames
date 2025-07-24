@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -8,13 +9,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { accountService, gameService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Account } from '@/types';
 
-const AdminAccounts: React.FC = () => {
+interface AdminAccountsProps {
+  onOpenModal: () => void;
+}
+
+const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
@@ -52,6 +57,11 @@ const AdminAccounts: React.FC = () => {
     });
     setSelectedGames([]);
     setEditingAccount(null);
+  };
+
+  const handleOpenCreateModal = () => {
+    resetForm();
+    setIsDialogOpen(true);
   };
 
   const handleEdit = (account: Account) => {
@@ -184,6 +194,19 @@ const AdminAccounts: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Add Account Button */}
+      {isAdmin && (
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleOpenCreateModal}
+            className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Cadastrar Conta
+          </Button>
+        </div>
+      )}
+
       {/* Accounts Table */}
       <div className="border rounded-lg">
         <Table>
@@ -232,7 +255,7 @@ const AdminAccounts: React.FC = () => {
                             isOccupied ? 'bg-red-500' : 'bg-green-500'
                           }`}
                         >
-                          Slot {slotNumber}
+                          {isOccupied ? slot?.user?.name || 'Ocupado' : `Slot ${slotNumber}`}
                         </Badge>
                       );
                     })}
@@ -273,7 +296,7 @@ const AdminAccounts: React.FC = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingAccount ? 'Editar Conta' : 'Nova Conta'}
+              {editingAccount ? 'Editar Conta' : 'Cadastrar Conta'}
             </DialogTitle>
             <DialogDescription>
               {editingAccount ? 'Edite as informações da conta.' : 'Adicione uma nova conta ao sistema.'}

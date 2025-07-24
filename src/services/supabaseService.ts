@@ -140,10 +140,7 @@ export const accountService = {
         account_games(
           games(*)
         ),
-        account_slots(
-          *,
-          profiles(id, name)
-        )
+        account_slots(*)
       `)
       .order('created_at', { ascending: false });
     
@@ -152,20 +149,28 @@ export const accountService = {
       return [];
     }
     
+    // Get all user profiles to match with slots
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, name');
+    
     return (data || []).map(account => ({
       ...account,
       games: account.account_games?.map((ag: any) => ({
         ...ag.games,
         platform: ag.games.platform as GamePlatform[]
       })) || [],
-      slots: (account.account_slots || []).map((slot: any) => ({
-        ...slot,
-        slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1,
-        user: slot.profiles ? {
-          id: slot.profiles.id,
-          name: slot.profiles.name || 'Usuário'
-        } : undefined
-      }))
+      slots: (account.account_slots || []).map((slot: any) => {
+        const userProfile = profiles?.find(p => p.id === slot.user_id);
+        return {
+          ...slot,
+          slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1,
+          user: userProfile ? {
+            id: userProfile.id,
+            name: userProfile.name || 'Usuário'
+          } : undefined
+        };
+      })
     }));
   },
 
@@ -177,10 +182,7 @@ export const accountService = {
         account_games(
           games(*)
         ),
-        account_slots(
-          *,
-          profiles(id, name)
-        )
+        account_slots(*)
       `)
       .eq('id', id)
       .single();
@@ -190,20 +192,28 @@ export const accountService = {
       return null;
     }
     
+    // Get all user profiles to match with slots
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, name');
+    
     return {
       ...data,
       games: data.account_games?.map((ag: any) => ({
         ...ag.games,
         platform: ag.games.platform as GamePlatform[]
       })) || [],
-      slots: (data.account_slots || []).map((slot: any) => ({
-        ...slot,
-        slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1,
-        user: slot.profiles ? {
-          id: slot.profiles.id,
-          name: slot.profiles.name || 'Usuário'
-        } : undefined
-      }))
+      slots: (data.account_slots || []).map((slot: any) => {
+        const userProfile = profiles?.find(p => p.id === slot.user_id);
+        return {
+          ...slot,
+          slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1,
+          user: userProfile ? {
+            id: userProfile.id,
+            name: userProfile.name || 'Usuário'
+          } : undefined
+        };
+      })
     };
   },
 
@@ -291,7 +301,7 @@ export const accountService = {
       .select('*')
       .eq('account_id', accountId)
       .eq('slot_number', slotNumber)
-      .single();
+      .maybeSingle();
     
     if (existingSlot) {
       // Update existing slot
@@ -379,6 +389,26 @@ export const userService = {
     
     if (error) {
       console.error('Error updating profile:', error);
+      throw error;
+    }
+    
+    return data;
+  },
+
+  async createProfile(userId: string, profileData: any): Promise<any> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        name: profileData.name,
+        avatar_url: profileData.avatar_url,
+        role: profileData.role || 'member'
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating profile:', error);
       throw error;
     }
     

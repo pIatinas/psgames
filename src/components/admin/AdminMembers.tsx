@@ -1,34 +1,40 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { userService, accountService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { User } from '@/types';
-import ImagePlaceholder from '@/components/ui/image-placeholder';
+import { User, Account } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const AdminMembers: React.FC = () => {
+interface AdminMembersProps {
+  onOpenModal: () => void;
+}
+
+const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<User | null>(null);
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null);
-  const [selectedAccountSlots, setSelectedAccountSlots] = useState<string[]>([]);
+  const [selectedAccountSlots, setSelectedAccountSlots] = useState<Array<{ accountId: string, slotNumber: 1 | 2 }>>([]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    profile_image: ''
+    role: 'member' as 'admin' | 'member',
+    avatar_url: ''
   });
 
   const { data: members = [], isLoading: membersLoading } = useQuery({
@@ -46,10 +52,16 @@ const AdminMembers: React.FC = () => {
       name: '',
       email: '',
       password: '',
-      profile_image: ''
+      role: 'member',
+      avatar_url: ''
     });
     setSelectedAccountSlots([]);
     setEditingMember(null);
+  };
+
+  const handleOpenCreateModal = () => {
+    resetForm();
+    setIsDialogOpen(true);
   };
 
   const handleEdit = (member: User) => {
@@ -58,15 +70,19 @@ const AdminMembers: React.FC = () => {
       name: member.name,
       email: member.email,
       password: '',
-      profile_image: member.profile?.avatar_url || ''
+      role: member.role,
+      avatar_url: member.profile?.avatar_url || ''
     });
 
-    // Find selected account slots for this member
-    const memberSlots: string[] = [];
+    // Get member's current account slots
+    const memberSlots: Array<{ accountId: string, slotNumber: 1 | 2 }> = [];
     accounts.forEach(account => {
       account.slots?.forEach(slot => {
         if (slot.user_id === member.id) {
-          memberSlots.push(`${account.id}-${slot.slot_number}`);
+          memberSlots.push({ 
+            accountId: account.id, 
+            slotNumber: slot.slot_number 
+          });
         }
       });
     });
@@ -75,17 +91,18 @@ const AdminMembers: React.FC = () => {
   };
 
   const handleAccountSlotToggle = (accountId: string, slotNumber: 1 | 2) => {
-    const slotKey = `${accountId}-${slotNumber}`;
-    setSelectedAccountSlots(prev => 
-      prev.includes(slotKey) 
-        ? prev.filter(key => key !== slotKey)
-        : [...prev, slotKey]
-    );
+    setSelectedAccountSlots(prev => {
+      const exists = prev.find(slot => slot.accountId === accountId && slot.slotNumber === slotNumber);
+      if (exists) {
+        return prev.filter(slot => !(slot.accountId === accountId && slot.slotNumber === slotNumber));
+      } else {
+        return [...prev, { accountId, slotNumber }];
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!formData.name || !formData.email) {
       toast({
         title: "Erro",
@@ -97,61 +114,61 @@ const AdminMembers: React.FC = () => {
 
     try {
       if (editingMember) {
-        // Update existing member
+        // Update existing member profile
         await userService.updateProfile(editingMember.id, {
           name: formData.name,
-          avatar_url: formData.profile_image
+          avatar_url: formData.avatar_url,
+          role: formData.role
         });
 
         // Update account slots
-        const accountSlots = selectedAccountSlots.map(slotKey => {
-          const [accountId, slotNumber] = slotKey.split('-');
-          return {
-            accountId,
-            slotNumber: parseInt(slotNumber) as 1 | 2
-          };
-        });
-        await userService.linkToAccounts(editingMember.id, accountSlots);
+        await userService.linkToAccounts(editingMember.id, selectedAccountSlots);
 
         toast({
           title: "Membro atualizado",
           description: "O membro foi atualizado com sucesso."
         });
       } else {
-        // Create new member
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        // Create new member with auth
+        if (!formData.password) {
+          toast({
+            title: "Erro",
+            description: "Senha é obrigatória para novos membros.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
-          user_metadata: {
-            name: formData.name
+          options: {
+            data: {
+              name: formData.name,
+              role: formData.role
+            }
           }
         });
 
         if (authError) {
           toast({
             title: "Erro",
-            description: "Não foi possível criar o usuário: " + authError.message,
+            description: "Não foi possível criar a conta do usuário.",
             variant: "destructive"
           });
           return;
         }
 
         if (authData.user) {
-          // Update profile with additional data
-          await userService.updateProfile(authData.user.id, {
+          // Create or update profile
+          await userService.createProfile(authData.user.id, {
             name: formData.name,
-            avatar_url: formData.profile_image
+            avatar_url: formData.avatar_url,
+            role: formData.role
           });
 
           // Link account slots
-          const accountSlots = selectedAccountSlots.map(slotKey => {
-            const [accountId, slotNumber] = slotKey.split('-');
-            return {
-              accountId,
-              slotNumber: parseInt(slotNumber) as 1 | 2
-            };
-          });
-          await userService.linkToAccounts(authData.user.id, accountSlots);
+          await userService.linkToAccounts(authData.user.id, selectedAccountSlots);
 
           toast({
             title: "Membro criado",
@@ -159,7 +176,7 @@ const AdminMembers: React.FC = () => {
           });
         }
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ['admin-members'] });
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
       setIsDialogOpen(false);
@@ -178,27 +195,26 @@ const AdminMembers: React.FC = () => {
     if (!deleteMemberId) return;
 
     try {
-      // Note: We can't delete auth users directly, only deactivate them
+      // Note: We can't delete auth users directly, but we can remove their profile
+      // and account associations
+      await userService.linkToAccounts(deleteMemberId, []);
+      
       toast({
-        title: "Funcionalidade não disponível",
-        description: "A exclusão de membros não está disponível por questões de segurança.",
-        variant: "destructive"
+        title: "Membro removido",
+        description: "O membro foi removido com sucesso."
       });
+      
+      queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível excluir o membro.",
+        description: "Não foi possível remover o membro.",
         variant: "destructive"
       });
     } finally {
       setDeleteMemberId(null);
     }
-  };
-
-  const getMemberAccounts = (memberId: string) => {
-    return accounts.filter(account => 
-      account.slots?.some(slot => slot.user_id === memberId)
-    );
   };
 
   const isAdmin = currentUser?.role === 'admin';
@@ -213,56 +229,58 @@ const AdminMembers: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Add Member Button */}
+      {isAdmin && (
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleOpenCreateModal}
+            className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Cadastrar Membro
+          </Button>
+        </div>
+      )}
+
       {/* Members Table */}
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-16">Foto</TableHead>
               <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Contas</TableHead>
-              <TableHead>Função</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Contas Ativas</TableHead>
+              <TableHead>Criado em</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {members.map(member => {
-              const memberAccounts = getMemberAccounts(member.id);
+              const memberAccounts = accounts.filter(account => 
+                account.slots?.some(slot => slot.user_id === member.id)
+              );
               
               return (
                 <TableRow key={member.id}>
-                  <TableCell>
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">
-                      <ImagePlaceholder 
-                        src={member.profile?.avatar_url} 
-                        alt={member.name} 
-                        className="w-full h-full object-cover" 
-                      />
-                    </div>
-                  </TableCell>
                   <TableCell className="font-medium">{member.name}</TableCell>
-                  <TableCell>{member.email}</TableCell>
                   <TableCell>
-                    {memberAccounts.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {memberAccounts.map(account => {
-                          const userSlots = account.slots?.filter(slot => slot.user_id === member.id) || [];
-                          return userSlots.map(slot => (
-                            <Badge key={`${account.id}-${slot.slot_number}`} variant="secondary" className="text-xs">
-                              {account.email} (Slot {slot.slot_number})
-                            </Badge>
-                          ));
-                        })}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">Nenhuma conta</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={member.role === 'admin' ? "default" : "secondary"}>
+                    <Badge variant={member.role === 'admin' ? 'default' : 'secondary'}>
                       {member.role === 'admin' ? 'Admin' : 'Membro'}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {memberAccounts.length > 0 ? memberAccounts.map(account => (
+                        <Badge key={account.id} variant="outline" className="text-xs">
+                          {account.email}
+                        </Badge>
+                      )) : (
+                        <span className="text-xs text-muted-foreground">Nenhuma conta ativa</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {member.profile?.created_at ? new Date(member.profile.created_at).toLocaleDateString() : 'N/A'}
                   </TableCell>
                   {isAdmin && (
                     <TableCell className="text-right">
@@ -297,7 +315,7 @@ const AdminMembers: React.FC = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingMember ? 'Editar Membro' : 'Novo Membro'}
+              {editingMember ? 'Editar Membro' : 'Cadastrar Membro'}
             </DialogTitle>
             <DialogDescription>
               {editingMember ? 'Edite as informações do membro.' : 'Adicione um novo membro ao sistema.'}
@@ -317,7 +335,7 @@ const AdminMembers: React.FC = () => {
               </div>
               
               <div>
-                <Label htmlFor="email">E-mail *</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -328,7 +346,7 @@ const AdminMembers: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             {!editingMember && (
               <div>
                 <Label htmlFor="password">Senha *</Label>
@@ -342,60 +360,66 @@ const AdminMembers: React.FC = () => {
               </div>
             )}
             
-            <div>
-              <Label htmlFor="profile_image">URL da Foto</Label>
-              <Input 
-                id="profile_image" 
-                value={formData.profile_image} 
-                onChange={(e) => setFormData(prev => ({ ...prev, profile_image: e.target.value }))}
-                placeholder="https://exemplo.com/foto.jpg" 
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="role">Role</Label>
+                <Select value={formData.role} onValueChange={(value: 'admin' | 'member') => setFormData(prev => ({ ...prev, role: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="member">Membro</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="avatar_url">URL do Avatar</Label>
+                <Input 
+                  id="avatar_url" 
+                  type="url" 
+                  value={formData.avatar_url} 
+                  onChange={(e) => setFormData(prev => ({ ...prev, avatar_url: e.target.value }))}
+                />
+              </div>
             </div>
 
             <div className="grid gap-2">
-              <Label>Slots de Conta</Label>
+              <Label>Contas Vinculadas</Label>
               <div className="text-sm text-muted-foreground">
-                Vincule este membro aos slots de conta que ele pode usar
+                Selecione os slots das contas para este membro
               </div>
               <div className="max-h-48 overflow-y-auto border rounded p-2">
                 {accounts.map(account => (
-                  <div key={account.id} className="mb-2 border-b pb-2">
-                    <div className="font-medium mb-1">{account.email}</div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`account-${account.id}-1`}
-                          checked={selectedAccountSlots.includes(`${account.id}-1`)}
-                          disabled={account.slots?.some(slot => 
-                            slot.slot_number === 1 && 
-                            slot.user_id !== (editingMember?.id || '')
-                          )}
-                          onCheckedChange={() => handleAccountSlotToggle(account.id, 1)}
-                        />
-                        <Label htmlFor={`account-${account.id}-1`} className="cursor-pointer">
-                          Slot 1 {account.slots?.some(slot => 
-                            slot.slot_number === 1 && 
-                            slot.user_id !== (editingMember?.id || '')
-                          ) ? '(Em uso)' : ''}
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`account-${account.id}-2`}
-                          checked={selectedAccountSlots.includes(`${account.id}-2`)}
-                          disabled={account.slots?.some(slot => 
-                            slot.slot_number === 2 && 
-                            slot.user_id !== (editingMember?.id || '')
-                          )}
-                          onCheckedChange={() => handleAccountSlotToggle(account.id, 2)}
-                        />
-                        <Label htmlFor={`account-${account.id}-2`} className="cursor-pointer">
-                          Slot 2 {account.slots?.some(slot => 
-                            slot.slot_number === 2 && 
-                            slot.user_id !== (editingMember?.id || '')
-                          ) ? '(Em uso)' : ''}
-                        </Label>
-                      </div>
+                  <div key={account.id} className="p-2 border-b last:border-b-0">
+                    <div className="font-medium text-sm mb-2">{account.email}</div>
+                    <div className="flex gap-4">
+                      {[1, 2].map(slotNumber => {
+                        const isSelected = selectedAccountSlots.some(slot => 
+                          slot.accountId === account.id && slot.slotNumber === slotNumber
+                        );
+                        const isOccupied = account.slots?.some(slot => 
+                          slot.slot_number === slotNumber && slot.user_id && slot.user_id !== editingMember?.id
+                        );
+                        
+                        return (
+                          <div key={slotNumber} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`account-${account.id}-slot-${slotNumber}`}
+                              checked={isSelected}
+                              disabled={isOccupied}
+                              onCheckedChange={() => handleAccountSlotToggle(account.id, slotNumber as 1 | 2)}
+                            />
+                            <Label 
+                              htmlFor={`account-${account.id}-slot-${slotNumber}`} 
+                              className={`cursor-pointer text-xs ${isOccupied ? 'text-muted-foreground' : ''}`}
+                            >
+                              Slot {slotNumber} {isOccupied ? '(Ocupado)' : ''}
+                            </Label>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
@@ -418,15 +442,15 @@ const AdminMembers: React.FC = () => {
       <AlertDialog open={!!deleteMemberId} onOpenChange={() => setDeleteMemberId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar Remoção</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este membro? Esta ação não pode ser desfeita.
+              Tem certeza que deseja remover este membro? Esta ação removerá todas as associações de conta do membro.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
-              Excluir
+              Remover
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

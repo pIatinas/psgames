@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -8,14 +9,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { gameService, accountService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Game, GamePlatform } from '@/types';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
 
-const AdminGames: React.FC = () => {
+interface AdminGamesProps {
+  onOpenModal: () => void;
+}
+
+const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
@@ -44,6 +49,22 @@ const AdminGames: React.FC = () => {
     queryFn: () => accountService.getAll()
   });
 
+  React.useEffect(() => {
+    if (onOpenModal) {
+      const handleOpenModal = () => {
+        resetForm();
+        setIsDialogOpen(true);
+      };
+      
+      // You can trigger this from parent component
+      window.addEventListener('openGameModal', handleOpenModal);
+      
+      return () => {
+        window.removeEventListener('openGameModal', handleOpenModal);
+      };
+    }
+  }, [onOpenModal]);
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -57,6 +78,11 @@ const AdminGames: React.FC = () => {
     });
     setSelectedAccounts([]);
     setEditingGame(null);
+  };
+
+  const handleOpenCreateModal = () => {
+    resetForm();
+    setIsDialogOpen(true);
   };
 
   const handleEdit = (game: Game) => {
@@ -121,7 +147,7 @@ const AdminGames: React.FC = () => {
         });
       } else {
         // Create new game
-        await gameService.create({
+        const newGame = await gameService.create({
           name: formData.name,
           image: formData.image,
           banner: formData.banner,
@@ -132,6 +158,11 @@ const AdminGames: React.FC = () => {
           release_date: formData.release_date,
           rawg_id: 0
         });
+
+        if (newGame) {
+          // Link to accounts
+          await gameService.linkToAccounts(newGame.id, selectedAccounts);
+        }
 
         toast({
           title: "Jogo criado",
@@ -184,6 +215,19 @@ const AdminGames: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Add Game Button */}
+      {isAdmin && (
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleOpenCreateModal}
+            className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Cadastrar Jogo
+          </Button>
+        </div>
+      )}
+
       {/* Games Table */}
       <div className="border rounded-lg">
         <Table>
@@ -276,7 +320,7 @@ const AdminGames: React.FC = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingGame ? 'Editar Jogo' : 'Novo Jogo'}
+              {editingGame ? 'Editar Jogo' : 'Cadastrar Jogo'}
             </DialogTitle>
             <DialogDescription>
               {editingGame ? 'Edite as informações do jogo.' : 'Adicione um novo jogo à biblioteca.'}
