@@ -1,138 +1,148 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash } from 'lucide-react';
-import { Game, GamePlatform } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { gameService, accountService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { Game, GamePlatform } from '@/types';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
+
 const AdminGames: React.FC = () => {
+  const { toast } = useToast();
+  const { currentUser } = useAuth();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<Game | null>(null);
   const [deleteGameId, setDeleteGameId] = useState<string | null>(null);
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
-  const [formData, setFormData] = useState<Partial<Game>>({
+  const [formData, setFormData] = useState({
     name: '',
-    description: '',
     image: '',
     banner: '',
-    platform: [],
+    platform: [] as GamePlatform[],
+    description: '',
     developer: '',
     genre: '',
     release_date: ''
   });
-  const {
-    toast
-  } = useToast();
-  const queryClient = useQueryClient();
-  const {
-    currentUser
-  } = useAuth();
-  const {
-    data: games = [],
-    isLoading
-  } = useQuery({
+
+  const { data: games = [], isLoading: gamesLoading } = useQuery({
     queryKey: ['admin-games'],
     queryFn: () => gameService.getAll()
   });
-  const {
-    data: accounts = []
-  } = useQuery({
+
+  const { data: accounts = [] } = useQuery({
     queryKey: ['admin-accounts'],
     queryFn: () => accountService.getAll()
   });
-  useEffect(() => {
-    if (editingGame) {
-      setFormData(editingGame);
-      // Load linked accounts for this game
-      const linkedAccounts = accounts.filter(account => account.games?.some(game => game.id === editingGame.id));
-      setSelectedAccounts(linkedAccounts.map(account => account.id));
-    } else {
-      setFormData({
-        name: '',
-        description: '',
-        image: '',
-        banner: '',
-        platform: [],
-        developer: '',
-        genre: '',
-        release_date: ''
-      });
-      setSelectedAccounts([]);
-    }
-  }, [editingGame, accounts]);
-  const platforms: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA"];
-  const handleAddGame = () => {
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      image: '',
+      banner: '',
+      platform: [] as GamePlatform[],
+      description: '',
+      developer: '',
+      genre: '',
+      release_date: ''
+    });
+    setSelectedAccounts([]);
     setEditingGame(null);
-    setIsDialogOpen(true);
   };
-  const handleEditGame = (game: Game) => {
+
+  const handleEdit = (game: Game) => {
     setEditingGame(game);
+    setFormData({
+      name: game.name,
+      image: game.image,
+      banner: game.banner,
+      platform: game.platform,
+      description: game.description,
+      developer: game.developer,
+      genre: game.genre,
+      release_date: game.release_date
+    });
+
+    const gameAccountIds = accounts
+      .filter(account => account.games?.some(g => g.id === game.id))
+      .map(account => account.id);
+    setSelectedAccounts(gameAccountIds);
     setIsDialogOpen(true);
   };
-  const handleDeleteConfirm = async () => {
-    if (!deleteGameId) return;
-    const success = await gameService.delete(deleteGameId);
-    if (success) {
-      queryClient.invalidateQueries({
-        queryKey: ['admin-games']
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['admin-accounts']
-      });
-      toast({
-        title: "Jogo removido",
-        description: "O jogo foi removido com sucesso."
-      });
-    } else {
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover o jogo.",
-        variant: "destructive"
-      });
-    }
-    setDeleteGameId(null);
+
+  const handleAccountToggle = (accountId: string) => {
+    setSelectedAccounts(prev =>
+      prev.includes(accountId)
+        ? prev.filter(id => id !== accountId)
+        : [...prev, accountId]
+    );
   };
-  const handleSaveGame = async () => {
-    if (!formData.name || !formData.platform || formData.platform.length === 0) {
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.image || !formData.banner) {
       toast({
         title: "Erro",
-        description: "Nome e plataforma são obrigatórios.",
+        description: "Nome, imagem e banner são obrigatórios.",
         variant: "destructive"
       });
       return;
     }
-    let result;
-    if (editingGame) {
-      result = await gameService.update(editingGame.id, formData);
-    } else {
-      result = await gameService.create(formData as Omit<Game, 'id' | 'created_at' | 'updated_at'>);
-    }
-    if (result) {
-      // Link game to selected accounts
-      await gameService.linkToAccounts(result.id, selectedAccounts);
-      queryClient.invalidateQueries({
-        queryKey: ['admin-games']
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['admin-accounts']
-      });
-      toast({
-        title: editingGame ? "Jogo atualizado" : "Jogo adicionado",
-        description: editingGame ? "O jogo foi atualizado com sucesso." : "O jogo foi adicionado com sucesso."
-      });
+
+    try {
+      if (editingGame) {
+        // Update existing game
+        await gameService.update(editingGame.id, {
+          name: formData.name,
+          image: formData.image,
+          banner: formData.banner,
+          platform: formData.platform,
+          description: formData.description,
+          developer: formData.developer,
+          genre: formData.genre,
+          release_date: formData.release_date
+        });
+
+        // Link to accounts
+        await gameService.linkToAccounts(editingGame.id, selectedAccounts);
+
+        toast({
+          title: "Jogo atualizado",
+          description: "O jogo foi atualizado com sucesso."
+        });
+      } else {
+        // Create new game
+        await gameService.create({
+          name: formData.name,
+          image: formData.image,
+          banner: formData.banner,
+          platform: formData.platform,
+          description: formData.description,
+          developer: formData.developer,
+          genre: formData.genre,
+          release_date: formData.release_date,
+          rawg_id: 0
+        });
+
+        toast({
+          title: "Jogo criado",
+          description: "O novo jogo foi criado com sucesso."
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
       setIsDialogOpen(false);
-      setEditingGame(null);
-    } else {
+      resetForm();
+    } catch (error) {
       toast({
         title: "Erro",
         description: "Não foi possível salvar o jogo.",
@@ -140,37 +150,40 @@ const AdminGames: React.FC = () => {
       });
     }
   };
-  const handlePlatformChange = (platform: GamePlatform, checked: boolean) => {
-    if (checked) {
-      setFormData({
-        ...formData,
-        platform: [...(formData.platform || []), platform]
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteGameId) return;
+
+    try {
+      await gameService.delete(deleteGameId);
+      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
+      toast({
+        title: "Jogo excluído",
+        description: "O jogo foi excluído com sucesso."
       });
-    } else {
-      setFormData({
-        ...formData,
-        platform: (formData.platform || []).filter(p => p !== platform)
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o jogo.",
+        variant: "destructive"
       });
+    } finally {
+      setDeleteGameId(null);
     }
   };
-  const handleAccountToggle = (accountId: string) => {
-    setSelectedAccounts(prev => prev.includes(accountId) ? prev.filter(id => id !== accountId) : [...prev, accountId]);
-  };
-  const isAdmin = currentUser?.role === 'admin';
-  if (isLoading) {
-    return <div className="text-center py-12">
-        <p className="text-lg text-muted-foreground">Carregando jogos...</p>
-      </div>;
-  }
-  return <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div />
-        {isAdmin && <Button onClick={handleAddGame}>
-            <Plus className="mr-2 h-4 w-4" />
-            Adicionar Jogo
-          </Button>}
-      </div>
 
+  const isAdmin = currentUser?.role === 'admin';
+
+  if (gamesLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg text-muted-foreground">Carregando jogos...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
       {/* Games Table */}
       <div className="border rounded-lg">
         <Table>
@@ -178,57 +191,82 @@ const AdminGames: React.FC = () => {
             <TableRow>
               <TableHead className="w-16">Imagem</TableHead>
               <TableHead>Nome</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Plataformas</TableHead>
-              <TableHead>Desenvolvedor</TableHead>
-              <TableHead>Gênero</TableHead>
+              <TableHead>Plataforma</TableHead>
               <TableHead>Contas</TableHead>
+              <TableHead>Desenvolvedor</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {games.map(game => {
-            const gameAccounts = accounts.filter(account => account.games?.some(g => g.id === game.id));
-            return <TableRow key={game.id}>
+              const gameAccounts = accounts.filter(account => 
+                account.games?.some(g => g.id === game.id)
+              );
+              
+              return (
+                <TableRow key={game.id}>
                   <TableCell>
-                    <div className="w-12 h-12">
-                      <ImagePlaceholder src={game.image} alt={game.name} className="w-full h-full object-cover rounded aspect-square" />
+                    <div className="w-12 h-12 rounded overflow-hidden bg-muted">
+                      <ImagePlaceholder 
+                        src={game.image} 
+                        alt={game.name} 
+                        className="w-full h-full object-cover" 
+                      />
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">{game.name}</TableCell>
-                  <TableCell className="max-w-xs">
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {game.description}
-                    </p>
-                  </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {game.platform.map(platform => <Badge key={platform} variant="secondary" className="text-xs">
+                      {game.platform.map(platform => (
+                        <Badge key={platform} variant="secondary" className="text-xs">
                           {platform}
-                        </Badge>)}
+                        </Badge>
+                      ))}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {gameAccounts.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {gameAccounts.slice(0, 2).map(account => (
+                          <Badge key={account.id} variant="outline" className="text-xs">
+                            {account.email}
+                          </Badge>
+                        ))}
+                        {gameAccounts.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{gameAccounts.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Nenhuma conta</span>
+                    )}
                   </TableCell>
                   <TableCell>{game.developer}</TableCell>
-                  <TableCell>{game.genre}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {gameAccounts.length > 0 ? gameAccounts.map(account => <Badge key={account.id} variant="outline" className="text-xs">
-                            {account.email}
-                          </Badge>) : <span className="text-xs text-muted-foreground">Nenhuma conta</span>}
-                    </div>
-                  </TableCell>
-                  {isAdmin && <TableCell className="text-right">
+                  {isAdmin && (
+                    <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEditGame(game)}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEdit(game)}
+                          className="hover:bg-white hover:text-gray-900"
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="destructive" size="sm" onClick={() => setDeleteGameId(game.id)}>
-                          <Trash className="h-4 w-4" />
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => setDeleteGameId(game.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>}
-                </TableRow>;
-          })}
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -238,108 +276,139 @@ const AdminGames: React.FC = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingGame ? 'Editar Jogo' : 'Adicionar Novo Jogo'}
+              {editingGame ? 'Editar Jogo' : 'Novo Jogo'}
             </DialogTitle>
             <DialogDescription>
-              {editingGame ? 'Edite as informações do jogo abaixo.' : 'Preencha as informações do novo jogo.'}
+              {editingGame ? 'Edite as informações do jogo.' : 'Adicione um novo jogo à biblioteca.'}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Nome *</Label>
-              <Input id="name" value={formData.name || ''} onChange={e => setFormData({
-              ...formData,
-              name: e.target.value
-            })} placeholder="Ex: God of War Ragnarök" />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea id="description" value={formData.description || ''} onChange={e => setFormData({
-              ...formData,
-              description: e.target.value
-            })} placeholder="Descrição do jogo..." rows={3} />
-            </div>
-            
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="image">Capa</Label>
-                <Input id="image" value={formData.image || ''} onChange={e => setFormData({
-                ...formData,
-                image: e.target.value
-              })} placeholder="https://exemplo.com/imagem.jpg" />
+              <div>
+                <Label htmlFor="name">Nome *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  required
+                />
               </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="banner">Banner</Label>
-                <Input id="banner" value={formData.banner || ''} onChange={e => setFormData({
-                ...formData,
-                banner: e.target.value
-              })} placeholder="https://exemplo.com/banner.jpg" />
-              </div>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label>Plataformas *</Label>
-              <div className="flex flex-wrap gap-4 rounded-none bg-transparent">
-                {platforms.map(platform => <div key={platform} className="flex items-center space-x-2">
-                    <Checkbox id={platform} checked={(formData.platform || []).includes(platform)} onCheckedChange={checked => handlePlatformChange(platform, !!checked)} />
-                    <Label htmlFor={platform}>{platform}</Label>
-                  </div>)}
+              <div>
+                <Label htmlFor="image">URL da Imagem *</Label>
+                <Input
+                  id="image"
+                  type="url"
+                  value={formData.image}
+                  onChange={e => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                  required
+                />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
+              <div>
+                <Label htmlFor="banner">URL do Banner *</Label>
+                <Input
+                  id="banner"
+                  type="url"
+                  value={formData.banner}
+                  onChange={e => setFormData(prev => ({ ...prev, banner: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
                 <Label htmlFor="developer">Desenvolvedor</Label>
-                <Input id="developer" value={formData.developer || ''} onChange={e => setFormData({
-                ...formData,
-                developer: e.target.value
-              })} placeholder="Ex: Santa Monica Studio" />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="genre">Gênero</Label>
-                <Input id="genre" value={formData.genre || ''} onChange={e => setFormData({
-                ...formData,
-                genre: e.target.value
-              })} placeholder="Ex: Ação, Aventura" />
+                <Input
+                  id="developer"
+                  value={formData.developer}
+                  onChange={e => setFormData(prev => ({ ...prev, developer: e.target.value }))}
+                />
               </div>
             </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="release_date">Data de Lançamento</Label>
-              <Input id="release_date" type="date" value={formData.release_date || ''} onChange={e => setFormData({
-              ...formData,
-              release_date: e.target.value
-            })} />
+
+            <div>
+              <Label htmlFor="description">Descrição</Label>
+              <Input
+                id="description"
+                value={formData.description}
+                onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="genre">Gênero</Label>
+                <Input
+                  id="genre"
+                  value={formData.genre}
+                  onChange={e => setFormData(prev => ({ ...prev, genre: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="release_date">Data de Lançamento</Label>
+                <Input
+                  id="release_date"
+                  type="date"
+                  value={formData.release_date}
+                  onChange={e => setFormData(prev => ({ ...prev, release_date: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Plataformas</Label>
+              <div className="flex flex-wrap gap-2">
+                {['PS5', 'PS4', 'PS3', 'VITA'].map(platform => (
+                  <div key={platform} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`platform-${platform}`}
+                      checked={formData.platform.includes(platform as GamePlatform)}
+                      onCheckedChange={checked => {
+                        setFormData(prev => ({
+                          ...prev,
+                          platform: checked
+                            ? [...prev.platform, platform as GamePlatform]
+                            : prev.platform.filter(p => p !== platform)
+                        }));
+                      }}
+                    />
+                    <Label htmlFor={`platform-${platform}`} className="cursor-pointer">{platform}</Label>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="grid gap-2">
-              <Label>Contas onde o jogo está disponível</Label>
+              <Label>Contas Vinculadas</Label>
               <div className="text-sm text-muted-foreground">
                 Selecione as contas que possuem este jogo
               </div>
-              <div className="max-h-32 overflow-y-auto border rounded p-2">
-                {accounts.map(account => <div key={account.id} className="flex items-center space-x-2 py-1">
-                    <Checkbox id={`account-${account.id}`} checked={selectedAccounts.includes(account.id)} onCheckedChange={() => handleAccountToggle(account.id)} />
-                    <Label htmlFor={`account-${account.id}`} className="text-sm">
+              <div className="max-h-48 overflow-y-auto border rounded p-2">
+                {accounts.map(account => (
+                  <div key={account.id} className="flex items-center space-x-2 p-1">
+                    <Checkbox
+                      id={`account-${account.id}`}
+                      checked={selectedAccounts.includes(account.id)}
+                      onCheckedChange={() => handleAccountToggle(account.id)}
+                    />
+                    <Label htmlFor={`account-${account.id}`} className="cursor-pointer">
                       {account.email}
                     </Label>
-                  </div>)}
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveGame}>
-              {editingGame ? 'Atualizar' : 'Adicionar'}
-            </Button>
-          </DialogFooter>
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">
+                {editingGame ? 'Atualizar' : 'Criar'} Jogo
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -360,6 +429,8 @@ const AdminGames: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>;
+    </div>
+  );
 };
+
 export default AdminGames;

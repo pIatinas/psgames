@@ -11,7 +11,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Camera, User } from 'lucide-react';
 import SectionTitle from '@/components/SectionTitle';
-import { userService } from '@/services/supabaseService';
+import { userService, accountService } from '@/services/supabaseService';
+import { useQuery } from '@tanstack/react-query';
 
 const MyProfile: React.FC = () => {
   const { currentUser, updateCurrentUser } = useAuth();
@@ -22,6 +23,18 @@ const MyProfile: React.FC = () => {
   const [profileImage, setProfileImage] = useState<string | null>(currentUser?.profile?.avatar_url || null);
   const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch user's accounts
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['user-accounts', currentUser?.id],
+    queryFn: () => accountService.getAll(),
+    enabled: !!currentUser?.id
+  });
+
+  // Filter accounts where user has slots
+  const userAccounts = accounts.filter(account => 
+    account.slots?.some(slot => slot.user_id === currentUser?.id)
+  );
 
   // Redirect if not logged in
   useEffect(() => {
@@ -143,6 +156,50 @@ const MyProfile: React.FC = () => {
                 </form>
               </CardContent>
             </Card>
+
+            {/* User's Active Accounts */}
+            {userAccounts.length > 0 && (
+              <Card className="mt-8">
+                <CardHeader>
+                  <CardTitle>Minhas Contas Ativas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {userAccounts.map(account => {
+                      const userSlots = account.slots?.filter(slot => slot.user_id === currentUser.id) || [];
+                      return (
+                        <div key={account.id} className="border rounded p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium">{account.email}</p>
+                              <div className="flex gap-2 mt-1">
+                                {userSlots.map(slot => (
+                                  <span key={slot.id} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                    Slot {slot.slot_number}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          {account.games && account.games.length > 0 && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Jogos disponíveis:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {account.games.map(game => (
+                                  <span key={game.id} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                    {game.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
           
           <div>

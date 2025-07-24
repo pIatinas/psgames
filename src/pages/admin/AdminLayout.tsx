@@ -16,9 +16,9 @@ const AdminLayout = () => {
     { name: 'Membros', path: '/admin/members' }
   ];
 
-  const getPageTitle = () => {
+  const getAddButtonText = () => {
     const currentPage = adminPages.find(page => page.path === location.pathname);
-    return currentPage ? currentPage.name : 'Gerenciar';
+    return currentPage ? `Cadastrar ${currentPage.name.slice(0, -1)}` : 'Cadastrar';
   };
 
   return (
@@ -28,27 +28,30 @@ const AdminLayout = () => {
       <main className="flex-grow container py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-pink-500">Gerenciar</h1>
-          <Button className="rounded-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Cadastrar
-          </Button>
         </div>
 
-        <div className="flex gap-4 border-b mb-6">
-          {adminPages.map(page => (
-            <Button
-              key={page.path}
-              variant={location.pathname === page.path ? "default" : "ghost"}
-              asChild
-              className={cn(
-                "rounded-full border-b-2 border-transparent pb-3",
-                location.pathname === page.path && "border-primary bg-primary text-primary-foreground",
-                location.pathname !== page.path && "hover:bg-white hover:text-gray-900"
-              )}
-            >
-              <Link to={page.path}>{page.name}</Link>
-            </Button>
-          ))}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex gap-4">
+            {adminPages.map(page => (
+              <Button
+                key={page.path}
+                variant={location.pathname === page.path ? "default" : "ghost"}
+                asChild
+                className={cn(
+                  "rounded-full",
+                  location.pathname === page.path && "bg-primary text-primary-foreground",
+                  location.pathname !== page.path && "hover:bg-white hover:text-gray-900"
+                )}
+              >
+                <Link to={page.path}>{page.name}</Link>
+              </Button>
+            ))}
+          </div>
+          
+          <Button className="rounded-full bg-primary hover:bg-primary/90">
+            <Plus className="h-4 w-4 mr-2" />
+            {getAddButtonText()}
+          </Button>
         </div>
         
         <Outlet />

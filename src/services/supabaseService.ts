@@ -140,7 +140,10 @@ export const accountService = {
         account_games(
           games(*)
         ),
-        account_slots(*)
+        account_slots(
+          *,
+          profiles(id, name)
+        )
       `)
       .order('created_at', { ascending: false });
     
@@ -157,7 +160,11 @@ export const accountService = {
       })) || [],
       slots: (account.account_slots || []).map((slot: any) => ({
         ...slot,
-        slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1
+        slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1,
+        user: slot.profiles ? {
+          id: slot.profiles.id,
+          name: slot.profiles.name || 'Usuário'
+        } : undefined
       }))
     }));
   },
@@ -170,7 +177,10 @@ export const accountService = {
         account_games(
           games(*)
         ),
-        account_slots(*)
+        account_slots(
+          *,
+          profiles(id, name)
+        )
       `)
       .eq('id', id)
       .single();
@@ -188,7 +198,11 @@ export const accountService = {
       })) || [],
       slots: (data.account_slots || []).map((slot: any) => ({
         ...slot,
-        slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1
+        slot_number: (slot.slot_number === 1 || slot.slot_number === 2) ? slot.slot_number : 1,
+        user: slot.profiles ? {
+          id: slot.profiles.id,
+          name: slot.profiles.name || 'Usuário'
+        } : undefined
       }))
     };
   },

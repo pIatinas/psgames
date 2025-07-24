@@ -1,32 +1,28 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Plus, Eye, EyeOff } from 'lucide-react';
-import { Account } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useToast } from '@/components/ui/use-toast';
 import { accountService, gameService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { Account } from '@/types';
 
 const AdminAccounts: React.FC = () => {
+  const { toast } = useToast();
+  const { currentUser } = useAuth();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
-  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
   const [deleteAccountId, setDeleteAccountId] = useState<string | null>(null);
   const [selectedGames, setSelectedGames] = useState<string[]>([]);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { currentUser } = useAuth();
-
-  const [formData, setFormData] = useState<Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>>({
+  const [formData, setFormData] = useState({
     email: '',
     password: '',
     birthday: '',
@@ -45,31 +41,6 @@ const AdminAccounts: React.FC = () => {
     queryFn: () => gameService.getAll()
   });
 
-  useEffect(() => {
-    if (editingAccount) {
-      setFormData({
-        email: editingAccount.email,
-        password: editingAccount.password,
-        birthday: editingAccount.birthday || '',
-        security_answer: editingAccount.security_answer || '',
-        codes: editingAccount.codes || '',
-        qr_code: editingAccount.qr_code || ''
-      });
-      const linkedGames = editingAccount.games || [];
-      setSelectedGames(linkedGames.map(game => game.id));
-    } else {
-      setFormData({
-        email: '',
-        password: '',
-        birthday: '',
-        security_answer: '',
-        codes: '',
-        qr_code: ''
-      });
-      setSelectedGames([]);
-    }
-  }, [editingAccount]);
-
   const resetForm = () => {
     setFormData({
       email: '',
@@ -83,6 +54,31 @@ const AdminAccounts: React.FC = () => {
     setEditingAccount(null);
   };
 
+  const handleEdit = (account: Account) => {
+    setEditingAccount(account);
+    setFormData({
+      email: account.email,
+      password: account.password || '',
+      birthday: account.birthday || '',
+      security_answer: account.security_answer || '',
+      codes: account.codes || '',
+      qr_code: account.qr_code || ''
+    });
+
+    // Find selected games for this account
+    const accountGames = account.games?.map(game => game.id) || [];
+    setSelectedGames(accountGames);
+    setIsDialogOpen(true);
+  };
+
+  const handleGameToggle = (gameId: string) => {
+    setSelectedGames(prev =>
+      prev.includes(gameId)
+        ? prev.filter(id => id !== gameId)
+        : [...prev, gameId]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
@@ -94,24 +90,59 @@ const AdminAccounts: React.FC = () => {
       return;
     }
 
-    let result;
-    if (editingAccount) {
-      result = await accountService.update(editingAccount.id, formData);
-    } else {
-      result = await accountService.create(formData);
-    }
+    try {
+      if (editingAccount) {
+        // Update existing account
+        await accountService.update(editingAccount.id, {
+          email: formData.email,
+          password: formData.password,
+          birthday: formData.birthday,
+          security_answer: formData.security_answer,
+          codes: formData.codes,
+          qr_code: formData.qr_code
+        });
 
-    if (result) {
-      await accountService.linkToGames(result.id, selectedGames);
+        // Link games to account
+        await accountService.linkToGames(editingAccount.id, selectedGames);
+
+        toast({
+          title: "Conta atualizada",
+          description: "A conta foi atualizada com sucesso."
+        });
+      } else {
+        // Create new account
+        const newAccount = await accountService.create({
+          email: formData.email,
+          password: formData.password,
+          birthday: formData.birthday,
+          security_answer: formData.security_answer,
+          codes: formData.codes,
+          qr_code: formData.qr_code
+        });
+
+        if (newAccount) {
+          // Link games to new account
+          await accountService.linkToGames(newAccount.id, selectedGames);
+
+          toast({
+            title: "Conta criada",
+            description: "A nova conta foi criada com sucesso."
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: "Não foi possível criar a conta.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
-      toast({
-        title: editingAccount ? "Conta atualizada" : "Conta criada",
-        description: editingAccount ? "A conta foi atualizada com sucesso." : "A nova conta foi criada com sucesso."
-      });
       setIsDialogOpen(false);
       resetForm();
-    } else {
+    } catch (error) {
+      console.error('Erro ao salvar conta:', error);
       toast({
         title: "Erro",
         description: "Não foi possível salvar a conta.",
@@ -120,77 +151,48 @@ const AdminAccounts: React.FC = () => {
     }
   };
 
-  const handleEdit = (account: Account) => {
-    setEditingAccount(account);
-    setIsDialogOpen(true);
-  };
-
   const handleDeleteConfirm = async () => {
     if (!deleteAccountId) return;
 
-    const success = await accountService.delete(deleteAccountId);
-    if (success) {
+    try {
+      await accountService.delete(deleteAccountId);
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
       toast({
         title: "Conta excluída",
         description: "A conta foi excluída com sucesso."
       });
-    } else {
+    } catch (error) {
       toast({
         title: "Erro",
         description: "Não foi possível excluir a conta.",
         variant: "destructive"
       });
+    } finally {
+      setDeleteAccountId(null);
     }
-    setDeleteAccountId(null);
-  };
-
-  const togglePasswordVisibility = (accountId: string) => {
-    setShowPasswords(prev => ({
-      ...prev,
-      [accountId]: !prev[accountId]
-    }));
-  };
-
-  const handleGameToggle = (gameId: string) => {
-    setSelectedGames(prev => 
-      prev.includes(gameId) 
-        ? prev.filter(id => id !== gameId) 
-        : [...prev, gameId]
-    );
-  };
-
-  const getSlotOccupant = (account: Account, slotNumber: number) => {
-    const slot = account.slots?.find(slot => slot.slot_number === slotNumber);
-    return slot?.user ? slot.user.name.split(' ')[0] : null;
-  };
-
-  const isSlotOccupied = (slotNumber: number, account: Account) => {
-    return getSlotOccupant(account, slotNumber) !== null;
   };
 
   const isAdmin = currentUser?.role === 'admin';
 
   if (accountsLoading) {
-    return <div className="text-center py-12">
-      <p className="text-lg text-muted-foreground">Carregando contas...</p>
-    </div>;
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg text-muted-foreground">Carregando contas...</p>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
+      {/* Accounts Table */}
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Email</TableHead>
-              <TableHead>Senha</TableHead>
               <TableHead>Jogos</TableHead>
-              <TableHead>Slot 1</TableHead>
-              <TableHead>Slot 2</TableHead>
-              <TableHead>Resposta</TableHead>
-              <TableHead>Códigos</TableHead>
+              <TableHead>Slots</TableHead>
+              <TableHead>Data de Nascimento</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
@@ -199,32 +201,17 @@ const AdminAccounts: React.FC = () => {
               <TableRow key={account.id}>
                 <TableCell className="font-medium">{account.email}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm">
-                      {showPasswords[account.id] ? account.password : '••••••••'}
-                    </span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => togglePasswordVisibility(account.id)}
-                      className="hover:bg-white hover:text-gray-900"
-                    >
-                      {showPasswords[account.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell>
                   {account.games && account.games.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {account.games.slice(0, 2).map(game => (
-                        <span key={game.id} className="text-xs px-2 py-1 rounded border">
+                        <Badge key={game.id} variant="secondary" className="text-xs">
                           {game.name}
-                        </span>
+                        </Badge>
                       ))}
                       {account.games.length > 2 && (
-                        <span className="text-xs px-2 py-1 rounded border">
+                        <Badge variant="secondary" className="text-xs">
                           +{account.games.length - 2}
-                        </span>
+                        </Badge>
                       )}
                     </div>
                   ) : (
@@ -232,34 +219,27 @@ const AdminAccounts: React.FC = () => {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge 
-                    variant={isSlotOccupied(1, account) ? "destructive" : "secondary"}
-                    className={`rounded-sm ${
-                      isSlotOccupied(1, account) ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
-                    }`}
-                  >
-                    {isSlotOccupied(1, account) ? getSlotOccupant(account, 1) : 'Slot 1'}
-                  </Badge>
+                  <div className="flex gap-1">
+                    {[1, 2].map(slotNumber => {
+                      const slot = account.slots?.find(s => s.slot_number === slotNumber);
+                      const isOccupied = slot?.user_id;
+                      
+                      return (
+                        <Badge 
+                          key={slotNumber}
+                          variant={isOccupied ? "destructive" : "secondary"}
+                          className={`text-xs ${
+                            isOccupied ? 'bg-red-500' : 'bg-green-500'
+                          }`}
+                        >
+                          Slot {slotNumber}
+                        </Badge>
+                      );
+                    })}
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <Badge 
-                    variant={isSlotOccupied(2, account) ? "destructive" : "secondary"}
-                    className={`rounded-sm ${
-                      isSlotOccupied(2, account) ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
-                    }`}
-                  >
-                    {isSlotOccupied(2, account) ? getSlotOccupant(account, 2) : 'Slot 2'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {account.security_answer || '-'}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {account.codes ? 'Sim' : '-'}
-                  </span>
+                  {account.birthday ? new Date(account.birthday).toLocaleDateString() : 'N/A'}
                 </TableCell>
                 {isAdmin && (
                   <TableCell className="text-right">
@@ -288,102 +268,114 @@ const AdminAccounts: React.FC = () => {
         </Table>
       </div>
 
+      {/* Add/Edit Account Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {editingAccount ? 'Editar Conta' : 'Nova Conta'}
             </DialogTitle>
+            <DialogDescription>
+              {editingAccount ? 'Edite as informações da conta.' : 'Adicione uma nova conta ao sistema.'}
+            </DialogDescription>
           </DialogHeader>
+          
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    value={formData.email} 
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    required 
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Senha *</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    value={formData.password} 
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    required 
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="qr_code">QR Code</Label>
-                  <Input 
-                    id="qr_code" 
-                    value={formData.qr_code} 
-                    onChange={(e) => setFormData(prev => ({ ...prev, qr_code: e.target.value }))}
-                    placeholder="URL do QR Code" 
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={formData.email} 
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  required 
+                />
               </div>
               
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="security_answer">Resposta de Segurança</Label>
-                  <Input 
-                    id="security_answer" 
-                    value={formData.security_answer} 
-                    onChange={(e) => setFormData(prev => ({ ...prev, security_answer: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="codes">Códigos de Acesso</Label>
-                  <Textarea 
-                    id="codes" 
-                    value={formData.codes} 
-                    onChange={(e) => setFormData(prev => ({ ...prev, codes: e.target.value }))}
-                    placeholder="Digite os códigos de acesso" 
-                    rows={3} 
-                  />
-                </div>
+              <div>
+                <Label htmlFor="password">Senha *</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={formData.password} 
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  required 
+                />
               </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="birthday">Data de Nascimento</Label>
+              <Input 
+                id="birthday" 
+                type="date" 
+                value={formData.birthday} 
+                onChange={(e) => setFormData(prev => ({ ...prev, birthday: e.target.value }))}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="security_answer">Resposta de Segurança</Label>
+              <Input 
+                id="security_answer" 
+                value={formData.security_answer} 
+                onChange={(e) => setFormData(prev => ({ ...prev, security_answer: e.target.value }))}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="codes">Códigos</Label>
+              <Input 
+                id="codes" 
+                value={formData.codes} 
+                onChange={(e) => setFormData(prev => ({ ...prev, codes: e.target.value }))}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="qr_code">QR Code</Label>
+              <Input 
+                id="qr_code" 
+                value={formData.qr_code} 
+                onChange={(e) => setFormData(prev => ({ ...prev, qr_code: e.target.value }))}
+              />
             </div>
 
             <div className="grid gap-2">
-              <Label>Jogos disponíveis nesta conta</Label>
+              <Label>Jogos Vinculados</Label>
               <div className="text-sm text-muted-foreground">
-                Selecione os jogos que estão disponíveis nesta conta
+                Selecione os jogos que estarão disponíveis nesta conta
               </div>
-              <div className="max-h-32 overflow-y-auto border rounded p-2">
+              <div className="max-h-48 overflow-y-auto border rounded p-2">
                 {games.map(game => (
-                  <div key={game.id} className="flex items-center space-x-2 py-1">
+                  <div key={game.id} className="flex items-center space-x-2 p-1">
                     <Checkbox 
-                      id={`game-${game.id}`} 
-                      checked={selectedGames.includes(game.id)} 
-                      onCheckedChange={() => handleGameToggle(game.id)} 
+                      id={`game-${game.id}`}
+                      checked={selectedGames.includes(game.id)}
+                      onCheckedChange={() => handleGameToggle(game.id)}
                     />
-                    <Label htmlFor={`game-${game.id}`} className="text-sm">
+                    <Label htmlFor={`game-${game.id}`} className="cursor-pointer">
                       {game.name}
                     </Label>
                   </div>
                 ))}
               </div>
             </div>
-
-            <div className="flex justify-end space-x-2">
+            
+            <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancelar
               </Button>
               <Button type="submit">
                 {editingAccount ? 'Atualizar' : 'Criar'} Conta
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteAccountId} onOpenChange={() => setDeleteAccountId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
