@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Member } from '@/types';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
+
 const AdminMembers: React.FC = () => {
   const {
     toast
@@ -32,6 +33,7 @@ const AdminMembers: React.FC = () => {
     password: '',
     profile_image: ''
   });
+
   const {
     data: members = [],
     isLoading: membersLoading
@@ -39,6 +41,7 @@ const AdminMembers: React.FC = () => {
     queryKey: ['admin-members'],
     queryFn: () => userService.getAll()
   });
+
   const {
     data: accounts = []
   } = useQuery({
@@ -62,6 +65,7 @@ const AdminMembers: React.FC = () => {
     updated_at: user.profile?.updated_at || '',
     accounts: accounts.filter(account => account.slots?.some(slot => slot.user_id === user.id))
   }));
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -72,6 +76,7 @@ const AdminMembers: React.FC = () => {
     setSelectedAccountSlots([]);
     setEditingMember(null);
   };
+
   const handleEdit = (member: Member) => {
     setEditingMember(member);
     setFormData({
@@ -93,10 +98,12 @@ const AdminMembers: React.FC = () => {
     setSelectedAccountSlots(memberSlots);
     setIsDialogOpen(true);
   };
+
   const handleAccountSlotToggle = (accountId: string, slotNumber: 1 | 2) => {
     const slotKey = `${accountId}-${slotNumber}`;
     setSelectedAccountSlots(prev => prev.includes(slotKey) ? prev.filter(key => key !== slotKey) : [...prev, slotKey]);
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) {
@@ -146,6 +153,7 @@ const AdminMembers: React.FC = () => {
       });
     }
   };
+
   const handleDeleteConfirm = () => {
     toast({
       title: "Membro excluído",
@@ -153,27 +161,32 @@ const AdminMembers: React.FC = () => {
     });
     setDeleteMemberId(null);
   };
+
   const getMemberAccounts = (memberId: string) => {
     return accounts.filter(account => account.slots?.some(slot => slot.user_id === memberId));
   };
+
   const isAdmin = currentUser?.role === 'admin';
+
   if (membersLoading) {
     return <div className="text-center py-12">
-        <p className="text-lg text-muted-foreground">Carregando membros...</p>
-      </div>;
+      <p className="text-lg text-muted-foreground">Carregando membros...</p>
+    </div>;
   }
-  return <div className="space-y-6">
+
+  return (
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div />
         {isAdmin && <Button onClick={() => {
-        resetForm();
-        setIsDialogOpen(true);
-      }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Membro
-          </Button>}
+          resetForm();
+          setIsDialogOpen(true);
+        }}>
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Membro
+        </Button>}
       </div>
-      
+
       {/* Members Table */}
       <div className="border rounded-lg">
         <Table>
@@ -189,42 +202,65 @@ const AdminMembers: React.FC = () => {
           </TableHeader>
           <TableBody>
             {transformedMembers.map(member => {
-            const memberAccounts = getMemberAccounts(member.id);
-            return <TableRow key={member.id}>
+              const memberAccounts = getMemberAccounts(member.id);
+              return (
+                <TableRow key={member.id}>
                   <TableCell>
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">
-                      <ImagePlaceholder src={member.profile_image} alt={member.name} className="w-full h-full object-cover" />
+                      <ImagePlaceholder 
+                        src={member.profile_image} 
+                        alt={member.name} 
+                        className="w-full h-full object-cover" 
+                      />
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">{member.name}</TableCell>
                   <TableCell>{member.email}</TableCell>
                   <TableCell>
-                    {memberAccounts.length > 0 ? <div className="flex flex-wrap gap-1">
+                    {memberAccounts.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
                         {memberAccounts.map(account => {
-                    const userSlots = account.slots?.filter(slot => slot.user_id === member.id) || [];
-                    return userSlots.map(slot => <Badge key={`${account.id}-${slot.slot_number}`} variant="secondary" className="text-xs">
+                          const userSlots = account.slots?.filter(slot => slot.user_id === member.id) || [];
+                          return userSlots.map(slot => (
+                            <Badge key={`${account.id}-${slot.slot_number}`} variant="secondary" className="text-xs">
                               {account.email} (Slot {slot.slot_number})
-                            </Badge>);
-                  })}
-                      </div> : <span className="text-muted-foreground text-sm">Nenhuma conta</span>}
+                            </Badge>
+                          ));
+                        })}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Nenhuma conta</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge variant={member.isApproved ? "default" : "secondary"}>
                       {member.isApproved ? 'Aprovado' : 'Pendente'}
                     </Badge>
                   </TableCell>
-                  {isAdmin && <TableCell className="text-right">
+                  {isAdmin && (
+                    <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(member)}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEdit(member)}
+                          className="hover:bg-white hover:text-gray-900"
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="destructive" size="sm" onClick={() => setDeleteMemberId(member.id)}>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => setDeleteMemberId(member.id)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>}
-                </TableRow>;
-          })}
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -331,6 +367,8 @@ const AdminMembers: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>;
+    </div>
+  );
 };
+
 export default AdminMembers;
