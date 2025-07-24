@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { userService, accountService } from '@/services/supabaseService';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Member } from '@/types';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
@@ -39,10 +39,11 @@ import ImagePlaceholder from '@/components/ui/image-placeholder';
 const AdminMembers: React.FC = () => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null);
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  const [selectedAccountSlots, setSelectedAccountSlots] = useState<string[]>([]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -84,7 +85,7 @@ const AdminMembers: React.FC = () => {
       password: '',
       profile_image: '',
     });
-    setSelectedAccounts([]);
+    setSelectedAccountSlots([]);
     setEditingMember(null);
   };
 
@@ -97,24 +98,30 @@ const AdminMembers: React.FC = () => {
       profile_image: member.profile_image || '',
     });
     
-    // Find selected accounts for this member
-    const memberAccounts = accounts.filter(account => 
-      account.slots?.some(slot => slot.user_id === member.id)
-    ).map(account => account.id);
+    // Find selected account slots for this member
+    const memberSlots: string[] = [];
+    accounts.forEach(account => {
+      account.slots?.forEach(slot => {
+        if (slot.user_id === member.id) {
+          memberSlots.push(`${account.id}-${slot.slot_number}`);
+        }
+      });
+    });
     
-    setSelectedAccounts(memberAccounts);
+    setSelectedAccountSlots(memberSlots);
     setIsDialogOpen(true);
   };
 
-  const handleAccountToggle = (accountId: string) => {
-    setSelectedAccounts(prev => 
-      prev.includes(accountId) 
-        ? prev.filter(id => id !== accountId)
-        : [...prev, accountId]
+  const handleAccountSlotToggle = (accountId: string, slotNumber: 1 | 2) => {
+    const slotKey = `${accountId}-${slotNumber}`;
+    setSelectedAccountSlots(prev => 
+      prev.includes(slotKey) 
+        ? prev.filter(key => key !== slotKey)
+        : [...prev, slotKey]
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.email) {
@@ -126,14 +133,44 @@ const AdminMembers: React.FC = () => {
       return;
     }
 
-    // For now, show a success message since the backend integration is not complete
-    toast({
-      title: editingMember ? "Membro atualizado" : "Membro criado",
-      description: editingMember ? "O membro foi atualizado com sucesso." : "O novo membro foi criado com sucesso.",
-    });
-    
-    setIsDialogOpen(false);
-    resetForm();
+    try {
+      // For now, we'll just update the profile data
+      // In a real implementation, you'd want to handle user creation through auth
+      if (editingMember) {
+        await userService.updateProfile(editingMember.id, {
+          name: formData.name,
+          avatar_url: formData.profile_image
+        });
+
+        // Update account slots
+        const accountSlots = selectedAccountSlots.map(slotKey => {
+          const [accountId, slotNumber] = slotKey.split('-');
+          return {
+            accountId,
+            slotNumber: parseInt(slotNumber) as 1 | 2
+          };
+        });
+
+        await userService.linkToAccounts(editingMember.id, accountSlots);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      
+      toast({
+        title: editingMember ? "Membro atualizado" : "Membro criado",
+        description: editingMember ? "O membro foi atualizado com sucesso." : "O novo membro foi criado com sucesso.",
+      });
+      
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o membro.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteConfirm = () => {
@@ -205,11 +242,14 @@ const AdminMembers: React.FC = () => {
                   <TableCell>
                     {memberAccounts.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
-                        {memberAccounts.map(account => (
-                          <Badge key={account.id} variant="secondary" className="text-xs">
-                            {account.email}
-                          </Badge>
-                        ))}
+                        {memberAccounts.map(account => {
+                          const userSlots = account.slots?.filter(slot => slot.user_id === member.id) || [];
+                          return userSlots.map(slot => (
+                            <Badge key={`${account.id}-${slot.slot_number}`} variant="secondary" className="text-xs">
+                              {account.email} (Slot {slot.slot_number})
+                            </Badge>
+                          ));
+                        })}
                       </div>
                     ) : (
                       <span className="text-muted-foreground text-sm">Nenhuma conta</span>
@@ -305,21 +345,38 @@ const AdminMembers: React.FC = () => {
             </div>
 
             <div className="grid gap-2">
-              <Label>Contas</Label>
+              <Label>Slots de Conta</Label>
               <div className="text-sm text-muted-foreground">
-                Vincule este membro às contas que ele pode usar
+                Vincule este membro aos slots de conta que ele pode usar
               </div>
-              <div className="max-h-32 overflow-y-auto border rounded p-2">
+              <div className="max-h-48 overflow-y-auto border rounded p-2">
                 {accounts.map((account) => (
-                  <div key={account.id} className="flex items-center space-x-2 py-1">
-                    <Checkbox 
-                      id={`account-${account.id}`}
-                      checked={selectedAccounts.includes(account.id)}
-                      onCheckedChange={() => handleAccountToggle(account.id)}
-                    />
-                    <Label htmlFor={`account-${account.id}`} className="text-sm">
-                      {account.email}
-                    </Label>
+                  <div key={account.id} className="mb-2 border-b pb-2">
+                    <div className="font-medium mb-1">{account.email}</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`account-${account.id}-1`}
+                          checked={selectedAccountSlots.includes(`${account.id}-1`)}
+                          disabled={account.slots?.some(slot => slot.slot_number === 1 && slot.user_id !== (editingMember?.id || ''))}
+                          onCheckedChange={() => handleAccountSlotToggle(account.id, 1)}
+                        />
+                        <Label htmlFor={`account-${account.id}-1`} className="cursor-pointer">
+                          Slot 1 {account.slots?.some(slot => slot.slot_number === 1 && slot.user_id !== (editingMember?.id || '')) ? '(Em uso)' : ''}
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`account-${account.id}-2`}
+                          checked={selectedAccountSlots.includes(`${account.id}-2`)}
+                          disabled={account.slots?.some(slot => slot.slot_number === 2 && slot.user_id !== (editingMember?.id || ''))}
+                          onCheckedChange={() => handleAccountSlotToggle(account.id, 2)}
+                        />
+                        <Label htmlFor={`account-${account.id}-2`} className="cursor-pointer">
+                          Slot 2 {account.slots?.some(slot => slot.slot_number === 2 && slot.user_id !== (editingMember?.id || '')) ? '(Em uso)' : ''}
+                        </Label>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

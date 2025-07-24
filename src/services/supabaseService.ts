@@ -102,6 +102,31 @@ export const gameService = {
     }
     
     return true;
+  },
+
+  async linkToAccounts(gameId: string, accountIds: string[]): Promise<boolean> {
+    // Remove existing links
+    await supabase
+      .from('account_games')
+      .delete()
+      .eq('game_id', gameId);
+    
+    // Add new links
+    if (accountIds.length > 0) {
+      const { error } = await supabase
+        .from('account_games')
+        .insert(accountIds.map(accountId => ({
+          game_id: gameId,
+          account_id: accountId
+        })));
+      
+      if (error) {
+        console.error('Error linking game to accounts:', error);
+        return false;
+      }
+    }
+    
+    return true;
   }
 };
 
@@ -220,6 +245,70 @@ export const accountService = {
     return true;
   },
 
+  async linkToGames(accountId: string, gameIds: string[]): Promise<boolean> {
+    // Remove existing links
+    await supabase
+      .from('account_games')
+      .delete()
+      .eq('account_id', accountId);
+    
+    // Add new links
+    if (gameIds.length > 0) {
+      const { error } = await supabase
+        .from('account_games')
+        .insert(gameIds.map(gameId => ({
+          account_id: accountId,
+          game_id: gameId
+        })));
+      
+      if (error) {
+        console.error('Error linking account to games:', error);
+        return false;
+      }
+    }
+    
+    return true;
+  },
+
+  async assignSlot(accountId: string, slotNumber: 1 | 2, userId: string): Promise<boolean> {
+    // Check if slot is already occupied
+    const { data: existingSlot } = await supabase
+      .from('account_slots')
+      .select('*')
+      .eq('account_id', accountId)
+      .eq('slot_number', slotNumber)
+      .single();
+    
+    if (existingSlot) {
+      // Update existing slot
+      const { error } = await supabase
+        .from('account_slots')
+        .update({ user_id: userId, entered_at: new Date().toISOString() })
+        .eq('id', existingSlot.id);
+      
+      if (error) {
+        console.error('Error updating slot:', error);
+        return false;
+      }
+    } else {
+      // Create new slot
+      const { error } = await supabase
+        .from('account_slots')
+        .insert({
+          account_id: accountId,
+          slot_number: slotNumber,
+          user_id: userId
+        });
+      
+      if (error) {
+        console.error('Error creating slot:', error);
+        return false;
+      }
+    }
+    
+    return true;
+  },
+
   async freeSlot(accountId: string, slotNumber: number): Promise<boolean> {
     const { error } = await supabase
       .from('account_slots')
@@ -280,5 +369,24 @@ export const userService = {
     }
     
     return data;
+  },
+
+  async linkToAccounts(userId: string, accountSlots: Array<{ accountId: string, slotNumber: 1 | 2 }>): Promise<boolean> {
+    // Remove existing slots for this user
+    await supabase
+      .from('account_slots')
+      .delete()
+      .eq('user_id', userId);
+    
+    // Add new slots
+    for (const slot of accountSlots) {
+      const success = await accountService.assignSlot(slot.accountId, slot.slotNumber, userId);
+      if (!success) {
+        console.error('Error assigning slot:', slot);
+        return false;
+      }
+    }
+    
+    return true;
   }
 };

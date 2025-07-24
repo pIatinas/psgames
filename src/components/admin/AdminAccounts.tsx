@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +37,7 @@ const AdminAccounts: React.FC = () => {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
   const [deleteAccountId, setDeleteAccountId] = useState<string | null>(null);
+  const [selectedGames, setSelectedGames] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
@@ -60,6 +61,32 @@ const AdminAccounts: React.FC = () => {
     queryFn: () => gameService.getAll(),
   });
 
+  useEffect(() => {
+    if (editingAccount) {
+      setFormData({
+        email: editingAccount.email,
+        password: editingAccount.password,
+        birthday: editingAccount.birthday || '',
+        security_answer: editingAccount.security_answer || '',
+        codes: editingAccount.codes || '',
+        qr_code: editingAccount.qr_code || ''
+      });
+      // Load linked games for this account
+      const linkedGames = editingAccount.games || [];
+      setSelectedGames(linkedGames.map(game => game.id));
+    } else {
+      setFormData({
+        email: '',
+        password: '',
+        birthday: '',
+        security_answer: '',
+        codes: '',
+        qr_code: ''
+      });
+      setSelectedGames([]);
+    }
+  }, [editingAccount]);
+
   const resetForm = () => {
     setFormData({
       email: '',
@@ -69,6 +96,7 @@ const AdminAccounts: React.FC = () => {
       codes: '',
       qr_code: ''
     });
+    setSelectedGames([]);
     setEditingAccount(null);
   };
 
@@ -92,7 +120,11 @@ const AdminAccounts: React.FC = () => {
     }
 
     if (result) {
+      // Link account to selected games
+      await accountService.linkToGames(result.id, selectedGames);
+      
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
       toast({
         title: editingAccount ? "Conta atualizada" : "Conta criada",
         description: editingAccount ? "A conta foi atualizada com sucesso." : "A nova conta foi criada com sucesso.",
@@ -110,14 +142,6 @@ const AdminAccounts: React.FC = () => {
 
   const handleEdit = (account: Account) => {
     setEditingAccount(account);
-    setFormData({
-      email: account.email,
-      password: account.password,
-      birthday: account.birthday || '',
-      security_answer: account.security_answer || '',
-      codes: account.codes || '',
-      qr_code: account.qr_code || ''
-    });
     setIsDialogOpen(true);
   };
 
@@ -127,6 +151,7 @@ const AdminAccounts: React.FC = () => {
     const success = await accountService.delete(deleteAccountId);
     if (success) {
       queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
       toast({
         title: "Conta excluída",
         description: "A conta foi excluída com sucesso.",
@@ -146,6 +171,14 @@ const AdminAccounts: React.FC = () => {
       ...prev,
       [accountId]: !prev[accountId]
     }));
+  };
+
+  const handleGameToggle = (gameId: string) => {
+    setSelectedGames(prev => 
+      prev.includes(gameId) 
+        ? prev.filter(id => id !== gameId)
+        : [...prev, gameId]
+    );
   };
 
   const getSlotOccupant = (account: Account, slotNumber: number) => {
@@ -349,14 +382,18 @@ const AdminAccounts: React.FC = () => {
             </div>
 
             <div className="grid gap-2">
-              <Label>Jogos</Label>
+              <Label>Jogos disponíveis nesta conta</Label>
               <div className="text-sm text-muted-foreground">
-                Vincule esta conta aos jogos disponíveis
+                Selecione os jogos que estão disponíveis nesta conta
               </div>
               <div className="max-h-32 overflow-y-auto border rounded p-2">
                 {games.map((game) => (
                   <div key={game.id} className="flex items-center space-x-2 py-1">
-                    <Checkbox id={`game-${game.id}`} />
+                    <Checkbox 
+                      id={`game-${game.id}`}
+                      checked={selectedGames.includes(game.id)}
+                      onCheckedChange={() => handleGameToggle(game.id)}
+                    />
                     <Label htmlFor={`game-${game.id}`} className="text-sm">
                       {game.name}
                     </Label>

@@ -44,6 +44,7 @@ const AdminGames: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<Game | null>(null);
   const [deleteGameId, setDeleteGameId] = useState<string | null>(null);
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [formData, setFormData] = useState<Partial<Game>>({
     name: '',
     description: '',
@@ -71,6 +72,11 @@ const AdminGames: React.FC = () => {
   useEffect(() => {
     if (editingGame) {
       setFormData(editingGame);
+      // Load linked accounts for this game
+      const linkedAccounts = accounts.filter(account => 
+        account.games?.some(game => game.id === editingGame.id)
+      );
+      setSelectedAccounts(linkedAccounts.map(account => account.id));
     } else {
       setFormData({
         name: '',
@@ -82,8 +88,9 @@ const AdminGames: React.FC = () => {
         genre: '',
         release_date: '',
       });
+      setSelectedAccounts([]);
     }
-  }, [editingGame]);
+  }, [editingGame, accounts]);
 
   const platforms: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA"];
 
@@ -103,6 +110,7 @@ const AdminGames: React.FC = () => {
     const success = await gameService.delete(deleteGameId);
     if (success) {
       queryClient.invalidateQueries({ queryKey: ['admin-games'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
       toast({
         title: "Jogo removido",
         description: "O jogo foi removido com sucesso.",
@@ -135,7 +143,11 @@ const AdminGames: React.FC = () => {
     }
 
     if (result) {
+      // Link game to selected accounts
+      await gameService.linkToAccounts(result.id, selectedAccounts);
+      
       queryClient.invalidateQueries({ queryKey: ['admin-games'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
       toast({
         title: editingGame ? "Jogo atualizado" : "Jogo adicionado",
         description: editingGame ? "O jogo foi atualizado com sucesso." : "O jogo foi adicionado com sucesso.",
@@ -163,6 +175,14 @@ const AdminGames: React.FC = () => {
         platform: (formData.platform || []).filter(p => p !== platform)
       });
     }
+  };
+
+  const handleAccountToggle = (accountId: string) => {
+    setSelectedAccounts(prev => 
+      prev.includes(accountId) 
+        ? prev.filter(id => id !== accountId)
+        : [...prev, accountId]
+    );
   };
 
   const isAdmin = currentUser?.role === 'admin';
@@ -198,60 +218,80 @@ const AdminGames: React.FC = () => {
               <TableHead>Plataformas</TableHead>
               <TableHead>Desenvolvedor</TableHead>
               <TableHead>Gênero</TableHead>
+              <TableHead>Contas</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {games.map((game) => (
-              <TableRow key={game.id}>
-                <TableCell>
-                  <div className="w-12 h-12">
-                    <ImagePlaceholder
-                      src={game.image}
-                      alt={game.name}
-                      className="w-full h-full object-cover rounded aspect-square"
-                    />
-                  </div>
-                </TableCell>
-                <TableCell className="font-medium">{game.name}</TableCell>
-                <TableCell className="max-w-xs">
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {game.description}
-                  </p>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {game.platform.map((platform) => (
-                      <Badge key={platform} variant="secondary" className="text-xs">
-                        {platform}
-                      </Badge>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell>{game.developer}</TableCell>
-                <TableCell>{game.genre}</TableCell>
-                {isAdmin && (
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditGame(game)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeleteGameId(game.id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
+            {games.map((game) => {
+              const gameAccounts = accounts.filter(account => 
+                account.games?.some(g => g.id === game.id)
+              );
+              
+              return (
+                <TableRow key={game.id}>
+                  <TableCell>
+                    <div className="w-12 h-12">
+                      <ImagePlaceholder
+                        src={game.image}
+                        alt={game.name}
+                        className="w-full h-full object-cover rounded aspect-square"
+                      />
                     </div>
                   </TableCell>
-                )}
-              </TableRow>
-            ))}
+                  <TableCell className="font-medium">{game.name}</TableCell>
+                  <TableCell className="max-w-xs">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {game.description}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {game.platform.map((platform) => (
+                        <Badge key={platform} variant="secondary" className="text-xs">
+                          {platform}
+                        </Badge>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>{game.developer}</TableCell>
+                  <TableCell>{game.genre}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {gameAccounts.length > 0 ? (
+                        gameAccounts.map(account => (
+                          <Badge key={account.id} variant="outline" className="text-xs">
+                            {account.email}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Nenhuma conta</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  {isAdmin && (
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditGame(game)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeleteGameId(game.id)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -366,14 +406,18 @@ const AdminGames: React.FC = () => {
             </div>
 
             <div className="grid gap-2">
-              <Label>Contas</Label>
+              <Label>Contas onde o jogo está disponível</Label>
               <div className="text-sm text-muted-foreground">
-                Vincule este jogo às contas onde ele está disponível
+                Selecione as contas que possuem este jogo
               </div>
               <div className="max-h-32 overflow-y-auto border rounded p-2">
                 {accounts.map((account) => (
                   <div key={account.id} className="flex items-center space-x-2 py-1">
-                    <Checkbox id={`account-${account.id}`} />
+                    <Checkbox 
+                      id={`account-${account.id}`}
+                      checked={selectedAccounts.includes(account.id)}
+                      onCheckedChange={() => handleAccountToggle(account.id)}
+                    />
                     <Label htmlFor={`account-${account.id}`} className="text-sm">
                       {account.email}
                     </Label>
