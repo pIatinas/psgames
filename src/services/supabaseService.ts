@@ -465,34 +465,30 @@ export const userService = {
     active?: boolean;
   }): Promise<{ user: any; error: any }> {
     try {
-      // Create user in Supabase Auth
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: userData.password,
-        email_confirm: true, // Auto-confirm email
-        user_metadata: {
-          name: userData.name
+      // Use the secure edge function for user creation
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: {
+          name: userData.name,
+          email: userData.email,
+          password: userData.password,
+          role: userData.role,
+          active: userData.active || false
         }
       });
 
       if (error) {
+        console.error('Error creating user via edge function:', error);
         return { user: null, error };
       }
 
-      // Update the profile with additional data
-      if (data.user) {
-        await supabase
-          .from('profiles')
-          .update({
-            name: userData.name,
-            role: userData.role,
-            active: userData.active || false
-          })
-          .eq('id', data.user.id);
+      if (data.error) {
+        console.error('Edge function returned error:', data.error);
+        return { user: null, error: { message: data.error } };
       }
 
       return { user: data.user, error: null };
     } catch (error) {
+      console.error('Error in createUser:', error);
       return { user: null, error };
     }
   },
