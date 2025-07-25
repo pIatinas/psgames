@@ -296,7 +296,20 @@ export const accountService = {
   },
 
   async assignSlot(accountId: string, slotNumber: 1 | 2, userId: string): Promise<boolean> {
-    // Check if slot is already occupied
+    // Check if user already has a slot for this account
+    const { data: userSlot } = await supabase
+      .from('account_slots')
+      .select('*')
+      .eq('account_id', accountId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (userSlot) {
+      console.error('User already has a slot for this account');
+      return false;
+    }
+    
+    // Check if the specific slot is already occupied
     const { data: existingSlot } = await supabase
       .from('account_slots')
       .select('*')
@@ -304,8 +317,13 @@ export const accountService = {
       .eq('slot_number', slotNumber)
       .maybeSingle();
     
+    if (existingSlot && existingSlot.user_id) {
+      console.error('Slot is already occupied');
+      return false;
+    }
+    
     if (existingSlot) {
-      // Update existing slot
+      // Update existing empty slot
       const { error } = await supabase
         .from('account_slots')
         .update({ user_id: userId, entered_at: new Date().toISOString() })
@@ -322,7 +340,8 @@ export const accountService = {
         .insert({
           account_id: accountId,
           slot_number: slotNumber,
-          user_id: userId
+          user_id: userId,
+          entered_at: new Date().toISOString()
         });
       
       if (error) {
@@ -337,12 +356,27 @@ export const accountService = {
   async freeSlot(accountId: string, slotNumber: number): Promise<boolean> {
     const { error } = await supabase
       .from('account_slots')
-      .delete()
+      .update({ user_id: null, entered_at: null })
       .eq('account_id', accountId)
       .eq('slot_number', slotNumber);
     
     if (error) {
       console.error('Error freeing slot:', error);
+      return false;
+    }
+    
+    return true;
+  },
+  
+  async freeUserSlot(accountId: string, userId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('account_slots')
+      .update({ user_id: null, entered_at: null })
+      .eq('account_id', accountId)
+      .eq('user_id', userId);
+    
+    if (error) {
+      console.error('Error freeing user slot:', error);
       return false;
     }
     

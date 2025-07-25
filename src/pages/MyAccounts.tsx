@@ -79,16 +79,21 @@ const MyAccounts: React.FC = () => {
     if (!currentUser) return;
     
     try {
-      const slot = account.slots?.find(s => s.user_id === currentUser.id);
-      if (slot) {
-        await accountService.freeSlot(account.id, slot.slot_number);
-        
+      const success = await accountService.freeUserSlot(account.id, currentUser.id);
+      
+      if (success) {
         // Update local state
         setAccounts(accounts.filter(acc => acc.id !== account.id));
         
         toast({
           title: "Conta devolvida",
           description: "Você devolveu a conta com sucesso.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível devolver a conta.",
+          variant: "destructive",
         });
       }
     } catch (error) {

@@ -28,10 +28,11 @@ const AccountDetail = () => {
   const accountId = slug ? parseAccountSlug(slug) : null;
   
   // Fetch account data
-  const { data: account, isLoading } = useQuery({
+  const { data: account, isLoading, refetch } = useQuery({
     queryKey: ['account', accountId],
     queryFn: () => accountId ? accountService.getById(accountId) : null,
     enabled: !!accountId,
+    refetchInterval: 5000, // Refetch every 5 seconds to show real-time updates
   });
   
   if (isLoading) {
@@ -72,7 +73,7 @@ const AccountDetail = () => {
   
   const availableSlots = 2 - (account.slots?.length || 0);
   
-  const handleUseSlot = (slotNumber: 1 | 2) => {
+  const handleUseSlot = async (slotNumber: 1 | 2) => {
     if (!currentUser) {
       toast({
         title: "Login necessário",
@@ -83,34 +84,72 @@ const AccountDetail = () => {
       return;
     }
     
-    if (!account.slots) {
-      account.slots = [];
+    try {
+      const success = await accountService.assignSlot(account.id, slotNumber, currentUser.id);
+      
+      if (success) {
+        // Reload account data to show updated slots
+        const updatedAccount = await accountService.getById(account.id);
+        if (updatedAccount) {
+          Object.assign(account, updatedAccount);
+        }
+        
+        setOpenCredentialsDialog(true);
+        
+        toast({
+          title: "Conta ativada",
+          description: "Você agora está utilizando esta conta.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível ativar a conta. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao ativar conta:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao ativar a conta.",
+        variant: "destructive",
+      });
     }
-    
-    account.slots.push({
-      id: `slot-${Date.now()}`,
-      account_id: account.id,
-      slot_number: slotNumber,
-      user_id: currentUser.id,
-      entered_at: new Date().toISOString(),
-      created_at: new Date().toISOString()
-    });
-    
-    setOpenCredentialsDialog(true);
-    
-    toast({
-      title: "Conta ativada",
-      description: "Você agora está utilizando esta conta.",
-    });
   };
   
-  const handleReleaseAccount = () => {
-    if (currentUser && account.slots) {
-      account.slots = account.slots.filter(slot => slot.user_id !== currentUser.id);
-      
+  const handleReleaseAccount = async () => {
+    if (!currentUser || !account.slots) return;
+    
+    try {
+      const userSlot = account.slots.find(slot => slot.user_id === currentUser.id);
+      if (userSlot) {
+        const success = await accountService.freeSlot(account.id, userSlot.slot_number);
+        
+        if (success) {
+          // Reload account data to show updated slots
+          const updatedAccount = await accountService.getById(account.id);
+          if (updatedAccount) {
+            Object.assign(account, updatedAccount);
+          }
+          
+          toast({
+            title: "Conta devolvida",
+            description: "Você devolveu a conta com sucesso.",
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: "Não foi possível devolver a conta.",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao devolver conta:', error);
       toast({
-        title: "Conta devolvida",
-        description: "Você devolveu a conta com sucesso.",
+        title: "Erro",
+        description: "Ocorreu um erro ao devolver a conta.",
+        variant: "destructive",
       });
     }
   };
