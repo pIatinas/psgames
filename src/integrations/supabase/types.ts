@@ -270,12 +270,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_password: {
+        Args: { password_text: string }
+        Returns: string
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      verify_password: {
+        Args: { password_text: string; hashed_password: string }
         Returns: boolean
       }
     }
