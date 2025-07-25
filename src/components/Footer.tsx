@@ -1,12 +1,8 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
-
-  return (
-    <footer className="border-t border-primary/20 py-8 mt-12">
+  return <footer className="py-8 mt-12 r bg-black">
       <div className="container px-4 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
@@ -59,8 +55,6 @@ const Footer: React.FC = () => {
           <p>&copy; {currentYear} PSGames. Todos os direitos reservados.</p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;

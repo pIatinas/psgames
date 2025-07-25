@@ -14,7 +14,7 @@ const Header = () => {
     logout();
     navigate('/');
   };
-  return <header className="text-white py-4 shadow-md bg-neutral-950">
+  return <header className="text-white py-4 shadow-md bg-[#070707]">
       <div className="container flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold flex items-center gap-2">
           <Gamepad2 className="h-8 w-8" />
@@ -71,7 +71,7 @@ const Header = () => {
                 <Link to="/login">Entrar</Link>
               </Button>
               <Button asChild variant="secondary" size="sm">
-                <Link to="/register">Cadastrar</Link>
+                <Link to="/register">Cadastro</Link>
               </Button>
             </div>}
         </nav>
