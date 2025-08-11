@@ -11,7 +11,7 @@ interface GameCardProps {
 const GameCard: React.FC<GameCardProps> = ({
   game
 }) => {
-  return <Card className="h-full hover:shadow-lg transition-shadow overflow-hidden cursor-pointer border-0 bg-transparent">
+  return <Card className="h-full hover:shadow-lg hover:scale-105 transition-all overflow-hidden cursor-pointer border-0 bg-transparent">
       <Link to={`/games/${generateGameSlug(game.id, game.name)}`} className="block h-full">
         <div className="aspect-square relative">
           <ImagePlaceholder src={game.image} alt={game.name} className="w-full h-full object-cover" />
