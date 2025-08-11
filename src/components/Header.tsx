@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut, User, Settings, Gamepad2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Breadcrumbs from '@/components/Breadcrumbs';
 const Header = () => {
   const {
     currentUser,
@@ -79,8 +80,7 @@ const Header = () => {
         </div>
         {/* Breadcrumbs */}
         <div className="mt-2">
-          {/* eslint-disable-next-line @typescript-eslint/no-var-requires */}
-          {React.createElement(require('@/components/Breadcrumbs').default)}
+          <Breadcrumbs />
         </div>
       </div>
     </header>;
