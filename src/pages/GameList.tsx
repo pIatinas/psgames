@@ -3,7 +3,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
 import SectionTitle from '@/components/SectionTitle';
-import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { gameService } from '@/services/supabaseService';
@@ -19,7 +18,7 @@ const GameList = () => {
     queryKey: ['games'],
     queryFn: () => gameService.getAll()
   });
-  const platforms: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA"];
+  const platforms: GamePlatform[] = ["PS5", "PS4", "PS3"];
   const filteredGames = games.filter(game => {
     const matchesSearch = game.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.some(platform => game.platform.includes(platform));
@@ -45,24 +44,33 @@ const GameList = () => {
       <main className="flex-grow container py-8">
         <SectionTitle title="Biblioteca de Jogos" subtitle="Descubra todos os jogos disponíveis em nossas contas" />
         
-        {/* Filtros */}
-        <div className="mb-8 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input placeholder="Pesquisar jogos..." className="pl-10" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-          </div>
-          
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
+        <div className="mb-8">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-medium">Plataformas:</span>
+              {platforms.map(platform => (
+                <Button
+                  key={platform}
+                  variant={selectedPlatforms.includes(platform) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => togglePlatform(platform)}
+                >
+                  {platform}
+                </Button>
+              ))}
+              {selectedPlatforms.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => setSelectedPlatforms([])}>
+                  Limpar
+                </Button>
+              )}
             </div>
-            {platforms.map(platform => <Button key={platform} variant={selectedPlatforms.includes(platform) ? "default" : "outline"} size="sm" onClick={() => togglePlatform(platform)}>
-                {platform}
-              </Button>)}
-            {selectedPlatforms.length > 0 && <Button variant="ghost" size="sm" onClick={() => setSelectedPlatforms([])}>
-                Limpar
-              </Button>}
+            <div className="w-full sm:w-64">
+              <Input
+                placeholder="Pesquisar jogos..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
         </div>
         

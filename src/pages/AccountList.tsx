@@ -4,7 +4,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AccountCard from '@/components/AccountCard';
 import SectionTitle from '@/components/SectionTitle';
-import { Search, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { accountService } from '@/services/supabaseService';
@@ -20,7 +19,7 @@ const AccountList = () => {
     queryFn: () => accountService.getAll(),
   });
   
-  const platforms: GamePlatform[] = ["PS5", "PS4", "PS3", "VITA"];
+  const platforms: GamePlatform[] = ["PS5", "PS4", "PS3"];
   
   const filteredAccounts = accounts.filter(account => {
     const matchesSearch = account.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -64,41 +63,37 @@ const AccountList = () => {
         />
         
         {/* Filtros */}
-        <div className="mb-8 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Pesquisar contas..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
+        <div className="mb-8">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-medium">Plataformas:</span>
+              {platforms.map(platform => (
+                <Button
+                  key={platform}
+                  variant={selectedPlatforms.includes(platform) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => togglePlatform(platform)}
+                >
+                  {platform}
+                </Button>
+              ))}
+              {selectedPlatforms.length > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedPlatforms([])}
+                >
+                  Limpar
+                </Button>
+              )}
             </div>
-            {platforms.map(platform => (
-              <Button
-                key={platform}
-                variant={selectedPlatforms.includes(platform) ? "default" : "outline"}
-                size="sm"
-                onClick={() => togglePlatform(platform)}
-              >
-                {platform}
-              </Button>
-            ))}
-            {selectedPlatforms.length > 0 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setSelectedPlatforms([])}
-              >
-                Limpar
-              </Button>
-            )}
+            <div className="w-full sm:w-64">
+              <Input
+                placeholder="Pesquisar contas..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
         </div>
         

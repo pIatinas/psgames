@@ -5,33 +5,34 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    /* Dark purple base with pink accents */
+    --background: 262 32% 10%;
     --foreground: 0 0% 98%;
     
-    --card: 240 10% 3.9%;
+    --card: 262 28% 12%;
     --card-foreground: 0 0% 98%;
     
-    --popover: 240 10% 3.9%;
+    --popover: 262 28% 12%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 328 100% 45%;
+    --primary: 276 85% 60%; /* rich purple */
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 199 100% 50%;
+    --secondary: 327 86% 62%; /* pink */
     --secondary-foreground: 0 0% 98%;
     
-    --muted: 240 5% 15%;
+    --muted: 262 20% 18%;
     --muted-foreground: 0 0% 80%;
     
-    --accent: 267 100% 50%;
+    --accent: 315 90% 68%; /* soft magenta accent */
     --accent-foreground: 0 0% 98%;
     
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 240 5% 15%;
-    --input: 240 5% 15%;
-    --ring: 240 4.9% 83.9%;
+    --border: 262 22% 20%;
+    --input: 262 22% 20%;
+    --ring: 276 85% 60%;
     
     --radius: 0.75rem;
   }
@@ -96,6 +97,10 @@
 
   .text-gradient {
     @apply bg-gradient-to-br from-white via-white/90 to-white/70 bg-clip-text text-transparent;
+  }
+
+  .text-shadow {
+    text-shadow: 0 1px 2px hsl(0 0% 0% / 0.6);
   }
 }
 
