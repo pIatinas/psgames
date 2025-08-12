@@ -223,13 +223,13 @@ const GameDetail = () => {
               {/* Trophy info from external API */}
               {trophyInfo && <div>
                   <SectionTitle title="Troféus" />
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-4 gap-1">
                     <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                      <div className="text-yellow-400 mb-1">
+                      <div className="text-cyan-200 text-cyan-100 ">
                         <Trophy className="h-4 w-4 mx-auto" />
                       </div>
                       <div className="text-lg font-bold text-white">{trophyInfo.platinum}</div>
-                      <div className="text-xs text-white">Platina</div>
+                      <div className="text-xs text-white ">Platina</div>
                     </div>
                     <div className="bg-gray-800/50 rounded-lg p-3 text-center">
                       <div className="text-yellow-300 mb-1">
