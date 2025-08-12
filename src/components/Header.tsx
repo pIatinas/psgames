@@ -18,7 +18,7 @@ const Header = () => {
   return <header className="text-white py-4 bg-[#00000036]">
       <div className="container">
         <div className="flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold flex items-center gap-2">
+          <Link to="/" className="text-2xl font-bold flex items-center">
             <Gamepad2 className="h-8 w-8" />
             <span>PS</span>Games
           </Link>
