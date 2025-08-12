@@ -22,11 +22,11 @@ const AccountCard: React.FC<AccountCardProps> = ({
   return <Card className={`h-full hover:shadow-lg transition-all cursor-pointer ${isFullyOccupied ? 'opacity-60' : ''}`}>
       <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`} className="block">
         <CardContent className="p-4 space-y-3 flex flex-col h-full">
-          <div className="text-sm ">{account.email}</div>
+          <div className="text-lg font-medium ">{account.email}</div>
 
           {account.games && account.games.length > 0 && <div className="flex-grow">
               <div className="flex flex-wrap gap-1">
-                {account.games.slice(0, 3).map(game => <span key={game.id} className="text-xs px-2 py-1 rounded">
+                {account.games.slice(0, 3).map(game => <span key={game.id} className="text-base font-normal p-0 ">
                     {game.name}
                   </span>)}
                 {account.games.length > 3 && <span className="text-xs px-2 py-1 rounded">
