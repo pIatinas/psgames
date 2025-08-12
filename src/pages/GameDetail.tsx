@@ -102,7 +102,7 @@ const GameDetail = () => {
 
       <main className="flex-grow relative ">
         {/* Breadcrumbs and Back Button */}
-        <div className="container py-4 absolute z-10 top-0 ">
+        <div className="container py-4 absolute z-10 top-0 left-0 right-0 w-full ">
           <Breadcrumbs backButton={{
           href: '/games',
           label: 'Voltar'
