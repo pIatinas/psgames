@@ -79,7 +79,7 @@ const Login = () => {
                   <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm-.5 5v6H5v2h6.5v6h1v-6H19v-2h-6.5V5h-1z" />
                 </svg>
               </div>
-              <span className="text-2xl font-bold">PSGames</span>
+              <span className="text-2xl font-bold"><span>PS</span>Games</span>
             </Link>
             <CardTitle className="text-foreground text-xl text-center">Fazer Login</CardTitle>
             <CardDescription className="text-center text-white">
@@ -150,6 +150,11 @@ const Login = () => {
             </Form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 border-t pt-6">
+            <div className="text-center text-white text-sm">
+              <Link to="/forgot-password" className="text-primary hover:underline font-medium">
+                Esqueci minha senha
+              </Link>
+            </div>
             <div className="text-center text-white text-sm">
               Não tem uma conta? {" "}
               <Link to="/register" className="text-primary hover:underline font-medium">

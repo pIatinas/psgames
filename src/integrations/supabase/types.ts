@@ -124,47 +124,106 @@ export type Database = {
       games: {
         Row: {
           banner: string | null
+          bronze: number | null
           created_at: string
           description: string | null
           developer: string | null
           genre: string | null
+          gold: number | null
           id: string
           image: string | null
+          launch_date: string | null
           name: string
           platform: string[]
+          platinum: number | null
           rawg_id: number | null
           release_date: string | null
+          silver: number | null
           updated_at: string
         }
         Insert: {
           banner?: string | null
+          bronze?: number | null
           created_at?: string
           description?: string | null
           developer?: string | null
           genre?: string | null
+          gold?: number | null
           id?: string
           image?: string | null
+          launch_date?: string | null
           name: string
           platform?: string[]
+          platinum?: number | null
           rawg_id?: number | null
           release_date?: string | null
+          silver?: number | null
           updated_at?: string
         }
         Update: {
           banner?: string | null
+          bronze?: number | null
           created_at?: string
           description?: string | null
           developer?: string | null
           genre?: string | null
+          gold?: number | null
           id?: string
           image?: string | null
+          launch_date?: string | null
           name?: string
           platform?: string[]
+          platinum?: number | null
           rawg_id?: number | null
           release_date?: string | null
+          silver?: number | null
           updated_at?: string
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          member_id: string
+          month: number
+          paid_at: string | null
+          status: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          member_id: string
+          month: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          member_id?: string
+          month?: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

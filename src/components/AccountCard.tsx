@@ -20,15 +20,17 @@ const AccountCard: React.FC<AccountCardProps> = ({ account }) => {
     return getSlotUser(slotNumber) !== null;
   };
 
+  const occupiedSlots = account.slots?.filter(slot => slot.user_id)?.length || 0;
+  const isFullyOccupied = occupiedSlots >= 2;
+
   return (
-    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+    <Card className={`h-full hover:shadow-lg transition-all cursor-pointer ${isFullyOccupied ? 'opacity-60' : ''}`}>
       <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`} className="block">
         <CardContent className="p-4 space-y-3 flex flex-col h-full">
           <div className="text-sm font-mono">{account.email}</div>
 
           {account.games && account.games.length > 0 && (
             <div className="flex-grow">
-              <div className="text-sm font-medium mb-2">Jogos:</div>
               <div className="flex flex-wrap gap-1">
                 {account.games.slice(0, 3).map(game => (
                   <span key={game.id} className="text-xs px-2 py-1 rounded">
@@ -46,22 +48,24 @@ const AccountCard: React.FC<AccountCardProps> = ({ account }) => {
 
           <div className="mt-auto space-y-2">
             <div className="flex gap-2">
-              <Badge 
-                variant={isSlotOccupied(1) ? "destructive" : "secondary"}
-                className={`flex-1 justify-center text-xs ${
-                  isSlotOccupied(1) ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+              <div 
+                className={`flex-1 text-center p-2 rounded text-xs ${
+                  isSlotOccupied(1) 
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
+                    : 'bg-green-500/20 text-green-400 border border-green-500/30'
                 }`}
               >
-                Slot 1{isSlotOccupied(1) ? `: ${getSlotUser(1)}` : ''}
-              </Badge>
-              <Badge 
-                variant={isSlotOccupied(2) ? "destructive" : "secondary"}
-                className={`flex-1 justify-center text-xs ${
-                  isSlotOccupied(2) ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+                {isSlotOccupied(1) ? getSlotUser(1) : 'Livre'}
+              </div>
+              <div 
+                className={`flex-1 text-center p-2 rounded text-xs ${
+                  isSlotOccupied(2) 
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
+                    : 'bg-green-500/20 text-green-400 border border-green-500/30'
                 }`}
               >
-                Slot 2{isSlotOccupied(2) ? `: ${getSlotUser(2)}` : ''}
-              </Badge>
+                {isSlotOccupied(2) ? getSlotUser(2) : 'Livre'}
+              </div>
             </div>
           </div>
         </CardContent>

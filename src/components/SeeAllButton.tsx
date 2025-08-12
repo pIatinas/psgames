@@ -17,7 +17,7 @@ const SeeAllButton: React.FC<SeeAllButtonProps> = ({
     <div className="flex justify-center mt-8">
       <Button 
         size="lg" 
-        className="bg-primary hover:bg-primary/90 text-white rounded-full group"
+        className="bg-secondary hover:bg-secondary/90 text-white rounded-full group"
         asChild
       >
         <Link to={to}>

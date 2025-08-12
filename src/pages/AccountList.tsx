@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { accountService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
 import { GamePlatform } from '@/types';
+import Loader from '@/components/Loader';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 const AccountList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -42,10 +44,8 @@ const AccountList = () => {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow container py-8">
-          <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">Carregando contas...</p>
-          </div>
+        <main className="flex-grow">
+          <Loader />
         </main>
         <Footer />
       </div>
@@ -56,11 +56,17 @@ const AccountList = () => {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-grow container py-8">
-        <SectionTitle 
-          title="Contas Compartilhadas" 
-          subtitle="Encontre contas com os jogos que você quer jogar"
-        />
+      <main className="flex-grow">
+        {/* Breadcrumbs */}
+        <div className="container py-4">
+          <Breadcrumbs />
+        </div>
+        
+        <div className="container pb-8">
+          <SectionTitle 
+            title="Jogos Disponíveis" 
+            subtitle="Encontre contas com os jogos que você quer jogar"
+          />
         
         {/* Filtros */}
         <div className="mb-8">
@@ -112,6 +118,7 @@ const AccountList = () => {
             </p>
           </div>
         )}
+        </div>
       </main>
 
       <Footer />

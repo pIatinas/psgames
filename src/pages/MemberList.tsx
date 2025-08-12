@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { userService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
+import Loader from '@/components/Loader';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 const MemberList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -28,10 +30,8 @@ const MemberList = () => {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow container py-8">
-          <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">Carregando membros...</p>
-          </div>
+        <main className="flex-grow">
+          <Loader />
         </main>
         <Footer />
       </div>
@@ -42,7 +42,13 @@ const MemberList = () => {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-grow container py-8">
+      <main className="flex-grow">
+        {/* Breadcrumbs */}
+        <div className="container py-4">
+          <Breadcrumbs />
+        </div>
+        
+        <div className="container pb-8">
         <SectionTitle 
           title="Membros do Grupo" 
           subtitle="Conheça os jogadores que fazem parte do nosso grupo"
@@ -76,6 +82,7 @@ const MemberList = () => {
             </p>
           </div>
         )}
+        </div>
       </main>
 
       <Footer />

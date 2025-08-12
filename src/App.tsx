@@ -17,6 +17,7 @@ import MemberList from "./pages/MemberList";
 import MemberDetail from "./pages/MemberDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
 import MyProfile from "./pages/MyProfile";
 import MyAccounts from "./pages/MyAccounts";
 import NotFound from "./pages/NotFound";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/members/:slug" element={<MemberDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/my-profile" element={<MyProfile />} />
             <Route path="/my-accounts" element={<MyAccounts />} />
             

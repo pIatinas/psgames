@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -22,7 +24,14 @@ const labelMap: Record<string, string> = {
 
 const formatSegment = (seg: string) => labelMap[seg] || seg.replace(/-/g, ' ');
 
-const Breadcrumbs: React.FC = () => {
+interface BreadcrumbsProps {
+  backButton?: {
+    href: string;
+    label?: string;
+  };
+}
+
+const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ backButton }) => {
   const location = useLocation();
   const segments = location.pathname.split('/').filter(Boolean);
 
@@ -35,7 +44,7 @@ const Breadcrumbs: React.FC = () => {
   }));
 
   return (
-    <nav className="mt-2">
+    <nav className="flex items-center justify-between">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -59,6 +68,20 @@ const Breadcrumbs: React.FC = () => {
           ))}
         </BreadcrumbList>
       </Breadcrumb>
+      
+      {backButton && (
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="text-muted-foreground hover:text-white"
+          asChild
+        >
+          <Link to={backButton.href}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {backButton.label || 'Voltar'}
+          </Link>
+        </Button>
+      )}
     </nav>
   );
 };

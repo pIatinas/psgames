@@ -87,14 +87,24 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      
-      <main className="flex-1 container py-16 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Criar Conta</CardTitle>
-            <CardDescription className="text-center">
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="w-full max-w-md px-4">
+        <Card className="border-border">
+          <CardHeader>
+            <Link to="/" className="flex items-center gap-2 mb-6 justify-center">
+              <div className="p-1 rounded-full bg-primary/20">
+                <svg 
+                  className="h-8 w-8 text-primary" 
+                  viewBox="0 0 24 24" 
+                  fill="currentColor"
+                >
+                  <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm-.5 5v6H5v2h6.5v6h1v-6H19v-2h-6.5V5h-1z" />
+                </svg>
+              </div>
+              <span className="text-2xl font-bold"><span>PS</span>Games</span>
+            </Link>
+            <CardTitle className="text-foreground text-xl text-center">Criar Conta</CardTitle>
+            <CardDescription className="text-center text-white">
               Preencha os campos abaixo para se registrar
             </CardDescription>
           </CardHeader>
@@ -179,8 +189,8 @@ const Register: React.FC = () => {
             </form>
           </CardContent>
           
-          <CardFooter className="flex justify-center">
-            <div className="text-sm text-muted-foreground">
+          <CardFooter className="flex justify-center border-t pt-6">
+            <div className="text-sm text-white">
               <span>Já possui uma conta?</span>{" "}
               <Link to="/login" className="underline text-primary">
                 Faça login
@@ -188,9 +198,7 @@ const Register: React.FC = () => {
             </div>
           </CardFooter>
         </Card>
-      </main>
-      
-      <Footer />
+      </div>
     </div>
   );
 };

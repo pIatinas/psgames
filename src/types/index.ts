@@ -9,6 +9,11 @@ export interface Game {
   developer: string;
   genre: string;
   release_date: string;
+  launch_date?: string;
+  platinum?: number;
+  gold?: number;
+  silver?: number;
+  bronze?: number;
   rawg_id?: number;
   created_at: string;
   updated_at: string;

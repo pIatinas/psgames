@@ -20,22 +20,27 @@ const Header = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold flex items-center gap-2">
             <Gamepad2 className="h-8 w-8" />
-            PSGames
+            <span>PS</span>Games
           </Link>
           
-          <nav className="flex items-center space-x-6">
-            <Link to="/" className="hover:text-gray-300 transition-colors">
-              Home
-            </Link>
-            <Link to="/games" className="hover:text-gray-300 transition-colors">
-              Jogos
-            </Link>
-            <Link to="/accounts" className="hover:text-gray-300 transition-colors">
-              Contas
-            </Link>
-            <Link to="/members" className="hover:text-gray-300 transition-colors">
-              Membros
-            </Link>
+          <nav className="flex-1 flex justify-center">
+            <div className="flex items-center space-x-6">
+              <Link to="/" className="text-muted-foreground hover:text-white transition-colors">
+                Home
+              </Link>
+              <Link to="/games" className="text-muted-foreground hover:text-white transition-colors">
+                Jogos
+              </Link>
+              <Link to="/accounts" className="text-muted-foreground hover:text-white transition-colors">
+                Contas
+              </Link>
+              <Link to="/members" className="text-muted-foreground hover:text-white transition-colors">
+                Membros
+              </Link>
+            </div>
+          </nav>
+          
+          <div className="flex items-center space-x-2">
             
             {currentUser ? <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -68,19 +73,15 @@ const Header = () => {
                     Sair
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu> : <div className="space-x-2">
-                <Button asChild variant="outline" size="sm" className="text-gray-900 bg-white hover:bg-gray-100">
+              </DropdownMenu> : <>
+                <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-white">
                   <Link to="/login">Entrar</Link>
                 </Button>
                 <Button asChild variant="secondary" size="sm">
                   <Link to="/register">Cadastro</Link>
                 </Button>
-              </div>}
-          </nav>
-        </div>
-        {/* Breadcrumbs */}
-        <div className="mt-2">
-          <Breadcrumbs />
+              </>}
+          </div>
         </div>
       </div>
     </header>;

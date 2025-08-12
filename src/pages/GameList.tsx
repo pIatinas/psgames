@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { gameService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
 import { GamePlatform } from '@/types';
+import Loader from '@/components/Loader';
+import Breadcrumbs from '@/components/Breadcrumbs';
 const GameList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedPlatforms, setSelectedPlatforms] = React.useState<GamePlatform[]>([]);
@@ -30,10 +32,8 @@ const GameList = () => {
   if (isLoading) {
     return <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow container py-8">
-          <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">Carregando jogos...</p>
-          </div>
+        <main className="flex-grow">
+          <Loader />
         </main>
         <Footer />
       </div>;
@@ -41,7 +41,13 @@ const GameList = () => {
   return <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-grow container py-8">
+      <main className="flex-grow">
+        {/* Breadcrumbs */}
+        <div className="container py-4">
+          <Breadcrumbs />
+        </div>
+        
+        <div className="container pb-8">
         <SectionTitle title="Biblioteca de Jogos" subtitle="Descubra todos os jogos disponíveis em nossas contas" />
         
         <div className="mb-8">
@@ -85,6 +91,7 @@ const GameList = () => {
               Nenhum jogo encontrado com os filtros atuais.
             </p>
           </div>}
+        </div>
       </main>
 
       <Footer />

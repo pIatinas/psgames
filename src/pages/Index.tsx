@@ -7,6 +7,8 @@ import AccountCard from '@/components/AccountCard';
 import MemberCard from '@/components/MemberCard';
 import SectionTitle from '@/components/SectionTitle';
 import SeeAllButton from '@/components/SeeAllButton';
+import Loader from '@/components/Loader';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import { Game, Account, User } from '@/types';
 import { gameService, accountService, userService } from '@/services/supabaseService';
 const Index = () => {
@@ -40,9 +42,7 @@ const Index = () => {
     return <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">Carregando...</div>
-          </div>
+          <Loader />
         </main>
         <Footer />
       </div>;
@@ -51,6 +51,10 @@ const Index = () => {
       <Header />
 
       <main className="flex-grow">
+        {/* Breadcrumbs and Back Button */}
+        <div className="container py-4">
+          <Breadcrumbs />
+        </div>
         {/* Seção de Jogos Recentes */}
         <section className="py-16 container">
           <SectionTitle title="Jogos Recentes" subtitle="Os últimos jogos adicionados à nossa biblioteca" />
