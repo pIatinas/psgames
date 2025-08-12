@@ -20,7 +20,7 @@ const Header = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold flex items-center">
             <Gamepad2 className="h-8 w-8" />
-            <span>PS</span>Games
+            <span className="ms-2 font-bold">PS</span>Games
           </Link>
           
           <nav className="flex-1 flex justify-center">
