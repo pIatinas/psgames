@@ -75,7 +75,7 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu> : <>
                 <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-white">
-                  <Link to="/login">Entrar</Link>
+                  <Link to="/login" className="hover:text-primary ">Entrar</Link>
                 </Button>
                 <Button asChild variant="secondary" size="sm">
                   <Link to="/register">Cadastro</Link>
