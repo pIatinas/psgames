@@ -155,16 +155,16 @@ const GameDetail = () => {
                 {/* Game info with new fields */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                   {(gameDetails?.developer || game.developer) && <div className="p-4 bg-gray-800/20 rounded-lg">
-                      <div className="text-sm font-medium text-white">Desenvolvedor</div>
-                      <div className="text-white">{gameDetails?.developer || game.developer}</div>
+                      <div className="text-sm font-bold text-white ">Desenvolvedor</div>
+                      <div className="text-white font-normal ">{gameDetails?.developer || game.developer}</div>
                     </div>}
                   {(gameDetails?.genre || game.genre) && <div className="p-4 bg-gray-800/20 rounded-lg">
-                      <div className="text-sm font-medium text-white">Gênero</div>
-                      <div className="text-white">{gameDetails?.genre || game.genre}</div>
+                      <div className="text-sm font-bold text-white">Gênero</div>
+                      <div className="text-white font-normal ">{gameDetails?.genre || game.genre}</div>
                     </div>}
                   {(game.launch_date || game.release_date) && <div className="p-4 bg-gray-800/20 rounded-lg">
-                      <div className="text-sm font-medium text-white">Lançamento</div>
-                      <div className="text-white">
+                      <div className="text-sm font-bold text-white">Lançamento</div>
+                      <div className="text-white font-normal ">
                         {new Date(game.launch_date || game.release_date).toLocaleDateString()}
                       </div>
                     </div>}
@@ -259,7 +259,7 @@ const GameDetail = () => {
               <div>
                 <SectionTitle title="Contas com este Jogo" subtitle={`${gameAccounts.length} ${gameAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}`} />
                 
-                {gameAccounts.length > 0 ? <div className="grid grid-cols-2 gap-4">
+                {gameAccounts.length > 0 ? <div className="grid grid-cols-1 gap-4">
                     {gameAccounts.map(account => <AccountCard key={account.id} account={account} />)}
                   </div> : <p className="text-white">Nenhuma conta encontrada com este jogo.</p>}
               </div>
