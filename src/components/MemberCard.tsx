@@ -12,7 +12,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
   member,
   activeAccountsCount = 0
 }) => {
-  return <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+  return <Card className="h-full hover:shadow-lg cursor-pointer hover:scale-105 transition-all ">
       <Link to={`/members/${generateMemberSlug(member.id, member.name)}`} className="block">
         <CardContent className="p-4 text-center">
           <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden">

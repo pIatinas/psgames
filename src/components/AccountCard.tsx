@@ -20,8 +20,8 @@ const AccountCard: React.FC<AccountCardProps> = ({
   const occupiedSlots = account.slots?.filter(slot => slot.user_id)?.length || 0;
   const isFullyOccupied = occupiedSlots >= 2;
   return <Card className={`h-full hover:shadow-lg transition-all cursor-pointer ${isFullyOccupied ? 'opacity-60' : ''}`}>
-      <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`} className="block">
-        <CardContent className="p-4 space-y-3 flex flex-col h-full">
+      <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`} className="block hover:scale-105 transition-all ">
+        <CardContent className="p-4 space-y-3 flex flex-col h-full ">
           <div className="text-lg font-medium ">{account.email}</div>
 
           {account.games && account.games.length > 0 && <div className="flex-grow">
