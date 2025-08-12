@@ -56,7 +56,7 @@ const Index = () => {
           <Breadcrumbs />
         </div>
         {/* Seção de Jogos Recentes */}
-        <section className="pt-8 pb-16 container">
+        <section className="pb-16 container">
           <SectionTitle title="Jogos Recentes" subtitle="Os últimos jogos adicionados à nossa biblioteca" />
           
           {recentGames.length > 0 ? <>
