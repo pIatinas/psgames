@@ -1,18 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
 import { fetchMemberTrophyStats } from '@/services/gameInfoService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-
 interface MemberTrophyStatsProps {
   psnId: string;
 }
-
-const MemberTrophyStats: React.FC<MemberTrophyStatsProps> = ({ psnId }) => {
+const MemberTrophyStats: React.FC<MemberTrophyStatsProps> = ({
+  psnId
+}) => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const loadStats = async () => {
       try {
@@ -24,13 +22,10 @@ const MemberTrophyStats: React.FC<MemberTrophyStatsProps> = ({ psnId }) => {
         setLoading(false);
       }
     };
-
     loadStats();
   }, [psnId]);
-
   if (loading) {
-    return (
-      <Card>
+    return <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy size={18} />
@@ -39,25 +34,19 @@ const MemberTrophyStats: React.FC<MemberTrophyStatsProps> = ({ psnId }) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-5 gap-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="bg-gray-800/50 rounded-lg p-4 text-center">
+            {[...Array(5)].map((_, i) => <div key={i} className="bg-gray-800/50 rounded-lg p-4 text-center">
                 <Skeleton className="h-6 w-6 mx-auto mb-2 rounded-full" />
                 <Skeleton className="h-4 w-8 mx-auto mb-1" />
                 <Skeleton className="h-3 w-12 mx-auto" />
-              </div>
-            ))}
+              </div>)}
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
   if (!stats) {
     return null;
   }
-
-  return (
-    <Card>
+  return <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy size={18} />
@@ -103,22 +92,8 @@ const MemberTrophyStats: React.FC<MemberTrophyStatsProps> = ({ psnId }) => {
           </div>
         </div>
         
-        <div className="mt-4">
-          <div className="text-sm font-medium mb-2">Nível PSN: {stats.level}</div>
-          {stats.recentlyPlayed && stats.recentlyPlayed.length > 0 && (
-            <>
-              <div className="text-sm font-medium mb-1">Jogados Recentemente:</div>
-              <ul className="text-sm text-muted-foreground list-disc pl-5">
-                {stats.recentlyPlayed.map((game: string, index: number) => (
-                  <li key={index}>{game}</li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
+        
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default MemberTrophyStats;
