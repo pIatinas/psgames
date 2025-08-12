@@ -117,7 +117,7 @@ const GameDetail = () => {
           <div className="absolute bottom-0 left-0 right-0 container py-8">
             
             <div className="flex items-end gap-6">
-              <div className="hidden md:block w-36 h-48 rounded-lg overflow-hidden shadow-lg">
+              <div className="hidden md:block w-48 h-48 rounded-lg overflow-hidden shadow-lg">
                 <img src={game.image} alt={game.name} className="w-full h-full object-cover" />
               </div>
               
