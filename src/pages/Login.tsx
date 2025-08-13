@@ -109,7 +109,7 @@ const Login = () => {
           </div>
           <div className="flex flex-col mt-6 space-y-2">
             <div className="text-center text-white text-sm">
-              <Link to="/forgot-password" className="text-pink-600 hover:underline font-medium no-underline hover:no-underline ">Esqueceu a senha?</Link>
+              <Link to="/forgot-password" className="text-pink-600 hover:underline font-medium no-underline hover:no-underline hover:text-pink-500">Esqueceu a senha?</Link>
             </div>
             <div className="text-center text-white text-sm">
               Não tem uma conta? {" "}

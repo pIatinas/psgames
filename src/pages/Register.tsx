@@ -140,7 +140,7 @@ const Register: React.FC = () => {
           <div className="flex justify-center mt-6">
             <div className="text-sm text-white">
               <span>Já possui uma conta?</span>{" "}
-              <Link to="/login" className="underline text-pink-600 no-underline hover:no-underline font-medium ">Entrar!</Link>
+              <Link to="/login" className="underline text-pink-600 no-underline hover:no-underline font-medium hover:text-pink-500">Entrar!</Link>
             </div>
           </div>
         </div>
