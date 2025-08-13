@@ -5,54 +5,39 @@ import { Badge } from '@/components/ui/badge';
 import { Account, AccountSlot } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
 interface AccountActivationsProps {
   account: Account;
 }
-
-const AccountActivations: React.FC<AccountActivationsProps> = ({ account }) => {
+const AccountActivations: React.FC<AccountActivationsProps> = ({
+  account
+}) => {
   // Get all historical slot activations sorted by most recent
-  const allActivations = account.slots
-    ?.filter(slot => slot.user && slot.entered_at)
-    .sort((a, b) => new Date(b.entered_at!).getTime() - new Date(a.entered_at!).getTime()) || [];
-
+  const allActivations = account.slots?.filter(slot => slot.user && slot.entered_at).sort((a, b) => new Date(b.entered_at!).getTime() - new Date(a.entered_at!).getTime()) || [];
   const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
   };
-
   const calculateDuration = (enteredAt: string) => {
     const enteredDate = new Date(enteredAt);
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - enteredDate.getTime()) / (1000 * 60 * 60 * 24));
     return diffInDays;
   };
-
   if (allActivations.length === 0) {
-    return (
-      <Card>
+    return <Card>
         <CardHeader>
-          <CardTitle>Últimas Ativações</CardTitle>
+          <CardTitle className="text-2xl">Últimas Ativações</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">Nenhuma ativação registrada.</p>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card>
+  return <Card>
       <CardHeader>
         <CardTitle>Últimas Ativações</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {allActivations.slice(0, 5).map((slot, index) => (
-          <div key={`${slot.id}-${index}`} className="flex items-center space-x-3 p-3 border rounded-lg">
+        {allActivations.slice(0, 5).map((slot, index) => <div key={`${slot.id}-${index}`} className="flex items-center space-x-3 p-3 border rounded-lg">
             <Avatar className="h-10 w-10">
               <AvatarImage src="" />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
@@ -63,10 +48,10 @@ const AccountActivations: React.FC<AccountActivationsProps> = ({ account }) => {
             <div className="flex-1">
               <p className="font-medium text-sm">{slot.user?.name}</p>
               <p className="text-xs text-muted-foreground">
-                Slot {slot.slot_number} • Ativado {formatDistanceToNow(new Date(slot.entered_at!), { 
-                  addSuffix: true, 
-                  locale: ptBR 
-                })}
+                Slot {slot.slot_number} • Ativado {formatDistanceToNow(new Date(slot.entered_at!), {
+              addSuffix: true,
+              locale: ptBR
+            })}
               </p>
             </div>
             
@@ -78,11 +63,8 @@ const AccountActivations: React.FC<AccountActivationsProps> = ({ account }) => {
                 {calculateDuration(slot.entered_at!)} dias
               </p>
             </div>
-          </div>
-        ))}
+          </div>)}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default AccountActivations;
