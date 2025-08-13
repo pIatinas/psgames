@@ -14,6 +14,7 @@ import { parseGameSlug, generateAccountSlug } from '@/utils/gameUtils';
 import { useQuery } from '@tanstack/react-query';
 import Loader from '@/components/Loader';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import RelatedGames from '@/components/RelatedGames';
 
 // Interface for trophy data
 interface TrophyInfo {
@@ -103,10 +104,21 @@ const GameDetail = () => {
       <main className="flex-grow relative ">
         {/* Breadcrumbs and Back Button */}
         <div className="container py-4 absolute z-10 top-0 left-0 right-0 w-full ">
-          <Breadcrumbs backButton={{
-          href: '/games',
-          label: 'Voltar'
-        }} />
+          <nav className="flex items-center justify-between mx-auto ">
+            <div className="flex items-center space-x-2">
+              <Link to="/" className="text-white/80 hover:text-white">Início</Link>
+              <span className="text-white/60">/</span>
+              <Link to="/games" className="text-white/80 hover:text-white">Jogos</Link>
+              <span className="text-white/60">/</span>
+              <span className="text-white">{game?.name}</span>
+            </div>
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-white" asChild>
+              <Link to="/games">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Link>
+            </Button>
+          </nav>
         </div>
         
         {/* Hero Banner */}
@@ -147,7 +159,7 @@ const GameDetail = () => {
             <div className="lg:col-span-2 space-y-8">
               {/* Game description */}
               <div>
-                <SectionTitle title="Sobre o Jogo" />
+                <SectionTitle title="Descrição" />
                 <p className="text-white">
                   {gameDetails?.description || game.description || "Este é um jogo exclusivo disponível em nosso sistema de compartilhamento."}
                 </p>
@@ -206,9 +218,9 @@ const GameDetail = () => {
                         <div className="text-primary mb-1">
                           <Trophy className="h-4 w-4 mx-auto" />
                         </div>
-                        <div className="text-lg font-bold text-white">
-                          {(game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0)}
-                        </div>
+                         <div className="text-lg font-bold text-white">
+                           {(game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0) > 0 ? (game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0) : ''}
+                         </div>
                         <div className="text-xs text-white">Total</div>
                       </div>
                     </div>
@@ -257,12 +269,15 @@ const GameDetail = () => {
               
               {/* Accounts with this game */}
               <div>
-                <SectionTitle title="Contas com este Jogo" subtitle={`${gameAccounts.length} ${gameAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}`} />
+                <SectionTitle title="Conta" subtitle={`${gameAccounts.length} ${gameAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}`} />
                 
                 {gameAccounts.length > 0 ? <div className="grid grid-cols-1 gap-4">
                     {gameAccounts.map(account => <AccountCard key={account.id} account={account} />)}
                   </div> : <p className="text-white">Nenhuma conta encontrada com este jogo.</p>}
               </div>
+              
+              {/* Related Games */}
+              <RelatedGames currentGame={game} />
             </div>
           </div>
         </div>

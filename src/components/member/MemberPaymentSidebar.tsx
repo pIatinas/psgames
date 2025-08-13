@@ -1,17 +1,9 @@
-
 import React from 'react';
-import { Member } from '@/types';
-import { Check, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Check, Clock, DollarSign } from 'lucide-react';
+import { Member } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 
 interface MemberPaymentSidebarProps {
@@ -20,80 +12,103 @@ interface MemberPaymentSidebarProps {
 
 const MemberPaymentSidebar: React.FC<MemberPaymentSidebarProps> = ({ member }) => {
   const { currentUser } = useAuth();
-  // Verificar status atual de pagamento
-  const currentMonth = new Date().getMonth();
+  const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
-  const currentPayment = member.payments.find(p => p.month === currentMonth && p.year === currentYear);
-  const paymentStatus = currentPayment ? currentPayment.status : 'pending';
   
-  // Valor fixo da mensalidade
-  const monthlyFee = 60; // R$ 60,00
+  const currentMonthPayment = member.payments?.find(
+    payment => payment.month === currentMonth && payment.year === currentYear
+  );
+  
+  const isCurrentMonthPaid = currentMonthPayment?.status === 'paid';
+  const isAdmin = currentUser?.role === 'admin';
+
+  const handleMarkAsPaid = async () => {
+    // TODO: Implement payment marking logic
+    console.log('Mark payment as paid for member:', member.id);
+  };
 
   return (
-    <Card className="glass-card sticky top-20">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-foreground">
-          <span>Histórico de Pagamentos</span>
-          {paymentStatus === 'paid' && (
-            <Check className="h-5 w-5 text-green-500" />
-          )}
-          {paymentStatus === 'pending' && (
-            <X className="h-5 w-5 text-destructive" />
-          )}
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
+          Pagamentos
         </CardTitle>
-        <CardDescription>
-          Status da mensalidade e histórico de pagamentos
-        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="mb-4 p-3 rounded-md bg-muted flex items-center justify-between">
-          <span className="font-medium text-foreground">Valor da mensalidade</span>
-          <Badge variant="outline" className="text-foreground">
-            R$ {monthlyFee.toFixed(2)}
-          </Badge>
-        </div>
-        
-        {member.payments.length > 0 ? (
-          <div className="space-y-3">
-            {member.payments.map(payment => (
-              <div 
-                key={payment.id} 
-                className="flex justify-between items-center py-2 border-b border-border/30 last:border-0"
-              >
-                <div>
-                  <div className="text-sm font-medium text-foreground">
-                    {new Date(payment.year, payment.month).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Pago em: {new Date(payment.paid_at).toLocaleDateString()}
-                  </div>
-                </div>
-                <Badge className={`${payment.status === 'paid' ? 'bg-green-500 hover:bg-green-600' : 'bg-amber-500 hover:bg-amber-600'}`}>
-                  R$ {payment.amount.toFixed(2)}
-                </Badge>
-              </div>
-            ))}
+      <CardContent className="space-y-4">
+        {/* Monthly Fee */}
+        <div className="p-3 rounded-md bg-muted">
+          <div className="flex items-center justify-between">
+            <span className="font-medium">Mensalidade</span>
+            <Badge variant="outline">R$ 60,00</Badge>
           </div>
-        ) : (
-          <div className="py-4 text-center text-muted-foreground">
-            Nenhum pagamento registrado.
+        </div>
+
+        {/* Current Month Status */}
+        <div>
+          <div className="text-sm font-medium mb-2">Status Atual</div>
+          <div className="flex items-center gap-2">
+            {isCurrentMonthPaid ? (
+              <>
+                <Check className="h-4 w-4 text-green-500" />
+                <span className="text-green-500 text-sm">Pago</span>
+                <Badge variant="secondary" className="text-xs">
+                  {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                </Badge>
+              </>
+            ) : (
+              <>
+                <Clock className="h-4 w-4 text-orange-500" />
+                <span className="text-orange-500 text-sm">Pendente</span>
+                <Badge variant="outline" className="text-xs">
+                  {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                </Badge>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Admin Action */}
+        {isAdmin && !isCurrentMonthPaid && (
+          <Button 
+            onClick={handleMarkAsPaid}
+            className="w-full"
+            size="sm"
+          >
+            Marcar como Pago
+          </Button>
+        )}
+
+        {/* Payment History */}
+        {member.payments && member.payments.length > 0 && (
+          <div>
+            <div className="text-sm font-medium mb-2">Histórico</div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {member.payments
+                .filter(payment => !(payment.month === currentMonth && payment.year === currentYear))
+                .slice(0, 6)
+                .map(payment => (
+                  <div key={`${payment.month}-${payment.year}`} className="flex items-center justify-between text-xs">
+                    <span>
+                      {new Date(payment.year, payment.month - 1).toLocaleDateString('pt-BR', { 
+                        month: 'short', 
+                        year: 'numeric' 
+                      })}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <span>R$ {payment.amount.toFixed(2)}</span>
+                      {payment.status === 'paid' ? (
+                        <Check className="h-3 w-3 text-green-500" />
+                      ) : (
+                        <Clock className="h-3 w-3 text-orange-500" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex-col gap-4">
-        {currentUser?.role === 'admin' ? (
-          <Button 
-            disabled={paymentStatus === 'paid'} 
-            className="w-full"
-          >
-            {paymentStatus === 'paid' ? 'Mensalidade Atual Paga' : 'Marcar como Pago'}
-          </Button>
-        ) : (
-          <div className="text-sm text-center text-muted-foreground">
-            Valor mensal: R$ {monthlyFee.toFixed(2)}
-          </div>
-        )}
-      </CardFooter>
     </Card>
   );
 };

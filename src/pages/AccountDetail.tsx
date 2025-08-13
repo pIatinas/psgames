@@ -16,6 +16,7 @@ import {
 import { CheckCircle } from 'lucide-react';
 import { parseAccountSlug } from '@/utils/gameUtils';
 import { useQuery } from '@tanstack/react-query';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 const AccountDetail = () => {
   const { currentUser } = useAuth();
@@ -168,22 +169,17 @@ const AccountDetail = () => {
 
       <main className="flex-grow">
         <div className="container py-8">
-          <div className="flex items-center mb-8">
-            <Button 
-              variant="ghost" 
-              className="mr-4 text-white hover:text-foreground"
-              asChild
-            >
-              <Link to="/accounts">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar
-              </Link>
-            </Button>
-          </div>
+          <Breadcrumbs backButton={{
+            href: '/accounts',
+            label: 'Voltar'
+          }} />
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <AccountGamesList games={account.games || []} />
+              <div>
+                <h2 className="text-2xl font-bold mb-6 text-white">Jogos</h2>
+                <AccountGamesList games={account.games || []} />
+              </div>
             </div>
             
             <div>
@@ -254,10 +250,6 @@ const AccountDetail = () => {
                     Devolver
                   </Button>
                 )}
-                
-                <div className="mt-4 text-xs text-white text-center">
-                  Para utilizar esta conta, você deve ser um membro aprovado.
-                </div>
               </div>
             </div>
           </div>

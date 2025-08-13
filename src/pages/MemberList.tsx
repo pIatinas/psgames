@@ -7,7 +7,7 @@ import SectionTitle from '@/components/SectionTitle';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
-import { userService } from '@/services/supabaseService';
+import { userService, accountService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
 import Loader from '@/components/Loader';
 import Breadcrumbs from '@/components/Breadcrumbs';
@@ -20,6 +20,12 @@ const MemberList = () => {
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => userService.getAll(),
+  });
+
+  // Fetch accounts to count active accounts per user
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: () => accountService.getAll(),
   });
   
   const filteredMembers = users.filter(user => {
@@ -50,7 +56,7 @@ const MemberList = () => {
         
         <div className="container pb-8">
         <SectionTitle 
-          title="Membros do Grupo" 
+          title="Membro" 
           subtitle="Conheça os jogadores que fazem parte do nosso grupo"
         />
         
@@ -69,9 +75,15 @@ const MemberList = () => {
         
         {/* Grid de membros */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {filteredMembers.map(user => (
-            <MemberCard key={user.id} member={user} />
-          ))}
+          {filteredMembers.map(user => {
+            const activeAccountsCount = accounts.filter(account => 
+              account.slots?.some(slot => slot.user_id === user.id)
+            ).length;
+            
+            return (
+              <MemberCard key={user.id} member={user} activeAccountsCount={activeAccountsCount} />
+            );
+          })}
         </div>
         
         {/* Mensagem quando não há membros */}

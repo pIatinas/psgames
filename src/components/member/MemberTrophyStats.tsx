@@ -27,8 +27,7 @@ const MemberTrophyStats: React.FC<MemberTrophyStatsProps> = ({
   if (loading) {
     return <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy size={18} />
+          <CardTitle>
             <Skeleton className="h-4 w-32" />
           </CardTitle>
         </CardHeader>
@@ -48,9 +47,8 @@ const MemberTrophyStats: React.FC<MemberTrophyStatsProps> = ({
   }
   return <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Trophy size={18} />
-          Estatísticas de Troféus (PSN)
+        <CardTitle>
+          Troféus
         </CardTitle>
       </CardHeader>
       <CardContent>

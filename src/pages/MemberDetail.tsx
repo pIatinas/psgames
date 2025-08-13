@@ -10,10 +10,12 @@ import { userService, accountService } from '@/services/supabaseService';
 import MemberProfileHeader from '@/components/member/MemberProfileHeader';
 import MemberTrophyStats from '@/components/member/MemberTrophyStats';
 import AccountUsageTimes from '@/components/member/AccountUsageTimes';
+import MemberPaymentSidebar from '@/components/member/MemberPaymentSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { parseMemberSlug } from '@/utils/gameUtils';
 import { useQuery } from '@tanstack/react-query';
 import { Member } from '@/types';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 const MemberDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -79,18 +81,10 @@ const MemberDetail = () => {
 
       <main className="flex-grow">
         <div className="container py-8">
-          <div className="flex items-center mb-8">
-            <Button 
-              variant="ghost" 
-              className="mr-4 text-muted-foreground hover:text-foreground"
-              asChild
-            >
-              <Link to="/members">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar
-              </Link>
-            </Button>
-          </div>
+          <Breadcrumbs backButton={{
+            href: '/members',
+            label: 'Voltar'
+          }} />
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal */}
@@ -114,40 +108,28 @@ const MemberDetail = () => {
             </div>
             
             {/* Barra lateral */}
-            <div>
+            <div className="space-y-6">
+              {/* Payment Sidebar */}
+              <MemberPaymentSidebar member={member} />
+              
               {/* Informações do Status do Membro */}
-              <Card className="sticky top-20">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    Status do Membro
-                  </CardTitle>
-                  <CardDescription>
-                    Informações sobre o status atual
-                  </CardDescription>
+                  <CardTitle>Status do Membro</CardTitle>
+                  <CardDescription>Informações sobre o status atual</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="mb-4 p-3 rounded-md bg-muted flex items-center justify-between">
-                    <span className="font-medium text-foreground">Mensalidade</span>
-                    <Badge variant="outline" className="text-foreground">
-                      R$ 60,00
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="text-sm font-medium mb-1">Status</div>
+                    <Badge className={user.role === 'admin' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}>
+                      {user.role === 'admin' ? 'Administrador' : 'Membro'}
                     </Badge>
                   </div>
                   
-                  <div className="space-y-4">
-                    <div>
-                      <div className="text-sm font-medium">Status</div>
-                      <div className="text-sm">
-                        <Badge className={user.role === 'admin' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}>
-                          {user.role === 'admin' ? 'Administrador' : 'Membro'}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium">Membro desde</div>
-                      <div className="text-sm">
-                        {user.profile?.created_at ? new Date(user.profile.created_at).toLocaleDateString() : 'N/A'}
-                      </div>
+                  <div>
+                    <div className="text-sm font-medium mb-1">Membro desde</div>
+                    <div className="text-sm text-muted-foreground">
+                      {user.profile?.created_at ? new Date(user.profile.created_at).toLocaleDateString() : 'N/A'}
                     </div>
                   </div>
                 </CardContent>
