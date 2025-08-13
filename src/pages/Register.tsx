@@ -61,6 +61,7 @@ const Register: React.FC = () => {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             name,
             psn_id: psnId
@@ -68,10 +69,17 @@ const Register: React.FC = () => {
         }
       });
       if (error) throw error;
-      toast({
-        title: "Cadastro realizado",
-        description: "Sua conta foi criada com sucesso! Faça login para continuar."
-      });
+      if (data.user && !data.session) {
+        toast({
+          title: "Verifique seu email",
+          description: "Enviamos um link de confirmação para seu email. Clique no link para ativar sua conta."
+        });
+      } else {
+        toast({
+          title: "Cadastro realizado",
+          description: "Sua conta foi criada com sucesso! Faça login para continuar."
+        });
+      }
       navigate('/login');
     } catch (error: any) {
       console.error('Registration error:', error);
