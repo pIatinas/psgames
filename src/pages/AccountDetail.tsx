@@ -7,6 +7,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { accountService } from '@/services/supabaseService';
 import AccountGamesList from '@/components/account/AccountGamesList';
+import AccountActivations from '@/components/account/AccountActivations';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { 
@@ -169,17 +170,29 @@ const AccountDetail = () => {
 
       <main className="flex-grow">
         <div className="container py-8">
-          <Breadcrumbs backButton={{
-            href: '/accounts',
-            label: 'Voltar'
-          }} />
+          <div className="flex items-center justify-between">
+            <nav className="flex items-center space-x-2 text-sm">
+              <Link to="/" className="text-muted-foreground hover:text-foreground">Início</Link>
+              <span className="text-muted-foreground">/</span>
+              <Link to="/accounts" className="text-muted-foreground hover:text-foreground">Contas</Link>
+              <span className="text-muted-foreground">/</span>
+              <span className="text-foreground">{account.email.split('@')[0]}</span>
+            </nav>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/accounts">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Link>
+            </Button>
+          </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <div>
-                <h2 className="text-2xl font-bold mb-6 text-white">Jogos</h2>
                 <AccountGamesList games={account.games || []} />
               </div>
+              
+              <AccountActivations account={account} />
             </div>
             
             <div>

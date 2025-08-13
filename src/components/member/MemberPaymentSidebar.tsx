@@ -2,9 +2,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check, Clock, DollarSign } from 'lucide-react';
+import { Check, Clock } from 'lucide-react';
 import { Member } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
+import MemberPaymentHistory from './MemberPaymentHistory';
 
 interface MemberPaymentSidebarProps {
   member: Member;
@@ -30,18 +31,12 @@ const MemberPaymentSidebar: React.FC<MemberPaymentSidebarProps> = ({ member }) =
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Pagamentos
-        </CardTitle>
+        <CardTitle>Pagamentos</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Monthly Fee */}
         <div className="p-3 rounded-md bg-muted">
-          <div className="flex items-center justify-between">
-            <span className="font-medium">Mensalidade</span>
-            <Badge variant="outline">R$ 60,00</Badge>
-          </div>
+          <MemberPaymentHistory member={member} />
         </div>
 
         {/* Current Month Status */}

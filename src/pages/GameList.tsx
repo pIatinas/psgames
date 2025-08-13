@@ -48,7 +48,7 @@ const GameList = () => {
         </div>
         
         <div className="container pb-8">
-        <SectionTitle title="Biblioteca de Jogos" subtitle="Descubra todos os jogos disponíveis em nossas contas" />
+        <SectionTitle title="Jogos Disponíveis" subtitle="Descubra todos os jogos disponíveis em nossas contas" />
         
         <div className="mb-8">
           <div className="flex items-center justify-between gap-4 flex-wrap">

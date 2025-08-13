@@ -11,6 +11,8 @@ import MemberProfileHeader from '@/components/member/MemberProfileHeader';
 import MemberTrophyStats from '@/components/member/MemberTrophyStats';
 import AccountUsageTimes from '@/components/member/AccountUsageTimes';
 import MemberPaymentSidebar from '@/components/member/MemberPaymentSidebar';
+import MemberAccountHistory from '@/components/member/MemberAccountHistory';
+import MemberPaymentHistory from '@/components/member/MemberPaymentHistory';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { parseMemberSlug } from '@/utils/gameUtils';
 import { useQuery } from '@tanstack/react-query';
@@ -81,10 +83,21 @@ const MemberDetail = () => {
 
       <main className="flex-grow">
         <div className="container py-8">
-          <Breadcrumbs backButton={{
-            href: '/members',
-            label: 'Voltar'
-          }} />
+          <div className="flex items-center justify-between">
+            <nav className="flex items-center space-x-2 text-sm">
+              <Link to="/" className="text-muted-foreground hover:text-foreground">Início</Link>
+              <span className="text-muted-foreground">/</span>
+              <Link to="/members" className="text-muted-foreground hover:text-foreground">Membros</Link>
+              <span className="text-muted-foreground">/</span>
+              <span className="text-foreground">{user.name}</span>
+            </nav>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/members">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Link>
+            </Button>
+          </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal */}
@@ -105,6 +118,9 @@ const MemberDetail = () => {
                   <AccountUsageTimes accounts={accounts} memberId={memberId || ''} />
                 </CardContent>
               </Card>
+
+              {/* Member Account History */}
+              <MemberAccountHistory accounts={accounts} memberId={memberId || ''} />
             </div>
             
             {/* Barra lateral */}

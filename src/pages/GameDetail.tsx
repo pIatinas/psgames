@@ -144,7 +144,7 @@ const GameDetail = () => {
                 
                 <div className="flex items-center text-sm text-white">
                   <span>
-                    Adicionado em {new Date(game.created_at).toLocaleDateString()} por {game.developer || 'Sistema'}
+                    Adicionado em {new Date(game.created_at).toLocaleDateString()}
                   </span>
                 </div>
               </div>
@@ -157,6 +157,52 @@ const GameDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal */}
             <div className="lg:col-span-2 space-y-8">
+              {/* Trophy counts from database - moved above description */}
+              {(game.platinum || game.gold || game.silver || game.bronze) && <div>
+                  <SectionTitle title="Troféus" />
+                  <div className="grid grid-cols-5 gap-2">
+                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
+                      <div className="text-yellow-400 mb-1">
+                        <Trophy className="h-4 w-4 mx-auto" />
+                      </div>
+                      <div className="text-lg font-bold text-white">{game.platinum || 0}</div>
+                      <div className="text-xs text-white">Platina</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
+                      <div className="text-yellow-300 mb-1">
+                        <Trophy className="h-4 w-4 mx-auto" />
+                      </div>
+                      <div className="text-lg font-bold text-white">{game.gold || 0}</div>
+                      <div className="text-xs text-white">Ouro</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
+                      <div className="text-gray-300 mb-1">
+                        <Trophy className="h-4 w-4 mx-auto" />
+                      </div>
+                      <div className="text-lg font-bold text-white">{game.silver || 0}</div>
+                      <div className="text-xs text-white">Prata</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
+                      <div className="text-amber-700 mb-1">
+                        <Trophy className="h-4 w-4 mx-auto" />
+                      </div>
+                      <div className="text-lg font-bold text-white">{game.bronze || 0}</div>
+                      <div className="text-xs text-white">Bronze</div>
+                    </div>
+                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
+                      <div className="text-primary mb-1">
+                        <Trophy className="h-4 w-4 mx-auto" />
+                      </div>
+                      {(game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0) > 0 && (
+                        <div className="text-lg font-bold text-white">
+                          {(game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0)}
+                        </div>
+                      )}
+                      <div className="text-xs text-white">Total</div>
+                    </div>
+                  </div>
+                </div>}
+
               {/* Game description */}
               <div>
                 <SectionTitle title="Descrição" />
@@ -181,53 +227,10 @@ const GameDetail = () => {
                       </div>
                     </div>}
                 </div>
-                
-                {/* Trophy counts from database */}
-                {(game.platinum || game.gold || game.silver || game.bronze) && <div className="mt-6">
-                    <h4 className="text-sm font-medium text-white mb-3">Troféus</h4>
-                    <div className="grid grid-cols-5 gap-2">
-                      <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                        <div className="text-yellow-400 mb-1">
-                          <Trophy className="h-4 w-4 mx-auto" />
-                        </div>
-                        <div className="text-lg font-bold text-white">{game.platinum || 0}</div>
-                        <div className="text-xs text-white">Platina</div>
-                      </div>
-                      <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                        <div className="text-yellow-300 mb-1">
-                          <Trophy className="h-4 w-4 mx-auto" />
-                        </div>
-                        <div className="text-lg font-bold text-white">{game.gold || 0}</div>
-                        <div className="text-xs text-white">Ouro</div>
-                      </div>
-                      <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                        <div className="text-gray-300 mb-1">
-                          <Trophy className="h-4 w-4 mx-auto" />
-                        </div>
-                        <div className="text-lg font-bold text-white">{game.silver || 0}</div>
-                        <div className="text-xs text-white">Prata</div>
-                      </div>
-                      <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                        <div className="text-amber-700 mb-1">
-                          <Trophy className="h-4 w-4 mx-auto" />
-                        </div>
-                        <div className="text-lg font-bold text-white">{game.bronze || 0}</div>
-                        <div className="text-xs text-white">Bronze</div>
-                      </div>
-                      <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                        <div className="text-primary mb-1">
-                          <Trophy className="h-4 w-4 mx-auto" />
-                        </div>
-                         <div className="text-lg font-bold text-white">
-                           {(game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0) > 0 ? (game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0) : ''}
-                         </div>
-                        <div className="text-xs text-white">Total</div>
-                      </div>
-                    </div>
-                  </div>}
               </div>
-              
-              {/* Contas com este Jogo - Movido para sidebar */}
+
+              {/* Related Games */}
+              <RelatedGames currentGame={game} />
             </div>
             
             {/* Sidebar */}
@@ -275,9 +278,6 @@ const GameDetail = () => {
                     {gameAccounts.map(account => <AccountCard key={account.id} account={account} />)}
                   </div> : <p className="text-white">Nenhuma conta encontrada com este jogo.</p>}
               </div>
-              
-              {/* Related Games */}
-              <RelatedGames currentGame={game} />
             </div>
           </div>
         </div>

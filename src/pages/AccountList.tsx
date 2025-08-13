@@ -48,7 +48,7 @@ const AccountList = () => {
         </div>
         
         <div className="container pb-8">
-          <SectionTitle title="Jogos Disponíveis" subtitle="Encontre contas com os jogos que você quer jogar" />
+          <SectionTitle title="Contas Disponíveis" subtitle="Encontre contas com os jogos que você quer jogar" />
         
         {/* Filtros */}
         <div className="mb-8">

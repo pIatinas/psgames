@@ -12,8 +12,8 @@ const AccountGamesList: React.FC<AccountGamesListProps> = ({ games }) => {
   return (
     <div>
       <SectionTitle 
-        title="Jogos nesta Conta" 
-        subtitle={`${games?.length || 0} jogos disponíveis`}
+        title="Jogos" 
+        subtitle={`${games?.length || 0} ${games?.length === 1 ? 'jogo disponível' : 'jogos disponíveis'}`}
       />
       
       {games && games.length > 0 ? (

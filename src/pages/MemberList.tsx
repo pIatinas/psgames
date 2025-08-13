@@ -51,12 +51,12 @@ const MemberList = () => {
       <main className="flex-grow">
         {/* Breadcrumbs */}
         <div className="container py-4">
-          <Breadcrumbs />
+          <Breadcrumbs backButton={{ href: '/', label: 'Voltar' }} />
         </div>
         
         <div className="container pb-8">
         <SectionTitle 
-          title="Membro" 
+          title="Membros Ativos" 
           subtitle="Conheça os jogadores que fazem parte do nosso grupo"
         />
         
