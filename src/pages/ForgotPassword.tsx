@@ -10,41 +10,42 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-
 const formSchema = z.object({
-  email: z.string().email({ message: "Email inválido" }),
+  email: z.string().email({
+    message: "Email inválido"
+  })
 });
-
 const ForgotPassword = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-    },
+      email: ""
+    }
   });
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: `${window.location.origin}/login`,
+      const {
+        error
+      } = await supabase.auth.resetPasswordForEmail(values.email, {
+        redirectTo: `${window.location.origin}/login`
       });
-
       if (error) {
         toast({
           title: "Erro",
           description: error.message,
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         setEmailSent(true);
         toast({
           title: "Email enviado",
-          description: "Verifique sua caixa de entrada para redefinir sua senha.",
+          description: "Verifique sua caixa de entrada para redefinir sua senha."
         });
       }
     } catch (error) {
@@ -52,26 +53,20 @@ const ForgotPassword = () => {
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao enviar o email de recuperação.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
   if (emailSent) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+    return <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="w-full max-w-md px-4">
           <Card className="border-border">
             <CardHeader>
               <Link to="/" className="flex items-center gap-2 mb-6 justify-center">
                 <div className="p-1 rounded-full bg-primary/20">
-                  <svg 
-                    className="h-8 w-8 text-primary" 
-                    viewBox="0 0 24 24" 
-                    fill="currentColor"
-                  >
+                  <svg className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm-.5 5v6H5v2h6.5v6h1v-6H19v-2h-6.5V5h-1z" />
                   </svg>
                 </div>
@@ -97,59 +92,29 @@ const ForgotPassword = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+  return <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md px-4">
         <Card className="border-border">
           <CardHeader>
-            <Link to="/" className="flex items-center gap-2 mb-6 justify-center">
-              <div className="p-1 rounded-full bg-primary/20">
-                <svg 
-                  className="h-8 w-8 text-primary" 
-                  viewBox="0 0 24 24" 
-                  fill="currentColor"
-                >
-                  <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm-.5 5v6H5v2h6.5v6h1v-6H19v-2h-6.5V5h-1z" />
-                </svg>
-              </div>
-              <span className="text-2xl font-bold"><span>PS</span>Games</span>
-            </Link>
-            <CardTitle className="text-foreground text-xl text-center">Esqueci a Senha</CardTitle>
-            <CardDescription className="text-center text-white">
-              Digite seu email para receber um link de redefinição de senha
-            </CardDescription>
+            
+            <CardTitle className="text-foreground text-center text-4xl">Esqueceu a Senha?</CardTitle>
+            <CardDescription className="text-center text-white opacity-60">Digite seu e-mail para redefinir sua senha</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="email" render={({
+                field
+              }) => <FormItem>
                       <FormLabel className="text-white">Email</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="email"
-                          placeholder="Digite seu email" 
-                          {...field} 
-                          disabled={isLoading} 
-                          className="text-white"
-                        />
+                        <Input type="email" placeholder="Digite seu email" {...field} disabled={isLoading} className="text-white" />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button 
-                  type="submit" 
-                  className="w-full mt-6" 
-                  disabled={isLoading}
-                >
+                    </FormItem>} />
+                <Button type="submit" disabled={isLoading} className="w-full mt-6 bg-pink-600 hover:bg-pink-500">
                   {isLoading ? "Enviando..." : "Enviar Link de Recuperação"}
                 </Button>
               </form>
@@ -167,8 +132,6 @@ const ForgotPassword = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ForgotPassword;
