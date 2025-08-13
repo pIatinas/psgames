@@ -62,12 +62,28 @@ const Header = () => {
                       Minhas Contas
                     </Link>
                   </DropdownMenuItem>
-                  {currentUser.role === 'admin' && <DropdownMenuItem asChild>
-                      <Link to="/admin/games" className="flex items-center">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Gerenciar
-                      </Link>
-                    </DropdownMenuItem>}
+                  {currentUser.role === 'admin' && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/games" className="flex items-center">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Gerenciar Jogos
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/accounts" className="flex items-center">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Gerenciar Contas
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin/members" className="flex items-center">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Gerenciar Membros
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="h-4 w-4 mr-2" />
                     Sair

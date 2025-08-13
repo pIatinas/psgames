@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import { User } from 'lucide-react';
+import { User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 const Register: React.FC = () => {
@@ -16,6 +16,8 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const {
     toast
   } = useToast();
@@ -129,14 +131,46 @@ const Register: React.FC = () => {
                 <label htmlFor="password" className="text-sm font-medium leading-none">
                   Senha
                 </label>
-                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} disabled={isLoading} />
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"} 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    disabled={isLoading} 
+                    className="pr-10"
+                  />
+                  <button 
+                    type="button" 
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition" 
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
               
               <div className="space-y-2">
                 <label htmlFor="confirm-password" className="text-sm font-medium leading-none">
                   Confirmar Senha
                 </label>
-                <Input id="confirm-password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} disabled={isLoading} />
+                <div className="relative">
+                  <Input 
+                    id="confirm-password" 
+                    type={showConfirmPassword ? "text" : "password"} 
+                    value={confirmPassword} 
+                    onChange={e => setConfirmPassword(e.target.value)} 
+                    disabled={isLoading} 
+                    className="pr-10"
+                  />
+                  <button 
+                    type="button" 
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition" 
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
               
               <Button type="submit" disabled={isLoading} className="w-full bg-pink-600 hover:bg-pink-500">

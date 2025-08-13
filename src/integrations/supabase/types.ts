@@ -92,7 +92,6 @@ export type Database = {
           created_at: string
           email: string
           id: string
-          password: string
           qr_code: string | null
           security_answer: string | null
           updated_at: string
@@ -103,7 +102,6 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
-          password: string
           qr_code?: string | null
           security_answer?: string | null
           updated_at?: string
@@ -114,7 +112,6 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
-          password?: string
           qr_code?: string | null
           security_answer?: string | null
           updated_at?: string

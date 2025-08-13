@@ -1,9 +1,10 @@
-
 import React from 'react';
 import { Users, Lock, CheckCircle } from 'lucide-react';
 import { Account } from '@/types';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { accountService } from '@/services/supabaseService';
 import {
   Dialog,
   DialogContent,
@@ -14,17 +15,19 @@ import {
 
 interface AccountSidebarProps {
   account: Account;
-  currentMemberId: string;
-  isLoggedIn: boolean;
+  onAccountUpdate?: (updatedAccount: Account) => void;
 }
 
 const AccountSidebar: React.FC<AccountSidebarProps> = ({ 
   account, 
-  currentMemberId,
-  isLoggedIn 
+  onAccountUpdate 
 }) => {
   const { toast } = useToast();
+  const { currentUser } = useAuth();
   const [openDialog, setOpenDialog] = React.useState(false);
+  
+  const isLoggedIn = !!currentUser;
+  const currentMemberId = currentUser?.id;
   
   // Verificar se o membro atual está usando um slot nesta conta
   const isUsingSlot = account.slots?.some(slot => slot.user_id === currentMemberId);
@@ -33,8 +36,12 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
   const usedSlots = account.slots?.length || 0;
   const hasAvailableSlot = usedSlots < 2;
   
-  const handleUseAccount = () => {
-    if (!isLoggedIn) {
+  const isSlotOccupied = (slotNumber: number) => {
+    return account.slots?.find(slot => slot.slot_number === slotNumber) !== undefined;
+  };
+  
+  const handleUseAccount = async () => {
+    if (!isLoggedIn || !currentUser) {
       toast({
         title: "Login necessário",
         description: "Você precisa estar logado para usar uma conta.",
@@ -43,11 +50,52 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
       return;
     }
     
-    setOpenDialog(true);
+    try {
+      // Find the first available slot (1 or 2)
+      const availableSlot = !isSlotOccupied(1) ? 1 : (!isSlotOccupied(2) ? 2 : null);
+      
+      if (!availableSlot) {
+        toast({
+          title: "Erro",
+          description: "Não há slots disponíveis nesta conta.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const success = await accountService.assignSlot(account.id, availableSlot as 1 | 2, currentUser.id);
+      
+      if (success) {
+        // Reload account data to show updated slots
+        const updatedAccount = await accountService.getById(account.id);
+        if (updatedAccount && onAccountUpdate) {
+          onAccountUpdate(updatedAccount);
+        }
+        
+        setOpenDialog(true); // Open credentials dialog
+        toast({
+          title: "Conta ativada",
+          description: "Você agora está utilizando esta conta."
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível ativar a conta. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao ativar conta:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao ativar a conta.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const handleReleaseAccount = () => {
-    if (!isLoggedIn) {
+  const handleReleaseAccount = async () => {
+    if (!isLoggedIn || !currentUser) {
       toast({
         title: "Login necessário",
         description: "Você precisa estar logado para devolver uma conta.",
@@ -56,11 +104,36 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
       return;
     }
     
-    toast({
-      title: "Conta devolvida",
-      description: "Você devolveu a conta com sucesso.",
-      variant: "default",
-    });
+    try {
+      const userSlot = account.slots?.find(slot => slot.user_id === currentUser.id);
+      if (userSlot) {
+        const success = await accountService.freeSlot(account.id, userSlot.slot_number);
+        if (success) {
+          // Reload account data to show updated slots
+          const updatedAccount = await accountService.getById(account.id);
+          if (updatedAccount && onAccountUpdate) {
+            onAccountUpdate(updatedAccount);
+          }
+          toast({
+            title: "Conta devolvida",
+            description: "Você devolveu a conta com sucesso."
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: "Não foi possível devolver a conta.",
+            variant: "destructive"
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao devolver conta:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao devolver a conta.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -142,16 +215,18 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
                 <div className="font-medium">Email</div>
                 <div className="p-2 bg-muted rounded-md">{account.email}</div>
               </div>
-              <div>
-                <div className="font-medium">Senha</div>
-                <div className="p-2 bg-muted rounded-md">
-                  {account.password ? '••••••••' : 'Não definida'}
+              {account.security_answer && (
+                <div>
+                  <div className="font-medium">Resposta de Segurança</div>
+                  <div className="p-2 bg-muted rounded-md">{account.security_answer}</div>
                 </div>
-              </div>
-              <div>
-                <div className="font-medium">Código de Acesso</div>
-                <div className="p-2 bg-muted rounded-md">{account.codes}</div>
-              </div>
+              )}
+              {account.codes && (
+                <div>
+                  <div className="font-medium">Código de Acesso</div>
+                  <div className="p-2 bg-muted rounded-md">{account.codes}</div>
+                </div>
+              )}
             </div>
           </div>
           

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/auth/AuthProvider";
 import ScrollToTop from "@/components/ScrollToTop";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Pages
 import Index from "./pages/Index";
@@ -40,20 +41,22 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/games" element={<GameList />} />
-            <Route path="/games/:slug" element={<GameDetail />} />
-            <Route path="/accounts" element={<AccountList />} />
-            <Route path="/accounts/:slug" element={<AccountDetail />} />
-            <Route path="/members" element={<MemberList />} />
-            <Route path="/members/:slug" element={<MemberDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/my-profile" element={<MyProfile />} />
-            <Route path="/my-accounts" element={<MyAccounts />} />
+            
+            {/* Protected Routes */}
+            <Route path="/games" element={<ProtectedRoute><GameList /></ProtectedRoute>} />
+            <Route path="/games/:slug" element={<ProtectedRoute><GameDetail /></ProtectedRoute>} />
+            <Route path="/accounts" element={<ProtectedRoute><AccountList /></ProtectedRoute>} />
+            <Route path="/accounts/:slug" element={<ProtectedRoute><AccountDetail /></ProtectedRoute>} />
+            <Route path="/members" element={<ProtectedRoute><MemberList /></ProtectedRoute>} />
+            <Route path="/members/:slug" element={<ProtectedRoute><MemberDetail /></ProtectedRoute>} />
+            <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
+            <Route path="/my-accounts" element={<ProtectedRoute><MyAccounts /></ProtectedRoute>} />
             
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
               <Route index element={<AdminGamesPage />} />
               <Route path="games" element={<AdminGamesPage />} />
               <Route path="accounts" element={<AdminAccountsPage />} />
