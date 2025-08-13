@@ -18,17 +18,25 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({
   const currentPayment = member.payments.find(p => p.month === currentMonth && p.year === currentYear);
   const paymentStatus = currentPayment ? currentPayment.status : 'pending';
   return <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-      <Avatar className="w-16 h-16">
+      <Avatar className="w-32 h-32">
         <AvatarImage src={member.profile_image} alt={member.name} />
         <AvatarFallback className="bg-accent/20 text-accent text-4xl">{initials}</AvatarFallback>
       </Avatar>
       
       <div className="flex-1 text-center md:text-left">
-        <h1 className="text-3xl font-bold text-white mt-2">{member.name}</h1>
+        <h1 className="text-3xl font-bold mb-2 text-white">{member.name}</h1>
         
+        <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
+          <Badge className={member.isApproved ? 'bg-green-500 hover:bg-green-600' : 'bg-amber-500 hover:bg-amber-600'}>
+            {member.isApproved ? 'Aprovado' : 'Pendente'}
+          </Badge>
+          
+          <Badge className={paymentStatus === 'paid' ? 'bg-secondary hover:bg-secondary/90' : 'bg-destructive hover:bg-destructive/90'}>
+            {paymentStatus === 'paid' ? 'Mensalidade Paga' : 'Mensalidade Pendente'}
+          </Badge>
+        </div>
         
-        
-        <div className="flex flex-col md:flex-row gap-4 text-sm text-muted-foreground ">
+        <div className="flex flex-col md:flex-row gap-4 text-sm text-muted-foreground">
           
           
           <div className="flex items-center justify-center md:justify-start">
