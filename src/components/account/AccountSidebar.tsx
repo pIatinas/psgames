@@ -63,24 +63,26 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
         return;
       }
       
-      const success = await accountService.assignSlot(account.id, availableSlot as 1 | 2, currentUser.id);
-      
-      if (success) {
-        // Reload account data to show updated slots
-        const updatedAccount = await accountService.getById(account.id);
-        if (updatedAccount && onAccountUpdate) {
-          onAccountUpdate(updatedAccount);
-        }
+      try {
+        const success = await accountService.assignSlot(account.id, availableSlot as 1 | 2, currentUser.id);
         
-        setOpenDialog(true); // Open credentials dialog
-        toast({
-          title: "Conta ativada",
-          description: "Você agora está utilizando esta conta."
-        });
-      } else {
+        if (success) {
+          // Reload account data to show updated slots
+          const updatedAccount = await accountService.getById(account.id);
+          if (updatedAccount && onAccountUpdate) {
+            onAccountUpdate(updatedAccount);
+          }
+          
+          setOpenDialog(true); // Open credentials dialog
+          toast({
+            title: "Conta ativada",
+            description: "Você agora está utilizando esta conta."
+          });
+        }
+      } catch (error: any) {
         toast({
           title: "Erro",
-          description: "Não foi possível ativar a conta. Tente novamente.",
+          description: error.message || "Não foi possível ativar a conta.",
           variant: "destructive"
         });
       }

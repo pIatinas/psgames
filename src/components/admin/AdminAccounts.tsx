@@ -159,12 +159,18 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
     if (!deleteAccountId) return;
 
     try {
-      await accountService.delete(deleteAccountId);
-      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
-      toast({
-        title: "Conta excluída",
-        description: "A conta foi excluída com sucesso."
-      });
+      const success = await accountService.delete(deleteAccountId);
+      if (success) {
+        // Remove from local state immediately
+        queryClient.setQueryData(['admin-accounts'], (oldData: Account[] | undefined) => 
+          oldData ? oldData.filter(account => account.id !== deleteAccountId) : []
+        );
+        queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+        toast({
+          title: "Conta excluída",
+          description: "A conta foi excluída com sucesso."
+        });
+      }
     } catch (error) {
       toast({
         title: "Erro",
@@ -260,23 +266,31 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
                 </TableCell>
                 {isAdmin && (
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleEdit(account)}
-                        className="hover:bg-white hover:text-gray-900"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm" 
-                        onClick={() => setDeleteAccountId(account.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => window.location.href = `/accounts/${account.id}-${account.email.split('@')[0]}`}
+                          className="hover:bg-white hover:text-gray-900"
+                        >
+                          Ver
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEdit(account)}
+                          className="hover:bg-white hover:text-gray-900"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => setDeleteAccountId(account.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                   </TableCell>
                 )}
               </TableRow>

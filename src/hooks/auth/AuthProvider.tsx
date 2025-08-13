@@ -22,9 +22,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener
+    let mounted = true;
+
+    // Set up auth state listener first  
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        if (!mounted) return;
+        
         setSession(currentSession);
         if (currentSession?.user) {
           // Check if user is active before setting as current user
@@ -44,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setCurrentUser(null);
         }
+        setIsLoading(false);
       }
     );
 
@@ -51,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       const { data: { session: initialSession } } = await supabase.auth.getSession();
       
-      if (initialSession?.user) {
+      if (initialSession?.user && mounted) {
         const user = await fetchUserProfile(initialSession.user.id);
         if (user && !user.active) {
           // User is not active, sign them out
@@ -76,6 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Cleanup subscription
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [toast]);

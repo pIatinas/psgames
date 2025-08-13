@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import Loader from '@/components/Loader';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import RelatedGames from '@/components/RelatedGames';
+import ImagePlaceholder from '@/components/ui/image-placeholder';
 
 // Interface for trophy data
 interface TrophyInfo {
@@ -123,14 +124,22 @@ const GameDetail = () => {
         
         {/* Hero Banner */}
         <div className="relative h-[40vh] min-h-[300px] max-h-[500px]">
-          <img src={game.banner} alt={game.name} className="w-full h-full object-cover" />
+          {game.banner ? (
+            <img src={game.banner} alt={game.name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent"></div>
           
           <div className="absolute bottom-0 left-0 right-0 container py-8">
             
             <div className="flex items-end gap-6">
               <div className="hidden md:block w-48 h-48 rounded-lg overflow-hidden shadow-lg">
-                <img src={game.image} alt={game.name} className="w-full h-full object-cover" />
+                <ImagePlaceholder 
+                  src={game.image} 
+                  alt={game.name} 
+                  className="w-full h-full"
+                />
               </div>
               
               <div className="flex-1">

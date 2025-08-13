@@ -25,9 +25,6 @@ import NotFound from "./pages/NotFound";
 
 // Admin Pages
 import AdminLayout from "./pages/admin/AdminLayout";
-import AdminGamesPage from "./pages/admin/AdminGamesPage";
-import AdminAccountsPage from "./pages/admin/AdminAccountsPage";
-import AdminMembersPage from "./pages/admin/AdminMembersPage";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +37,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -56,12 +53,7 @@ const App = () => (
             <Route path="/my-accounts" element={<ProtectedRoute><MyAccounts /></ProtectedRoute>} />
             
             {/* Admin Routes */}
-            <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
-              <Route index element={<AdminGamesPage />} />
-              <Route path="games" element={<AdminGamesPage />} />
-              <Route path="accounts" element={<AdminAccountsPage />} />
-              <Route path="members" element={<AdminMembersPage />} />
-            </Route>
+            <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

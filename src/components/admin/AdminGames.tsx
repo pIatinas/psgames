@@ -186,12 +186,18 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
     if (!deleteGameId) return;
 
     try {
-      await gameService.delete(deleteGameId);
-      queryClient.invalidateQueries({ queryKey: ['admin-games'] });
-      toast({
-        title: "Jogo excluído",
-        description: "O jogo foi excluído com sucesso."
-      });
+      const success = await gameService.delete(deleteGameId);
+      if (success) {
+        // Remove from local state immediately
+        queryClient.setQueryData(['admin-games'], (oldData: Game[] | undefined) => 
+          oldData ? oldData.filter(game => game.id !== deleteGameId) : []
+        );
+        queryClient.invalidateQueries({ queryKey: ['admin-games'] });
+        toast({
+          title: "Jogo excluído",
+          description: "O jogo foi excluído com sucesso."
+        });
+      }
     } catch (error) {
       toast({
         title: "Erro",
@@ -290,6 +296,14 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
                   {isAdmin && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => window.location.href = `/games/${game.id}-${game.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                          className="hover:bg-white hover:text-gray-900"
+                        >
+                          Ver
+                        </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 

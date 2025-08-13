@@ -296,6 +296,18 @@ export const accountService = {
   },
 
   async assignSlot(accountId: string, slotNumber: 1 | 2, userId: string): Promise<boolean> {
+    // Check if user is active
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('active')
+      .eq('id', userId)
+      .single();
+    
+    if (!profile?.active) {
+      console.error('User account is not active');
+      throw new Error('Não é possível ativar a conta. Usuário não está ativo.');
+    }
+    
     // Check if user already has a slot for this account
     const { data: userSlot } = await supabase
       .from('account_slots')
@@ -306,7 +318,7 @@ export const accountService = {
     
     if (userSlot) {
       console.error('User already has a slot for this account');
-      return false;
+      throw new Error('Usuário já possui um slot nesta conta');
     }
     
     // Check if the specific slot is already occupied
@@ -319,7 +331,7 @@ export const accountService = {
     
     if (existingSlot && existingSlot.user_id) {
       console.error('Slot is already occupied');
-      return false;
+      throw new Error('Slot já está ocupado');
     }
     
     if (existingSlot) {
@@ -331,7 +343,7 @@ export const accountService = {
       
       if (error) {
         console.error('Error updating slot:', error);
-        return false;
+        throw new Error('Erro ao atualizar slot');
       }
     } else {
       // Create new slot
@@ -346,7 +358,7 @@ export const accountService = {
       
       if (error) {
         console.error('Error creating slot:', error);
-        return false;
+        throw new Error('Erro ao criar slot');
       }
     }
     

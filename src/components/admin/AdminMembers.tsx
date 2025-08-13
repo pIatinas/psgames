@@ -319,6 +319,14 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                         <Button 
                           variant="outline" 
                           size="sm" 
+                          onClick={() => window.location.href = `/members/${member.id}-${member.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                          className="hover:bg-white hover:text-gray-900"
+                        >
+                          Ver
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
                           onClick={() => handleEdit(member)}
                           className="hover:bg-white hover:text-gray-900"
                         >
