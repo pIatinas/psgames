@@ -130,27 +130,7 @@ const MemberDetail = () => {
               <MemberPaymentSidebar member={member} />
               
               {/* Informações do Status do Membro */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status do Membro</CardTitle>
-                  <CardDescription>Informações sobre o status atual</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="text-sm font-medium mb-1">Status</div>
-                    <Badge className={user.role === 'admin' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}>
-                      {user.role === 'admin' ? 'Administrador' : 'Membro'}
-                    </Badge>
-                  </div>
-                  
-                  <div>
-                    <div className="text-sm font-medium mb-1">Membro desde</div>
-                    <div className="text-sm text-muted-foreground">
-                      {user.profile?.created_at ? new Date(user.profile.created_at).toLocaleDateString() : 'N/A'}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              
             </div>
           </div>
         </div>
