@@ -86,36 +86,35 @@ const Register: React.FC = () => {
   };
   return <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md px-4">
-        <Card className="border-border">
-          <CardHeader>
-            
-            <CardTitle className="text-foreground text-center text-4xl">Cadastro</CardTitle>
-            <CardDescription className="text-center text-white">
+        <div>
+          <div className="text-center mb-8">
+            <h1 className="text-foreground text-4xl font-bold">Cadastro</h1>
+            <p className="text-white mt-2">
               Preencha os campos abaixo para se registrar
-            </CardDescription>
-          </CardHeader>
+            </p>
+          </div>
           
-          <CardContent>
+          <div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="name" className="text-sm font-medium leading-none">
-                  Nome Completo
+                  Nome
                 </label>
-                <Input id="name" placeholder="Seu nome completo" value={name} onChange={e => setName(e.target.value)} disabled={isLoading} />
+                <Input id="name" value={name} onChange={e => setName(e.target.value)} disabled={isLoading} />
               </div>
               
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium leading-none">
-                  Email
+                  E-mail
                 </label>
-                <Input id="email" type="email" placeholder="email@example.com" value={email} onChange={e => setEmail(e.target.value)} disabled={isLoading} />
+                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} disabled={isLoading} />
               </div>
               
               <div className="space-y-2">
                 <label htmlFor="psn-id" className="text-sm font-medium leading-none">
                   PSN ID
                 </label>
-                <Input id="psn-id" placeholder="Seu ID na PlayStation Network" value={psnId} onChange={e => setPsnId(e.target.value)} disabled={isLoading} />
+                <Input id="psn-id" value={psnId} onChange={e => setPsnId(e.target.value)} disabled={isLoading} />
               </div>
               
               <div className="space-y-2">
@@ -133,20 +132,18 @@ const Register: React.FC = () => {
               </div>
               
               <Button type="submit" disabled={isLoading} className="w-full bg-pink-600 hover:bg-pink-500">
-                {isLoading ? <span>Processando...</span> : <>
-                    <User className="mr-2 h-4 w-4" /> Cadastrar
-                  </>}
+                {isLoading ? <span>Processando...</span> : <span>Cadastrar</span>}
               </Button>
             </form>
-          </CardContent>
+          </div>
           
-          <CardFooter className="flex justify-center border-t pt-6">
+          <div className="flex justify-center mt-6">
             <div className="text-sm text-white">
               <span>Já possui uma conta?</span>{" "}
               <Link to="/login" className="underline text-pink-600 no-underline hover:no-underline font-medium ">Entrar!</Link>
             </div>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>;
 };

@@ -175,8 +175,6 @@ const AccountDetail = () => {
               <div>
                 <AccountGamesList games={account.games || []} />
               </div>
-              
-              <AccountActivations account={account} />
             </div>
             
             <div>
@@ -216,6 +214,11 @@ const AccountDetail = () => {
                   </Button>}
               </div>
             </div>
+          </div>
+
+          {/* Últimas Ativações - Full width outside container grid */}
+          <div className="mt-8">
+            <AccountActivations account={account} />
           </div>
         </div>
       </main>

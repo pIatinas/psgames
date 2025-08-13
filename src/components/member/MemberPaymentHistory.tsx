@@ -44,7 +44,7 @@ const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({ member }) =
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="h-auto p-0 text-left justify-start">
           <div className="space-y-1">
-            <div className="text-sm font-medium">Mensalidade</div>
+            <div className="text-sm font-medium">Ver Histórico</div>
             <div className="text-xs text-muted-foreground flex items-center gap-1">
               R$ 25,00/mês
               <ExternalLink className="h-3 w-3" />

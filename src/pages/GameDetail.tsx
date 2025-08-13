@@ -158,7 +158,9 @@ const GameDetail = () => {
             {/* Coluna principal */}
             <div className="lg:col-span-2 space-y-8">
               {/* Trophy counts from database - moved above description */}
-              {(game.platinum || game.gold || game.silver || game.bronze) && <div>
+              {(game.platinum || game.gold || game.silver || game.bronze) && (
+                ((game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0)) > 0
+              ) && <div>
                   <SectionTitle title="Troféus" />
                   <div className="grid grid-cols-5 gap-2">
                     <div className="bg-gray-800/50 rounded-lg p-3 text-center">
@@ -193,11 +195,9 @@ const GameDetail = () => {
                       <div className="text-primary mb-1">
                         <Trophy className="h-4 w-4 mx-auto" />
                       </div>
-                      {(game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0) > 0 && (
-                        <div className="text-lg font-bold text-white">
-                          {(game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0)}
-                        </div>
-                      )}
+                      <div className="text-lg font-bold text-white">
+                        {(game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0)}
+                      </div>
                       <div className="text-xs text-white">Total</div>
                     </div>
                   </div>
@@ -235,40 +235,6 @@ const GameDetail = () => {
             
             {/* Sidebar */}
             <div className="space-y-8">
-              {/* Trophy info from external API */}
-              {trophyInfo && <div>
-                  <SectionTitle title="Troféus" />
-                  <div className="grid grid-cols-4 gap-1">
-                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                      <div className="text-cyan-200 text-cyan-100 ">
-                        <Trophy className="h-4 w-4 mx-auto" />
-                      </div>
-                      <div className="text-lg font-bold text-white">{trophyInfo.platinum}</div>
-                      <div className="text-xs text-white ">Platina</div>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                      <div className="text-yellow-300 mb-1">
-                        <Trophy className="h-4 w-4 mx-auto" />
-                      </div>
-                      <div className="text-lg font-bold text-white">{trophyInfo.gold}</div>
-                      <div className="text-xs text-white">Ouro</div>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                      <div className="text-gray-300 mb-1">
-                        <Trophy className="h-4 w-4 mx-auto" />
-                      </div>
-                      <div className="text-lg font-bold text-white">{trophyInfo.silver}</div>
-                      <div className="text-xs text-white">Prata</div>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                      <div className="text-amber-700 mb-1">
-                        <Trophy className="h-4 w-4 mx-auto" />
-                      </div>
-                      <div className="text-lg font-bold text-white">{trophyInfo.bronze}</div>
-                      <div className="text-xs text-white">Bronze</div>
-                    </div>
-                  </div>
-                </div>}
               
               {/* Accounts with this game */}
               <div>

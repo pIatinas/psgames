@@ -96,41 +96,38 @@ const ForgotPassword = () => {
   }
   return <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md px-4">
-        <Card className="border-border">
-          <CardHeader>
-            
-            <CardTitle className="text-foreground text-center text-4xl">Esqueceu a Senha?</CardTitle>
-            <CardDescription className="text-center text-white opacity-60">Digite seu e-mail para redefinir sua senha</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div>
+          <div className="text-center mb-8">
+            <h1 className="text-foreground text-4xl font-bold">Esqueceu a Senha?</h1>
+            <p className="text-white opacity-60 mt-2">Digite seu e-mail para redefinir sua senha</p>
+          </div>
+          <div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField control={form.control} name="email" render={({
                 field
               }) => <FormItem>
-                      <FormLabel className="text-white">Email</FormLabel>
+                      <FormLabel className="text-white">E-mail</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="Digite seu email" {...field} disabled={isLoading} className="text-white" />
+                        <Input type="email" {...field} disabled={isLoading} className="text-white" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>} />
                 <Button type="submit" disabled={isLoading} className="w-full mt-6 bg-pink-600 hover:bg-pink-500">
-                  {isLoading ? "Enviando..." : "Enviar Link de Recuperação"}
+                  {isLoading ? "Enviando..." : "Enviar"}
                 </Button>
               </form>
             </Form>
-          </CardContent>
-          <CardContent className="pt-0">
-            <div className="text-center">
-              <Button asChild variant="ghost" className="text-white hover:text-primary">
-                <Link to="/login">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Voltar ao Login
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="text-center mt-6">
+            <Button asChild variant="ghost" className="text-white hover:text-primary">
+              <Link to="/login">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar ao Login
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>;
 };

@@ -70,21 +70,20 @@ const Login = () => {
   };
   return <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md px-4">
-        <Card className="">
-          <CardHeader>
-            
-            <CardTitle className="text-foreground text-center text-4xl">Login</CardTitle>
-            <CardDescription className="text-center text-white opacity-60">Entre com seu e-mail e senha.</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div>
+          <div className="text-center mb-8">
+            <h1 className="text-foreground text-4xl font-bold">Login</h1>
+            <p className="text-white opacity-60 mt-2">Entre com seu e-mail e senha.</p>
+          </div>
+          <div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField control={form.control} name="emailOrPsnId" render={({
                 field
               }) => <FormItem>
-                      <FormLabel className="text-white">Email ou PSN ID</FormLabel>
+                      <FormLabel className="text-white">E-mail</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite seu email ou PSN ID" {...field} disabled={isLoading} className="text-white" />
+                        <Input {...field} disabled={isLoading} className="text-white" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>} />
@@ -94,7 +93,7 @@ const Login = () => {
                       <FormLabel className="text-white">Senha</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type={showPassword ? "text" : "password"} placeholder="Digite sua senha" {...field} disabled={isLoading} className="pr-10 text-white" />
+                          <Input type={showPassword ? "text" : "password"} {...field} disabled={isLoading} className="pr-10 text-white" />
                           <button type="button" className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition" onClick={togglePasswordVisibility}>
                             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                           </button>
@@ -107,8 +106,8 @@ const Login = () => {
                 </Button>
               </form>
             </Form>
-          </CardContent>
-          <CardFooter className="flex flex-col  pt-6">
+          </div>
+          <div className="flex flex-col mt-6 space-y-2">
             <div className="text-center text-white text-sm">
               <Link to="/forgot-password" className="text-pink-600 hover:underline font-medium no-underline hover:no-underline ">Esqueceu a senha?</Link>
             </div>
@@ -116,8 +115,8 @@ const Login = () => {
               Não tem uma conta? {" "}
               <Link to="/register" className="text-pink-600 hover:no-underline font-medium">Cadastre-se!</Link>
             </div>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>;
 };
