@@ -180,7 +180,7 @@ const AccountDetail = () => {
             </div>
             
             <div>
-              <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20 space-y-6 mt-52 ">
+              <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20 space-y-6 mt-10 ">
                 <div>
                   <h3 className="font-semibold mb-2 text-white text-2xl">Ativações</h3>
                   <div className="space-y-4">
