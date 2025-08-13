@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -18,32 +17,38 @@ import { parseMemberSlug } from '@/utils/gameUtils';
 import { useQuery } from '@tanstack/react-query';
 import { Member } from '@/types';
 import Breadcrumbs from '@/components/Breadcrumbs';
-
 const MemberDetail = () => {
-  const { slug } = useParams<{ slug: string }>();
-  
+  const {
+    slug
+  } = useParams<{
+    slug: string;
+  }>();
+
   // Extract member ID from slug
   const memberId = slug ? parseMemberSlug(slug) : null;
-  
+
   // Fetch member data
-  const { data: users = [] } = useQuery({
+  const {
+    data: users = []
+  } = useQuery({
     queryKey: ['users'],
-    queryFn: () => userService.getAll(),
+    queryFn: () => userService.getAll()
   });
-  
+
   // Fetch accounts data
-  const { data: accounts = [] } = useQuery({
+  const {
+    data: accounts = []
+  } = useQuery({
     queryKey: ['accounts'],
-    queryFn: () => accountService.getAll(),
+    queryFn: () => accountService.getAll()
   });
-  
+
   // Find the user
   const user = users.find(u => u.id === memberId);
-  
+
   // Se o membro não for encontrado
   if (!user) {
-    return (
-      <div className="flex flex-col min-h-screen">
+    return <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow container py-16 flex flex-col items-center justify-center">
           <h2 className="text-2xl font-bold mb-4 text-white">Membro não encontrado</h2>
@@ -56,8 +61,7 @@ const MemberDetail = () => {
           </Button>
         </main>
         <Footer />
-      </div>
-    );
+      </div>;
   }
 
   // Transform User to Member format for compatibility
@@ -68,17 +72,14 @@ const MemberDetail = () => {
     password: '',
     psn_id: user.profile?.name || user.name,
     profile_image: user.profile?.avatar_url || '',
-    isApproved: true, // Assume approved if they exist
+    isApproved: true,
+    // Assume approved if they exist
     created_at: user.profile?.created_at || '',
     updated_at: user.profile?.updated_at || '',
-    accounts: accounts.filter(account => 
-      account.slots?.some(slot => slot.user_id === user.id)
-    ),
+    accounts: accounts.filter(account => account.slots?.some(slot => slot.user_id === user.id)),
     payments: [] // Empty for now
   };
-
-  return (
-    <div className="flex flex-col min-h-screen">
+  return <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="flex-grow">
@@ -99,7 +100,7 @@ const MemberDetail = () => {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10 ">
             {/* Coluna principal */}
             <div className="lg:col-span-2 space-y-8">
               {/* Informações do perfil */}
@@ -112,7 +113,7 @@ const MemberDetail = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Contas Ativas</CardTitle>
-                  <CardDescription>Contas que este membro está utilizando atualmente</CardDescription>
+                  
                 </CardHeader>
                 <CardContent>
                   <AccountUsageTimes accounts={accounts} memberId={memberId || ''} />
@@ -156,8 +157,6 @@ const MemberDetail = () => {
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default MemberDetail;
