@@ -159,8 +159,8 @@ const AccountDetail = () => {
               <Link to="/" className="text-muted-foreground hover:text-foreground">Início</Link>
               <span className="text-muted-foreground">/</span>
               <Link to="/accounts" className="text-muted-foreground hover:text-foreground">Contas</Link>
-              <span className="text-muted-foreground">/</span>
-              <span className="text-foreground">{account.email.split('@')[0]}</span>
+              
+              
             </nav>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/accounts">
