@@ -121,7 +121,7 @@ const ForgotPassword = () => {
           </div>
           <div className="text-center mt-6">
             <Button asChild variant="ghost" className="text-white hover:text-primary">
-              <Link to="/login" className="hover:text-pink-500 ">
+              <Link to="/login" className="text-pink-600 hover:text-pink-500 ">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar ao Login
               </Link>

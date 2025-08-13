@@ -113,7 +113,7 @@ const Login = () => {
             </div>
             <div className="text-center text-white text-sm">
               Não tem uma conta? {" "}
-              <Link to="/register" className="text-pink-600 hover:no-underline font-medium">Cadastre-se!</Link>
+              <Link to="/register" className="text-pink-600 hover:no-underline font-medium hover:text-pink-500">Cadastre-se!</Link>
             </div>
           </div>
         </div>
