@@ -120,9 +120,8 @@ const ForgotPassword = () => {
             </Form>
           </div>
           <div className="text-center mt-6">
-            <Button asChild variant="ghost" className="text-white hover:text-primary">
-              <Link to="/login" className="text-pink-600 hover:text-pink-500 hover:bg-transparent">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+            <Button asChild variant="ghost" className="text-pink-600 hover:text-pink-500 hover:bg-transparent">
+              <Link to="/login">
                 Voltar ao Login
               </Link>
             </Button>
