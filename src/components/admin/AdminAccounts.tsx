@@ -270,7 +270,7 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => window.location.href = `/accounts/${account.id}-${account.email.split('@')[0]}`}
+                          onClick={() => window.location.href = `/accounts/${account.id}`}
                           className="hover:bg-white hover:text-gray-900"
                         >
                           Ver

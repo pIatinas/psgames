@@ -29,13 +29,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, currentSession) => {
         if (!mounted) return;
         
+        console.log('Auth state change:', event, currentSession?.user?.id);
+        
         setSession(currentSession);
-        setIsLoading(true);
         
         if (currentSession?.user) {
           try {
             const user = await fetchUserProfile(currentSession.user.id);
+            console.log('Fetched user profile:', user);
+            
             if (user && !user.active) {
+              console.log('User inactive, signing out');
               await supabase.auth.signOut();
               toast({
                 title: "Conta inativa",
@@ -49,7 +53,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           } catch (error) {
             console.error('Error loading user profile:', error);
+            // If error fetching profile, clear auth
+            await supabase.auth.signOut();
             setCurrentUser(null);
+            setSession(null);
           }
         } else {
           setCurrentUser(null);

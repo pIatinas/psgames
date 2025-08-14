@@ -299,7 +299,7 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => window.location.href = `/games/${game.id}-${game.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                          onClick={() => window.location.href = `/games/${game.id}`}
                           className="hover:bg-white hover:text-gray-900"
                         >
                           Ver
