@@ -23,18 +23,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let userCache: { [key: string]: User | null } = {};
 
-    // Set up auth state listener first  
+    const loadUserProfile = async (userId: string): Promise<User | null> => {
+      // Use cache to avoid repeated API calls
+      if (userCache[userId]) {
+        return userCache[userId];
+      }
+      
+      const user = await fetchUserProfile(userId);
+      userCache[userId] = user;
+      return user;
+    };
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         if (!mounted) return;
         
         setSession(currentSession);
+        
         if (currentSession?.user) {
-          // Check if user is active before setting as current user
-          const user = await fetchUserProfile(currentSession.user.id);
+          const user = await loadUserProfile(currentSession.user.id);
           if (user && !user.active) {
-            // User is not active, sign them out
             await supabase.auth.signOut();
             toast({
               title: "Conta inativa",
@@ -52,34 +63,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for initial session
+    // Initialize auth - only run once
     const initializeAuth = async () => {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
-      
-      if (initialSession?.user && mounted) {
-        const user = await fetchUserProfile(initialSession.user.id);
-        if (user && !user.active) {
-          // User is not active, sign them out
-          await supabase.auth.signOut();
-          toast({
-            title: "Conta inativa",
-            description: "Sua conta não está ativa. Entre em contato com o administrador.",
-            variant: "destructive",
-          });
-          setCurrentUser(null);
-          setSession(null);
-        } else {
-          setCurrentUser(user);
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (initialSession?.user) {
           setSession(initialSession);
+          const user = await loadUserProfile(initialSession.user.id);
+          
+          if (user && !user.active) {
+            await supabase.auth.signOut();
+            toast({
+              title: "Conta inativa", 
+              description: "Sua conta não está ativa. Entre em contato com o administrador.",
+              variant: "destructive",
+            });
+            setCurrentUser(null);
+            setSession(null);
+          } else {
+            setCurrentUser(user);
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
         }
       }
-      
-      setIsLoading(false);
     };
 
     initializeAuth();
 
-    // Cleanup subscription
     return () => {
       mounted = false;
       subscription.unsubscribe();
@@ -91,10 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (emailOrPsn: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
-    
     try {
-      // Try to login with email and password through Supabase auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailOrPsn,
         password: password
@@ -109,29 +124,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
-      // Check if user is active
-      if (data.user) {
-        const userProfile = await fetchUserProfile(data.user.id);
-        if (userProfile && !userProfile.active) {
-          await supabase.auth.signOut();
-          toast({
-            title: "Conta inativa",
-            description: "Sua conta não está ativa. Entre em contato com o administrador.",
-            variant: "destructive",
-          });
-          return false;
-        }
-      }
-
-      // If login was successful
-      setSession(data.session);
+      // Don't check user profile here - let onAuthStateChange handle it
       toast({
         title: "Login bem-sucedido",
         description: "Bem-vindo de volta!",
       });
       
-      // Admin role is managed through database triggers and manual assignment
-
       return true;
     } catch (error) {
       console.error("Login error:", error);
@@ -141,8 +139,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "destructive",
       });
       return false;
-    } finally {
-      setIsLoading(false);
     }
   };
 
