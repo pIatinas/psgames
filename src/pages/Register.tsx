@@ -99,7 +99,7 @@ const Register: React.FC = () => {
         <div>
           <div className="text-center mb-8">
             <h1 className="text-foreground text-4xl font-bold">Cadastro</h1>
-            <p className="text-white mt-2">
+            <p className="text-white mt-2 opacity-60 ">
               Preencha os campos abaixo para se registrar
             </p>
           </div>
@@ -132,19 +132,8 @@ const Register: React.FC = () => {
                   Senha
                 </label>
                 <div className="relative">
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                    disabled={isLoading} 
-                    className="pr-10"
-                  />
-                  <button 
-                    type="button" 
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition" 
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
+                  <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} disabled={isLoading} className="pr-10" />
+                  <button type="button" className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
@@ -155,19 +144,8 @@ const Register: React.FC = () => {
                   Confirmar Senha
                 </label>
                 <div className="relative">
-                  <Input 
-                    id="confirm-password" 
-                    type={showConfirmPassword ? "text" : "password"} 
-                    value={confirmPassword} 
-                    onChange={e => setConfirmPassword(e.target.value)} 
-                    disabled={isLoading} 
-                    className="pr-10"
-                  />
-                  <button 
-                    type="button" 
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition" 
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
+                  <Input id="confirm-password" type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} disabled={isLoading} className="pr-10" />
+                  <button type="button" className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                     {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
