@@ -23,18 +23,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
-    let userCache: { [key: string]: User | null } = {};
-
-    const loadUserProfile = async (userId: string): Promise<User | null> => {
-      // Use cache to avoid repeated API calls
-      if (userCache[userId]) {
-        return userCache[userId];
-      }
-      
-      const user = await fetchUserProfile(userId);
-      userCache[userId] = user;
-      return user;
-    };
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -42,20 +30,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!mounted) return;
         
         setSession(currentSession);
+        setIsLoading(true);
         
         if (currentSession?.user) {
-          const user = await loadUserProfile(currentSession.user.id);
-          if (user && !user.active) {
-            await supabase.auth.signOut();
-            toast({
-              title: "Conta inativa",
-              description: "Sua conta não está ativa. Entre em contato com o administrador.",
-              variant: "destructive",
-            });
+          try {
+            const user = await fetchUserProfile(currentSession.user.id);
+            if (user && !user.active) {
+              await supabase.auth.signOut();
+              toast({
+                title: "Conta inativa",
+                description: "Sua conta não está ativa. Entre em contato com o administrador.",
+                variant: "destructive",
+              });
+              setCurrentUser(null);
+              setSession(null);
+            } else {
+              setCurrentUser(user);
+            }
+          } catch (error) {
+            console.error('Error loading user profile:', error);
             setCurrentUser(null);
-            return;
           }
-          setCurrentUser(user);
         } else {
           setCurrentUser(null);
         }
@@ -70,9 +65,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!mounted) return;
         
+        setSession(initialSession);
+        
         if (initialSession?.user) {
-          setSession(initialSession);
-          const user = await loadUserProfile(initialSession.user.id);
+          const user = await fetchUserProfile(initialSession.user.id);
           
           if (user && !user.active) {
             await supabase.auth.signOut();
@@ -89,6 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
+        setCurrentUser(null);
       } finally {
         if (mounted) {
           setIsLoading(false);

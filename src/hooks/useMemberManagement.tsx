@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Member, Account } from '@/types';
-import { members as membersData, accounts as accountsData } from '@/data/mockData';
 
 export const useMemberManagement = () => {
-  const [members, setMembers] = useState<Member[]>(membersData);
-  const [accounts, setAccounts] = useState<Account[]>(accountsData);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [newMember, setNewMember] = useState<Partial<Member>>({
     name: '',
     email: '',

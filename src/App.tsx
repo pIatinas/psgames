@@ -55,7 +55,7 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>} />
             
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

@@ -9,6 +9,7 @@ import SectionTitle from '@/components/SectionTitle';
 import SeeAllButton from '@/components/SeeAllButton';
 import Loader from '@/components/Loader';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import HeroSection from '@/components/HeroSection';
 import { Game, Account, User } from '@/types';
 import { gameService, accountService, userService } from '@/services/supabaseService';
 const Index = () => {
@@ -51,6 +52,9 @@ const Index = () => {
       <Header />
 
       <main className="flex-grow">
+        {/* Hero Section */}
+        <HeroSection games={recentGames} />
+        
         {/* Breadcrumbs and Back Button */}
         <div className="container py-4">
           <Breadcrumbs />

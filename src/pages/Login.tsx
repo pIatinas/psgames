@@ -36,10 +36,10 @@ const Login = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (currentUser || session) {
+    if (currentUser) {
       navigate('/');
     }
-  }, [currentUser, session, navigate]);
+  }, [currentUser, navigate]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
