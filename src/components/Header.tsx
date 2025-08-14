@@ -65,9 +65,9 @@ const Header = () => {
                   {currentUser.role === 'admin' && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link to="/admin/games" className="flex items-center">
+                        <Link to="/admin" className="flex items-center">
                           <Settings className="h-4 w-4 mr-2" />
-                          Gerenciar Jogos
+                          Gerenciamento
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
