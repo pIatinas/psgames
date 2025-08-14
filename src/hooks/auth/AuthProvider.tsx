@@ -61,31 +61,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Initialize auth - only run once
     const initializeAuth = async () => {
       try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
+        
+        // If there's an error getting the session (invalid token), clear everything
+        if (error) {
+          console.error('Session error, clearing auth:', error);
+          await supabase.auth.signOut();
+          setCurrentUser(null);
+          setSession(null);
+          setIsLoading(false);
+          return;
+        }
         
         setSession(initialSession);
         
         if (initialSession?.user) {
-          const user = await fetchUserProfile(initialSession.user.id);
-          
-          if (user && !user.active) {
+          try {
+            const user = await fetchUserProfile(initialSession.user.id);
+            
+            if (user && !user.active) {
+              await supabase.auth.signOut();
+              toast({
+                title: "Conta inativa", 
+                description: "Sua conta não está ativa. Entre em contato com o administrador.",
+                variant: "destructive",
+              });
+              setCurrentUser(null);
+              setSession(null);
+            } else {
+              setCurrentUser(user);
+            }
+          } catch (profileError) {
+            console.error('Error fetching user profile, clearing auth:', profileError);
+            // If we can't fetch the profile (invalid token/user), clear auth
             await supabase.auth.signOut();
-            toast({
-              title: "Conta inativa", 
-              description: "Sua conta não está ativa. Entre em contato com o administrador.",
-              variant: "destructive",
-            });
             setCurrentUser(null);
             setSession(null);
-          } else {
-            setCurrentUser(user);
           }
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('Auth initialization error, clearing auth:', error);
+        // Clear any corrupted auth state
+        await supabase.auth.signOut();
         setCurrentUser(null);
+        setSession(null);
       } finally {
         if (mounted) {
           setIsLoading(false);
