@@ -15,7 +15,7 @@ const SectionTitle: React.FC<SectionTitleProps> = ({
       {words.slice(2).length ? ' ' + words.slice(2).join(' ') : ''}
     </>;
   return <div className={`mb-6 text-left ${className || ''}`}>
-      <h2 className="text-2xl font-light mb-2 text-pink-600 md:text-3xl">{formattedTitle}</h2>
+      <h2 className="text-2xl font-light mb-2 text-pink-600 md:text-3xl mt-5 lg:pt-5 ">{formattedTitle}</h2>
       {subtitle}
     </div>;
 };
