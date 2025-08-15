@@ -49,11 +49,8 @@ const MemberList = () => {
 
       <main className="flex-grow">
         {/* Breadcrumbs */}
-        <div className="container p-0 ">
-          <Breadcrumbs backButton={{
-          href: '/',
-          label: 'Voltar'
-        }} />
+        <div className="container py-4">
+          <Breadcrumbs />
         </div>
         
         <div className="container pb-8">

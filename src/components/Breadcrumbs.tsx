@@ -39,14 +39,16 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
               <Link to="/">Início</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
-          {paths.map((p, i) => <React.Fragment key={p.href}>
+          {paths.map((p, i) => (
+            <React.Fragment key={p.href}>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {p.isLast ? <BreadcrumbPage>{p.name}</BreadcrumbPage> : <BreadcrumbLink asChild>
                     <Link to={p.href}>{p.name}</Link>
                   </BreadcrumbLink>}
               </BreadcrumbItem>
-            </React.Fragment>)}
+            </React.Fragment>
+          ))}
         </BreadcrumbList>
       </Breadcrumb>
       

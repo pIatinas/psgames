@@ -52,13 +52,7 @@ const Index = () => {
       <Header />
 
       <main className="flex-grow">
-        {/* Hero Section */}
-        <HeroSection games={recentGames} />
-        
-        {/* Breadcrumbs and Back Button */}
-        <div className="container py-4">
-          <Breadcrumbs />
-        </div>
+        {/* Breadcrumbs removed from home page */}
         {/* Seção de Jogos Recentes */}
         <section className="pb-16 container">
           <SectionTitle title="Jogos Recentes" subtitle="Os últimos jogos adicionados à nossa biblioteca" />

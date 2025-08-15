@@ -141,15 +141,17 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
   return (
     <>
       <div className="glass-card rounded-lg p-6 sticky top-20 space-y-6">
-        <div className="flex items-center justify-center">
-          <div className="w-32 h-32 p-2 rounded-lg neon-blue-border bg-secondary/10">
-            <img 
-              src={account.qr_code} 
-              alt="QR Code"
-              className="w-full h-full object-contain"
-            />
+        {account.qr_code && (
+          <div className="flex items-center justify-center">
+            <div className="w-32 h-32 p-2 rounded-lg neon-blue-border bg-secondary/10">
+              <img 
+                src={account.qr_code} 
+                alt="QR Code"
+                className="w-full h-full object-contain"
+              />
+            </div>
           </div>
-        </div>
+        )}
         
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -211,6 +213,18 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
                 <CheckCircle className="h-12 w-12" />
               </div>
             </div>
+
+            {account.qr_code && (
+              <div className="flex justify-center">
+                <div className="w-48 h-48 p-2 rounded-lg border bg-white">
+                  <img 
+                    src={account.qr_code} 
+                    alt="QR Code de Acesso"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+            )}
             
             <div className="space-y-2">
               <div>

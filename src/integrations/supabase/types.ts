@@ -85,6 +85,44 @@ export type Database = {
           },
         ]
       }
+      account_usage_history: {
+        Row: {
+          account_id: string
+          activated_at: string | null
+          created_at: string | null
+          deactivated_at: string | null
+          id: string
+          slot_number: number
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          activated_at?: string | null
+          created_at?: string | null
+          deactivated_at?: string | null
+          id?: string
+          slot_number: number
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          activated_at?: string | null
+          created_at?: string | null
+          deactivated_at?: string | null
+          id?: string
+          slot_number?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_usage_history_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           birthday: string | null
@@ -175,6 +213,42 @@ export type Database = {
           release_date?: string | null
           silver?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      member_payments: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          id: string
+          member_id: string
+          month: number
+          paid_at: string | null
+          status: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          id?: string
+          member_id: string
+          month: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          id?: string
+          member_id?: string
+          month?: number
+          paid_at?: string | null
+          status?: string
+          updated_at?: string | null
+          year?: number
         }
         Relationships: []
       }

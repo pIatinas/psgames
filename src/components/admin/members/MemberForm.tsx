@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DialogFooter } from "@/components/ui/dialog";
 import { Member, Account } from '@/types';
+import MemberPaymentManager from '@/components/admin/MemberPaymentManager';
+import { Loader2 } from 'lucide-react';
 
 interface MemberFormProps {
   newMember: Partial<Member>;
@@ -17,6 +19,7 @@ interface MemberFormProps {
   handleSaveMember: () => void;
   isEditing: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  saving?: boolean;
 }
 
 const MemberForm: React.FC<MemberFormProps> = ({ 
@@ -28,7 +31,8 @@ const MemberForm: React.FC<MemberFormProps> = ({
   handleAccountToggle, 
   handleSaveMember,
   isEditing,
-  setOpen
+  setOpen,
+  saving = false
 }) => {
   return (
     <div className="grid gap-4 py-4">
@@ -122,16 +126,24 @@ const MemberForm: React.FC<MemberFormProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Payment Management - only show for existing members */}
+      {isEditing && newMember.id && (
+        <MemberPaymentManager memberId={newMember.id} />
+      )}
       
       <DialogFooter>
         <Button variant="outline" onClick={() => {
           setOpen(false);
           setNewMember({ name: '', email: '', password: '', psn_id: '', profile_image: '', isApproved: false });
           setSelectedAccounts([]);
-        }}>
+        }} disabled={saving}>
           Cancelar
         </Button>
-        <Button onClick={handleSaveMember}>Salvar</Button>
+        <Button onClick={handleSaveMember} disabled={saving}>
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Salvar
+        </Button>
       </DialogFooter>
     </div>
   );

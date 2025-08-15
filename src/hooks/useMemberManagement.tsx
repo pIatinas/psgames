@@ -15,6 +15,7 @@ export const useMemberManagement = () => {
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleAccountToggle = (accountId: string, slotNumber: 1 | 2) => {
     const key = `${accountId}-${slotNumber}`;
