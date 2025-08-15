@@ -51,7 +51,7 @@ const Index = () => {
   return <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-grow">
+      <main className="flex-grow pt-5 mt-5 ">
         {/* Breadcrumbs removed from home page */}
         {/* Seção de Jogos Recentes */}
         <section className="pb-16 container">
