@@ -249,9 +249,13 @@ const GameDetail = () => {
               <div>
                 <SectionTitle title="Conta" subtitle={`${gameAccounts.length} ${gameAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}`} />
                 
-                {gameAccounts.length > 0 ? <div className="grid grid-cols-1 gap-4">
-                    {gameAccounts.map(account => <AccountCard key={account.id} account={account} />)}
-                  </div> : <p className="text-white">Nenhuma conta encontrada com este jogo.</p>}
+                 {gameAccounts.length > 0 ? (
+                   <div className="grid grid-cols-1 gap-4">
+                     {gameAccounts.map(account => <AccountCard key={account.id} account={account} />)}
+                   </div>
+                 ) : (
+                   <p className="text-white">Nenhuma conta encontrada com este jogo.</p>
+                 )}
               </div>
             </div>
           </div>

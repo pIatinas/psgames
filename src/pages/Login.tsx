@@ -59,15 +59,18 @@ const Login = () => {
     try {
       const success = await login(values.emailOrPsnId, values.password);
       if (success) {
-        // Navigation will be handled by the useEffect when currentUser updates
-        console.log('Login success, awaiting redirect...');
+        toast({
+          title: "Sucesso",
+          description: "Login realizado com sucesso!"
+        });
+        navigate('/');  // Always redirect to home after login
       } else {
         toast({
           title: "Erro",
           description: "Email ou senha incorretos.",
           variant: "destructive"
         });
-        // Reset reCAPTCHA on error
+        // Reset reCAPTCHA and enable form on error
         recaptchaRef.current?.reset();
         form.setValue('recaptcha', '');
         setIsLoading(false);
@@ -79,7 +82,7 @@ const Login = () => {
         description: "Ocorreu um erro ao fazer login.",
         variant: "destructive"
       });
-      // Reset reCAPTCHA on error
+      // Reset reCAPTCHA and enable form on error
       recaptchaRef.current?.reset();
       form.setValue('recaptcha', '');
       setIsLoading(false);

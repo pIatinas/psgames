@@ -14,12 +14,10 @@ const AdminLayout: React.FC = () => {
       <Header />
       
       <main className="flex-grow container py-8">
-        <div className="flex justify-between items-center mb-8">
-          <SectionTitle 
-            title="Gerenciar" 
-            subtitle="Painel de administração do sistema"
-          />
-        </div>
+        <SectionTitle 
+          title="Gerenciar" 
+          subtitle="Painel de administração do sistema"
+        />
         
         <Tabs defaultValue="games" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-muted rounded-full p-1">

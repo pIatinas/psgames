@@ -45,15 +45,6 @@ const MemberForm: React.FC<MemberFormProps> = ({
         />
       </div>
       
-      <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
-        <Input 
-          id="email" 
-          type="email"
-          value={newMember.email} 
-          onChange={(e) => setNewMember({...newMember, email: e.target.value})}
-        />
-      </div>
       
       <div className="grid gap-2">
         <Label htmlFor="password">Senha</Label>

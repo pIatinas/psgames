@@ -201,9 +201,10 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
 
   return (
     <div className="space-y-6">
-      {/* Add Account Button */}
-      {isAdmin && (
-        <div className="flex justify-end">
+      {/* Header with title and add button */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-white">Contas</h2>
+        {isAdmin && (
           <Button 
             onClick={handleOpenCreateModal}
             className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
@@ -211,8 +212,8 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
             <Plus className="h-4 w-4 mr-2" />
             Cadastrar Conta
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Accounts Table */}
       <div className="border rounded-lg">

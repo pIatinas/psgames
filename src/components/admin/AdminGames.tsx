@@ -225,9 +225,10 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
 
   return (
     <div className="space-y-6">
-      {/* Add Game Button */}
-      {isAdmin && (
-        <div className="flex justify-end">
+      {/* Header with title and add button */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-white">Jogos</h2>
+        {isAdmin && (
           <Button 
             onClick={handleOpenCreateModal}
             className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
@@ -235,8 +236,8 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
             <Plus className="h-4 w-4 mr-2" />
             Cadastrar Jogo
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Games Table */}
       <div className="border rounded-lg">

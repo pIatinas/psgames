@@ -1,10 +1,29 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Settings, Gamepad2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Breadcrumbs from '@/components/Breadcrumbs';
+
+// Navigation link component with active state
+const NavigationLink = ({ to, label }: { to: string; label: string }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+  
+  return (
+    <Link 
+      to={to} 
+      className={`px-3 py-2 rounded-md transition-colors ${
+        isActive 
+          ? 'bg-purple-800 text-white' 
+          : 'text-muted-foreground hover:text-white'
+      }`}
+    >
+      {label}
+    </Link>
+  );
+};
 const Header = () => {
   const {
     currentUser,
@@ -25,18 +44,10 @@ const Header = () => {
           
           <nav className="flex-1 flex justify-center">
             <div className="flex items-center space-x-6">
-              <Link to="/" className="text-muted-foreground hover:text-white transition-colors">
-                Home
-              </Link>
-              <Link to="/games" className="text-muted-foreground hover:text-white transition-colors">
-                Jogos
-              </Link>
-              <Link to="/accounts" className="text-muted-foreground hover:text-white transition-colors">
-                Contas
-              </Link>
-              <Link to="/members" className="text-muted-foreground hover:text-white transition-colors">
-                Membros
-              </Link>
+              <NavigationLink to="/" label="Home" />
+              <NavigationLink to="/games" label="Jogos" />
+              <NavigationLink to="/accounts" label="Contas" />
+              <NavigationLink to="/members" label="Membros" />
             </div>
           </nav>
           

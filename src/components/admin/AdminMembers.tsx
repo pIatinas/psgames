@@ -134,12 +134,13 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     
     if (isSubmitting) return;
     setIsSubmitting(true);
-    if (!formData.name || !formData.email) {
+    if (!formData.name || (!editingMember && !formData.email)) {
       toast({
         title: "Erro",
         description: "Nome e email são obrigatórios.",
         variant: "destructive"
       });
+      setIsSubmitting(false);
       return;
     }
 
@@ -218,20 +219,30 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     if (!deleteMemberId) return;
 
     try {
-      // Remove account associations
-      await userService.linkToAccounts(deleteMemberId, []);
-      
-      toast({
-        title: "Associações removidas",
-        description: "As associações de conta do membro foram removidas."
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['admin-members'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      // Delete user completely from the database
+      const success = await userService.deleteUser(deleteMemberId);
+      if (success) {
+        // Remove from local state immediately
+        queryClient.setQueryData(['admin-members'], (oldData: User[] | undefined) => 
+          oldData ? oldData.filter(member => member.id !== deleteMemberId) : []
+        );
+        queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+        queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+        toast({
+          title: "Membro excluído",
+          description: "O membro foi excluído com sucesso."
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível excluir o membro.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível remover as associações do membro.",
+        description: "Não foi possível excluir o membro.",
         variant: "destructive"
       });
     } finally {
@@ -251,9 +262,10 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
 
   return (
     <div className="space-y-6">
-      {/* Add Member Button */}
-      {isAdmin && (
-        <div className="flex justify-end">
+      {/* Header with title and add button */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-white">Membros</h2>
+        {isAdmin && (
           <Button 
             onClick={handleOpenCreateModal}
             className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
@@ -261,8 +273,8 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
             <Plus className="h-4 w-4 mr-2" />
             Cadastrar Membro
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Members Table */}
       <div className="border rounded-lg">
@@ -380,17 +392,18 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                 />
               </div>
               
-              <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={formData.email} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  required 
-                  disabled={!!editingMember}
-                />
-              </div>
+              {!editingMember && (
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={formData.email} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    required 
+                  />
+                </div>
+              )}
             </div>
 
             {!editingMember && (
@@ -496,15 +509,15 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
       <AlertDialog open={!!deleteMemberId} onOpenChange={() => setDeleteMemberId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Remoção</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja remover este membro? Esta ação removerá todas as associações de conta do membro.
+              Tem certeza que deseja excluir este membro? Esta ação não pode ser desfeita e removerá completamente o membro do sistema.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
-              Remover
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

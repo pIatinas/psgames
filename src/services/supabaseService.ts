@@ -581,5 +581,31 @@ export const userService = {
     }
     
     return true;
+  },
+
+  async deleteUser(userId: string): Promise<boolean> {
+    try {
+      // First remove all account slots for this user
+      await supabase
+        .from('account_slots')
+        .delete()
+        .eq('user_id', userId);
+
+      // Delete user profile
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Error deleting user profile:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in deleteUser:', error);
+      return false;
+    }
   }
 };
