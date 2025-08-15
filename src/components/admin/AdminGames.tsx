@@ -113,6 +113,8 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
     );
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.image || !formData.banner) {
@@ -179,6 +181,8 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
         description: "Não foi possível salvar o jogo.",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -462,8 +466,8 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">
-                {editingGame ? 'Atualizar' : 'Criar'} Jogo
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (editingGame ? "Atualizando..." : "Criando...") : (editingGame ? 'Atualizar' : 'Criar')} Jogo
               </Button>
             </DialogFooter>
           </form>

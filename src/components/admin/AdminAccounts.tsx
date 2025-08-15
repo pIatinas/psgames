@@ -85,8 +85,13 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
     );
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (!formData.email) {
       toast({
         title: "Erro",
@@ -152,6 +157,8 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
         description: "Não foi possível salvar a conta.",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -385,8 +392,8 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">
-                {editingAccount ? 'Atualizar' : 'Criar'} Conta
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (editingAccount ? "Atualizando..." : "Criando...") : (editingAccount ? 'Atualizar' : 'Criar')} Conta
               </Button>
             </DialogFooter>
           </form>

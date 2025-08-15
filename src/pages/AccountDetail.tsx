@@ -28,6 +28,8 @@ const AccountDetail = () => {
     slug: string;
   }>();
   const [openCredentialsDialog, setOpenCredentialsDialog] = React.useState(false);
+  const [isActivating, setIsActivating] = React.useState(false);
+  const [isReleasing, setIsReleasing] = React.useState(false);
 
   // Extract account ID from slug
   const accountId = slug ? parseAccountSlug(slug) : null;
@@ -81,6 +83,10 @@ const AccountDetail = () => {
       navigate('/login');
       return;
     }
+    
+    if (isActivating) return;
+    setIsActivating(true);
+    
     try {
       const success = await accountService.assignSlot(account.id, slotNumber, currentUser.id);
       if (success) {
@@ -94,6 +100,7 @@ const AccountDetail = () => {
           title: "Conta ativada",
           description: "Você agora está utilizando esta conta."
         });
+        refetch(); // Refetch to update UI
       } else {
         toast({
           title: "Erro",
@@ -108,10 +115,16 @@ const AccountDetail = () => {
         description: "Ocorreu um erro ao ativar a conta.",
         variant: "destructive"
       });
+    } finally {
+      setIsActivating(false);
     }
   };
   const handleReleaseAccount = async () => {
     if (!currentUser || !account.slots) return;
+    
+    if (isReleasing) return;
+    setIsReleasing(true);
+    
     try {
       const userSlot = account.slots.find(slot => slot.user_id === currentUser.id);
       if (userSlot) {
@@ -126,6 +139,7 @@ const AccountDetail = () => {
             title: "Conta devolvida",
             description: "Você devolveu a conta com sucesso."
           });
+          refetch(); // Refetch to update UI
         } else {
           toast({
             title: "Erro",
@@ -141,6 +155,8 @@ const AccountDetail = () => {
         description: "Ocorreu um erro ao devolver a conta.",
         variant: "destructive"
       });
+    } finally {
+      setIsReleasing(false);
     }
   };
   const getSlotByNumber = (slotNumber: number) => {
@@ -189,8 +205,13 @@ const AccountDetail = () => {
                           {!isSlotOccupied(1) ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                         </div>
                         <div className="text-sm mt-2 text-center">
-                          {!isSlotOccupied(1) ? <Button size="sm" onClick={() => handleUseSlot(1)} disabled={!currentUser} className="w-full">
-                              Utilizar
+                          {!isSlotOccupied(1) ? <Button 
+                              size="sm" 
+                              onClick={() => handleUseSlot(1)} 
+                              disabled={!currentUser || isActivating} 
+                              className="w-full"
+                            >
+                              {isActivating ? "Ativando..." : "Utilizar"}
                             </Button> : 'Ocupado'}
                         </div>
                       </div>
@@ -200,8 +221,13 @@ const AccountDetail = () => {
                           {!isSlotOccupied(2) ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                         </div>
                         <div className="text-sm mt-2 text-center">
-                          {!isSlotOccupied(2) ? <Button size="sm" onClick={() => handleUseSlot(2)} disabled={!currentUser} className="w-full">
-                              Utilizar
+                          {!isSlotOccupied(2) ? <Button 
+                              size="sm" 
+                              onClick={() => handleUseSlot(2)} 
+                              disabled={!currentUser || isActivating} 
+                              className="w-full"
+                            >
+                              {isActivating ? "Ativando..." : "Utilizar"}
                             </Button> : 'Ocupado'}
                         </div>
                       </div>
@@ -209,8 +235,14 @@ const AccountDetail = () => {
                   </div>
                 </div>
                 
-                {isUsingSlot && <Button size="lg" variant="destructive" className="w-full" onClick={handleReleaseAccount}>
-                    Devolver
+                {isUsingSlot && <Button 
+                    size="lg" 
+                    variant="destructive" 
+                    className="w-full" 
+                    onClick={handleReleaseAccount}
+                    disabled={isReleasing}
+                  >
+                    {isReleasing ? "Devolvendo..." : "Devolver"}
                   </Button>}
               </div>
             </div>

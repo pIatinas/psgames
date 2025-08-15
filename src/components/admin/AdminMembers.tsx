@@ -127,8 +127,13 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     if (!formData.name || !formData.email) {
       toast({
         title: "Erro",
@@ -204,6 +209,8 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
         description: "Não foi possível salvar o membro.",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -477,8 +484,8 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">
-                {editingMember ? 'Atualizar' : 'Criar'} Membro
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (editingMember ? "Atualizando..." : "Criando...") : (editingMember ? 'Atualizar' : 'Criar')} Membro
               </Button>
             </DialogFooter>
           </form>
