@@ -121,7 +121,7 @@ const MemberDetail = () => {
               </Card>
 
               {/* Member Account History */}
-              <MemberAccountHistory accounts={accounts} memberId={memberId || ''} />
+              <MemberAccountHistory memberId={memberId || ''} />
             </div>
             
             {/* Barra lateral */}

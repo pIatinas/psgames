@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,12 +11,16 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from '@/hooks/useAuth';
 import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import ReCaptcha, { ReCaptchaRef } from '@/components/ReCaptcha';
 const formSchema = z.object({
   emailOrPsnId: z.string().min(1, {
     message: "Campo obrigatório"
   }),
   password: z.string().min(1, {
     message: "Campo obrigatório"
+  }),
+  recaptcha: z.string().min(1, {
+    message: "Por favor, complete o reCAPTCHA"
   })
 });
 const Login = () => {
@@ -32,6 +36,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const recaptchaRef = useRef<ReCaptchaRef>(null);
 
   // Admin user should be created through Supabase dashboard for security
 
@@ -45,7 +50,8 @@ const Login = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       emailOrPsnId: "",
-      password: ""
+      password: "",
+      recaptcha: ""
     }
   });
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -55,6 +61,16 @@ const Login = () => {
       if (success) {
         // Navigation will be handled by the useEffect when currentUser updates
         console.log('Login success, awaiting redirect...');
+      } else {
+        toast({
+          title: "Erro",
+          description: "Email ou senha incorretos.",
+          variant: "destructive"
+        });
+        // Reset reCAPTCHA on error
+        recaptchaRef.current?.reset();
+        form.setValue('recaptcha', '');
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -63,6 +79,9 @@ const Login = () => {
         description: "Ocorreu um erro ao fazer login.",
         variant: "destructive"
       });
+      // Reset reCAPTCHA on error
+      recaptchaRef.current?.reset();
+      form.setValue('recaptcha', '');
       setIsLoading(false);
     }
   };
@@ -102,6 +121,30 @@ const Login = () => {
                       </FormControl>
                       <FormMessage />
                     </FormItem>} />
+                
+                <FormField control={form.control} name="recaptcha" render={({
+                field
+              }) => <FormItem>
+                      <FormLabel className="text-white">Verificação</FormLabel>
+                      <FormControl>
+                        <div className="flex justify-center">
+                          <ReCaptcha 
+                            ref={recaptchaRef}
+                            onChange={(token) => {
+                              field.onChange(token || '');
+                            }}
+                            onExpired={() => {
+                              field.onChange('');
+                            }}
+                            onError={() => {
+                              field.onChange('');
+                            }}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>} />
+                
                 <Button type="submit" disabled={isLoading} className="w-full mt-6 bg-pink-600 hover:bg-pink-500">
                   {isLoading ? "Entrando..." : "Entrar"}
                 </Button>

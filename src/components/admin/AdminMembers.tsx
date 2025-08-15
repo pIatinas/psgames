@@ -289,7 +289,7 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                   <TableCell className="font-medium">{member.name}</TableCell>
                   <TableCell>{member.email}</TableCell>
                   <TableCell>
-                    <Badge variant={member.role === 'admin' ? 'default' : 'secondary'}>
+                    <Badge variant={member.role === 'admin' ? 'blue' : 'secondary'}>
                       {member.role === 'admin' ? 'Admin' : 'Membro'}
                     </Badge>
                   </TableCell>
