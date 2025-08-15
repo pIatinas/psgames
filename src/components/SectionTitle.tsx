@@ -16,7 +16,7 @@ const SectionTitle: React.FC<SectionTitleProps> = ({
     </>;
   return <div className={`mb-6 text-left ${className || ''}`}>
       <h2 className="text-2xl font-light mb-2 text-pink-600 md:text-3xl ">{formattedTitle}</h2>
-      {subtitle}
+      <span className="opacity-60">{subtitle}</span>
     </div>;
 };
 export default SectionTitle;
