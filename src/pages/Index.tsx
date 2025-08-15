@@ -62,7 +62,7 @@ const Index = () => {
                 {recentGames.map(game => <GameCard key={game.id} game={game} />)}
               </div>
               
-              <SeeAllButton to="/games" label="Ver Todos os Jogos" />
+              <SeeAllButton to="/games" label="Ver Todos" />
             </> : <div className="text-center py-8">
               <p className="text-muted-foreground">Nenhum jogo cadastrado ainda.</p>
             </div>}
@@ -78,7 +78,7 @@ const Index = () => {
                   {recentAccounts.map(account => <AccountCard key={account.id} account={account} />)}
                 </div>
                 
-                <SeeAllButton to="/accounts" label="Ver Todas as Contas" />
+                <SeeAllButton to="/accounts" label="Ver Todas" />
               </> : <div className="text-center py-8">
                 <p className="text-muted-foreground">Nenhuma conta cadastrada ainda.</p>
               </div>}
@@ -94,7 +94,7 @@ const Index = () => {
                 {recentMembers.map(member => <MemberCard key={member.id} member={member} />)}
               </div>
               
-              <SeeAllButton to="/members" label="Ver Todos os Membros" />
+              <SeeAllButton to="/members" label="Ver Todos" />
             </> : <div className="text-center py-8">
               <p className="text-muted-foreground">Nenhum membro cadastrado ainda.</p>
             </div>}
