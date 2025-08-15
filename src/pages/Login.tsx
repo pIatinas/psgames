@@ -23,7 +23,8 @@ const Login = () => {
   const {
     login,
     currentUser,
-    session
+    session,
+    isLoading: authLoading
   } = useAuth();
   const {
     toast
@@ -36,10 +37,10 @@ const Login = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (currentUser) {
-      navigate('/');
+    if (currentUser && !authLoading) {
+      navigate('/', { replace: true });
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, authLoading, navigate]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -52,7 +53,8 @@ const Login = () => {
     try {
       const success = await login(values.emailOrPsnId, values.password);
       if (success) {
-        navigate('/');
+        // Navigation will be handled by the useEffect when currentUser updates
+        console.log('Login success, awaiting redirect...');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -61,7 +63,6 @@ const Login = () => {
         description: "Ocorreu um erro ao fazer login.",
         variant: "destructive"
       });
-    } finally {
       setIsLoading(false);
     }
   };
