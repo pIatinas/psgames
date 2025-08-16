@@ -60,7 +60,7 @@ const Index = () => {
             {recentGames.length > 0 && <SeeAllButton to="/games" label="Ver Todos" />}
           </div>
           
-          {recentGames.length > 0 ? <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {recentGames.length > 0 ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {recentGames.map(game => <GameCard key={game.id} game={game} />)}
             </div> : <div className="text-center py-8">
               <p className="text-muted-foreground">Nenhum jogo cadastrado ainda.</p>
