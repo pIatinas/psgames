@@ -14,10 +14,10 @@ const SeeAllButton: React.FC<SeeAllButtonProps> = ({
   label = 'Ver Todos'
 }) => {
   return (
-    <div className="flex justify-center mt-8">
+    <div className="flex justify-center">
       <Button 
         size="lg" 
-        className="bg-pink-600 hover:bg-pink-700 text-white rounded-full group"
+        className="bg-secondary hover:bg-secondary/90 text-white rounded-full group"
         asChild
       >
         <Link to={to}>
