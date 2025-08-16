@@ -55,7 +55,7 @@ const Header = () => {
             
             {currentUser ? <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="font-bold text-slate-50 bg-gray-950 hover:bg-gray-800">
+                  <Button variant="outline" size="sm" className="font-bold text-slate-50 hover:bg-gray-950">
                     <User className="h-4 w-4 mr-2" />
                     {currentUser.name}
                   </Button>
