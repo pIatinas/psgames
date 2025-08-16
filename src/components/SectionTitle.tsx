@@ -14,9 +14,9 @@ const SectionTitle: React.FC<SectionTitleProps> = ({
       {words[0] || ''} {words[1] ? <span className="font-bold">{words[1]}</span> : null}
       {words.slice(2).length ? ' ' + words.slice(2).join(' ') : ''}
     </>;
-  return <div className={`mb-6 text-left ${className || ''}`}>
+  return <div className={`text-left ${className || ''}`}>
       <h2 className="text-2xl font-light mb-2 text-pink-600 md:text-3xl ">{formattedTitle}</h2>
-      <span className="opacity-60 -mt-5">{subtitle}</span>
+      <span className="opacity-60">{subtitle}</span>
     </div>;
 };
 export default SectionTitle;
