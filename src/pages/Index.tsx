@@ -55,7 +55,7 @@ const Index = () => {
         {/* Breadcrumbs removed from home page */}
         {/* Seção de Jogos Recentes */}
         <section className="pb-16 container">
-          <div className="flex justify-between items-center ">
+          <div className="flex justify-between items-center mb-10">
             <SectionTitle title="Jogos Recentes" subtitle="Os últimos jogos adicionados à nossa biblioteca" />
             {recentGames.length > 0 && <SeeAllButton to="/games" label="Ver Todos" />}
           </div>
