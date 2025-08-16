@@ -124,22 +124,14 @@ const GameDetail = () => {
         
         {/* Hero Banner */}
         <div className="relative h-[40vh] min-h-[300px] max-h-[500px]">
-          {game.banner ? (
-            <img src={game.banner} alt={game.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50" />
-          )}
+          {game.banner ? <img src={game.banner} alt={game.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50" />}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent"></div>
           
           <div className="absolute bottom-0 left-0 right-0 container py-8">
             
             <div className="flex items-end gap-6">
               <div className="hidden md:block w-48 h-48 rounded-lg overflow-hidden shadow-lg">
-                <ImagePlaceholder 
-                  src={game.image} 
-                  alt={game.name} 
-                  className="w-full h-full"
-                />
+                <ImagePlaceholder src={game.image} alt={game.name} className="w-full h-full" />
               </div>
               
               <div className="flex-1">
@@ -167,9 +159,7 @@ const GameDetail = () => {
             {/* Coluna principal */}
             <div className="lg:col-span-2 space-y-8">
               {/* Trophy counts from database - moved above description */}
-              {(game.platinum || game.gold || game.silver || game.bronze) && (
-                ((game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0)) > 0
-              ) && <div>
+              {(game.platinum || game.gold || game.silver || game.bronze) && (game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0) > 0 && <div>
                   <SectionTitle title="Troféus" />
                   <div className="grid grid-cols-5 gap-2">
                     <div className="bg-gray-800/50 rounded-lg p-3 text-center">
@@ -249,13 +239,9 @@ const GameDetail = () => {
               <div>
                 <SectionTitle title="Conta" subtitle={`${gameAccounts.length} ${gameAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}`} />
                 
-                 {gameAccounts.length > 0 ? (
-                   <div className="grid grid-cols-1 gap-4">
+                 {gameAccounts.length > 0 ? <div className="grid grid-cols-1 gap-4">
                      {gameAccounts.map(account => <AccountCard key={account.id} account={account} />)}
-                   </div>
-                 ) : (
-                   <p className="text-white">Nenhuma conta encontrada com este jogo.</p>
-                 )}
+                   </div> : <p className="text-white">Nenhuma conta encontrada com este jogo.</p>}
               </div>
             </div>
           </div>
@@ -279,7 +265,7 @@ const AccountCard = ({
   const isSlotOccupied = (slotNumber: number) => {
     return getSlotByNumber(slotNumber) !== undefined;
   };
-  return <div className="border rounded-lg p-4">
+  return <div className="border rounded-lg p-4 mt-5">
       <div className="flex justify-between mb-2">
         <h3 className="font-medium text-white">
           {account.email.split('@')[0]}
