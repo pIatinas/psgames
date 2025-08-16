@@ -55,22 +55,16 @@ const Index = () => {
         {/* Breadcrumbs removed from home page */}
         {/* Seção de Jogos Recentes */}
         <section className="pb-16 container">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center ">
             <SectionTitle title="Jogos Recentes" subtitle="Os últimos jogos adicionados à nossa biblioteca" />
-            {recentGames.length > 0 && (
-              <SeeAllButton to="/games" label="Ver Todos" />
-            )}
+            {recentGames.length > 0 && <SeeAllButton to="/games" label="Ver Todos" />}
           </div>
           
-          {recentGames.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {recentGames.length > 0 ? <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {recentGames.map(game => <GameCard key={game.id} game={game} />)}
-            </div>
-          ) : (
-            <div className="text-center py-8">
+            </div> : <div className="text-center py-8">
               <p className="text-muted-foreground">Nenhum jogo cadastrado ainda.</p>
-            </div>
-          )}
+            </div>}
         </section>
         
         {/* Seção de Contas */}
@@ -78,20 +72,14 @@ const Index = () => {
           <div className="container">
             <div className="flex justify-between items-center mb-8">
               <SectionTitle title="Contas Disponíveis" subtitle="Explore as contas com uma diversidade de jogos" />
-              {recentAccounts.length > 0 && (
-                <SeeAllButton to="/accounts" label="Ver Todas" />
-              )}
+              {recentAccounts.length > 0 && <SeeAllButton to="/accounts" label="Ver Todas" />}
             </div>
             
-            {recentAccounts.length > 0 ? (
-              <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {recentAccounts.length > 0 ? <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {recentAccounts.map(account => <AccountCard key={account.id} account={account} />)}
-              </div>
-            ) : (
-              <div className="text-center py-8">
+              </div> : <div className="text-center py-8">
                 <p className="text-muted-foreground">Nenhuma conta cadastrada ainda.</p>
-              </div>
-            )}
+              </div>}
           </div>
         </section>
         
@@ -99,20 +87,14 @@ const Index = () => {
         <section className="py-16 container">
           <div className="flex justify-between items-center mb-8">
             <SectionTitle title="Nosso Grupo" subtitle="Conheça os membros do nosso grupo de jogadores" />
-            {recentMembers.length > 0 && (
-              <SeeAllButton to="/members" label="Ver Todos" />
-            )}
+            {recentMembers.length > 0 && <SeeAllButton to="/members" label="Ver Todos" />}
           </div>
           
-          {recentMembers.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {recentMembers.length > 0 ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {recentMembers.map(member => <MemberCard key={member.id} member={member} />)}
-            </div>
-          ) : (
-            <div className="text-center py-8">
+            </div> : <div className="text-center py-8">
               <p className="text-muted-foreground">Nenhum membro cadastrado ainda.</p>
-            </div>
-          )}
+            </div>}
         </section>
       </main>
 
