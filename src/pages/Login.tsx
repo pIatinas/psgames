@@ -18,9 +18,6 @@ const formSchema = z.object({
   }),
   password: z.string().min(1, {
     message: "Campo obrigatório"
-  }),
-  recaptcha: z.string().min(1, {
-    message: "Por favor, complete o reCAPTCHA"
   })
 });
 const Login = () => {
@@ -50,14 +47,22 @@ const Login = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       emailOrPsnId: "",
-      password: "",
-      recaptcha: ""
+      password: ""
     }
   });
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleFormSubmit = async (values: z.infer<typeof formSchema>) => {
+    // Execute invisible reCAPTCHA first
+    recaptchaRef.current?.execute();
+  };
+
+  const onRecaptchaChange = async (token: string | null) => {
+    if (!token) return;
+    
     setIsLoading(true);
+    const formValues = form.getValues();
+    
     try {
-      const success = await login(values.emailOrPsnId, values.password);
+      const success = await login(formValues.emailOrPsnId, formValues.password);
       if (success) {
         toast({
           title: "Sucesso",
@@ -72,7 +77,6 @@ const Login = () => {
         });
         // Reset reCAPTCHA and enable form on error
         recaptchaRef.current?.reset();
-        form.setValue('recaptcha', '');
         setIsLoading(false);
       }
     } catch (error) {
@@ -84,7 +88,6 @@ const Login = () => {
       });
       // Reset reCAPTCHA and enable form on error
       recaptchaRef.current?.reset();
-      form.setValue('recaptcha', '');
       setIsLoading(false);
     }
   };
@@ -100,7 +103,7 @@ const Login = () => {
           </div>
           <div>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
                 <FormField control={form.control} name="emailOrPsnId" render={({
                 field
               }) => <FormItem>
@@ -125,34 +128,30 @@ const Login = () => {
                       <FormMessage />
                     </FormItem>} />
                 
-                <FormField control={form.control} name="recaptcha" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel className="text-white">Verificação</FormLabel>
-                      <FormControl>
-                        <div className="flex justify-center">
-                          <ReCaptcha 
-                            ref={recaptchaRef}
-                            onChange={(token) => {
-                              field.onChange(token || '');
-                            }}
-                            onExpired={() => {
-                              field.onChange('');
-                            }}
-                            onError={() => {
-                              field.onChange('');
-                            }}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-                
                 <Button type="submit" disabled={isLoading} className="w-full mt-6 bg-pink-600 hover:bg-pink-500">
                   {isLoading ? "Entrando..." : "Entrar"}
                 </Button>
               </form>
             </Form>
+            
+            {/* Invisible reCAPTCHA */}
+            <ReCaptcha 
+              ref={recaptchaRef}
+              onChange={onRecaptchaChange}
+              onExpired={() => {
+                recaptchaRef.current?.reset();
+                setIsLoading(false);
+              }}
+              onError={() => {
+                recaptchaRef.current?.reset();
+                setIsLoading(false);
+                toast({
+                  title: "Erro",
+                  description: "Erro na verificação. Tente novamente.",
+                  variant: "destructive"
+                });
+              }}
+            />
           </div>
           <div className="flex flex-col mt-6 space-y-2">
             <div className="text-center text-white text-sm">

@@ -4,14 +4,13 @@ import ReCAPTCHA from 'react-google-recaptcha';
 export interface ReCaptchaRef {
   reset: () => void;
   getValue: () => string | null;
+  execute: () => void;
 }
 
 interface ReCaptchaProps {
   onChange?: (token: string | null) => void;
   onExpired?: () => void;
   onError?: () => void;
-  size?: 'compact' | 'normal';
-  theme?: 'light' | 'dark';
 }
 
 const RECAPTCHA_SITE_KEY = '6LdYeqcrAAAAAFP8DwaRhxjSogUEQfh2WuayEJcz';
@@ -19,9 +18,7 @@ const RECAPTCHA_SITE_KEY = '6LdYeqcrAAAAAFP8DwaRhxjSogUEQfh2WuayEJcz';
 const ReCaptcha = forwardRef<ReCaptchaRef, ReCaptchaProps>(({
   onChange,
   onExpired,
-  onError,
-  size = 'normal',
-  theme = 'dark'
+  onError
 }, ref) => {
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
@@ -31,6 +28,9 @@ const ReCaptcha = forwardRef<ReCaptchaRef, ReCaptchaProps>(({
     },
     getValue: () => {
       return recaptchaRef.current?.getValue() || null;
+    },
+    execute: () => {
+      recaptchaRef.current?.execute();
     }
   }));
 
@@ -41,8 +41,7 @@ const ReCaptcha = forwardRef<ReCaptchaRef, ReCaptchaProps>(({
       onChange={onChange}
       onExpired={onExpired}
       onError={onError}
-      size={size}
-      theme={theme}
+      size="invisible"
     />
   );
 });
