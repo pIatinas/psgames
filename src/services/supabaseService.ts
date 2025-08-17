@@ -536,6 +536,19 @@ export const userService = {
         return false;
       }
 
+      // If deactivating user, clear all their account slots
+      if (!active) {
+        const { error: slotError } = await supabase
+          .from('account_slots')
+          .update({ user_id: null, entered_at: null })
+          .eq('user_id', userId);
+
+        if (slotError) {
+          console.error('Error clearing user slots:', slotError);
+          // Don't fail the operation just for this
+        }
+      }
+
       return true;
     } catch (error) {
       console.error('Error in toggleUserActive:', error);
