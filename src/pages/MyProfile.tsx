@@ -14,12 +14,15 @@ import { userService, accountService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types';
-
 const MyProfile: React.FC = () => {
-  const { currentUser, updateCurrentUser } = useAuth();
-  const { toast } = useToast();
+  const {
+    currentUser,
+    updateCurrentUser
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -31,16 +34,16 @@ const MyProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch user's accounts
-  const { data: accounts = [] } = useQuery({
+  const {
+    data: accounts = []
+  } = useQuery({
     queryKey: ['user-accounts', currentUser?.id],
     queryFn: () => accountService.getAll(),
     enabled: !!currentUser?.id
   });
 
   // Filter accounts where user has slots
-  const userAccounts = accounts.filter(account => 
-    account.slots?.some(slot => slot.user_id === currentUser?.id)
-  );
+  const userAccounts = accounts.filter(account => account.slots?.some(slot => slot.user_id === currentUser?.id));
 
   // Redirect if not logged in
   useEffect(() => {
@@ -57,11 +60,9 @@ const MyProfile: React.FC = () => {
       setProfileImage(currentUser.profile?.avatar_url || null);
     }
   }, [currentUser, navigate]);
-
   if (!currentUser) {
     return null;
   }
-
   const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -69,12 +70,14 @@ const MyProfile: React.FC = () => {
       reader.onload = () => {
         const result = reader.result as string;
         setProfileImage(result);
-        setFormData(prev => ({ ...prev, avatar_url: result }));
+        setFormData(prev => ({
+          ...prev,
+          avatar_url: result
+        }));
       };
       reader.readAsDataURL(file);
     }
   };
-
   const handleBannerImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -85,11 +88,9 @@ const MyProfile: React.FC = () => {
       reader.readAsDataURL(file);
     }
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       // Update profile in Supabase
       const updatedProfile = await userService.updateProfile(currentUser.id, {
@@ -99,21 +100,22 @@ const MyProfile: React.FC = () => {
 
       // Update email if changed (requires auth update)
       if (formData.email !== currentUser.email) {
-        const { error: emailError } = await supabase.auth.updateUser({
+        const {
+          error: emailError
+        } = await supabase.auth.updateUser({
           email: formData.email
         });
-        
         if (emailError) {
           console.error('Error updating email:', emailError);
           toast({
             title: "Aviso",
             description: "Perfil atualizado, mas houve erro ao atualizar o email.",
-            variant: "destructive",
+            variant: "destructive"
           });
         } else {
           toast({
             title: "Email atualizado",
-            description: "Verifique sua caixa de entrada para confirmar o novo email.",
+            description: "Verifique sua caixa de entrada para confirmar o novo email."
           });
         }
       }
@@ -128,43 +130,41 @@ const MyProfile: React.FC = () => {
           name: formData.name
         } : undefined
       };
-
       if (updateCurrentUser) {
         updateCurrentUser(updatedUser);
       }
-
       toast({
         title: "Perfil atualizado",
-        description: "Suas informações foram atualizadas com sucesso.",
+        description: "Suas informações foram atualizadas com sucesso."
       });
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao atualizar o perfil.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
   const handlePasswordChange = async () => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(currentUser.email || '', {
+      const {
+        error
+      } = await supabase.auth.resetPasswordForEmail(currentUser.email || '', {
         redirectTo: window.location.origin + '/login'
       });
-      
       if (error) {
         toast({
           title: "Erro",
           description: "Não foi possível enviar o email de redefinição de senha.",
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         toast({
           title: "Email enviado",
-          description: "Verifique sua caixa de entrada para redefinir sua senha.",
+          description: "Verifique sua caixa de entrada para redefinir sua senha."
         });
       }
     } catch (error) {
@@ -172,24 +172,18 @@ const MyProfile: React.FC = () => {
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao solicitar redefinição de senha.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const defaultProfileImage = `https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=200&h=200&fit=crop&crop=face`;
-
-  return (
-    <div className="flex flex-col min-h-screen">
+  return <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="flex-grow container py-8">
-        <SectionTitle 
-          title="Meu Perfil" 
-          subtitle="Gerencie suas informações pessoais"
-        />
+        <SectionTitle title="Meu Perfil" subtitle="Gerencie suas informações pessoais" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-5 ">
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
@@ -199,25 +193,18 @@ const MyProfile: React.FC = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome *</Label>
-                    <Input 
-                      id="name" 
-                      value={formData.name} 
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Seu nome completo"
-                      required
-                    />
+                    <Input id="name" value={formData.name} onChange={e => setFormData(prev => ({
+                    ...prev,
+                    name: e.target.value
+                  }))} placeholder="Seu nome completo" required />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="email">Email *</Label>
-                    <Input 
-                      id="email"
-                      type="email"
-                      value={formData.email} 
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="Seu email"
-                      required
-                    />
+                    <Input id="email" type="email" value={formData.email} onChange={e => setFormData(prev => ({
+                    ...prev,
+                    email: e.target.value
+                  }))} placeholder="Seu email" required />
                     <p className="text-sm text-muted-foreground">
                       Alterar o email requer confirmação via email
                     </p>
@@ -225,23 +212,15 @@ const MyProfile: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="avatar_url">URL do Avatar</Label>
-                    <Input 
-                      id="avatar_url"
-                      type="url"
-                      value={formData.avatar_url} 
-                      onChange={(e) => setFormData(prev => ({ ...prev, avatar_url: e.target.value }))}
-                      placeholder="URL da imagem do seu avatar"
-                    />
+                    <Input id="avatar_url" type="url" value={formData.avatar_url} onChange={e => setFormData(prev => ({
+                    ...prev,
+                    avatar_url: e.target.value
+                  }))} placeholder="URL da imagem do seu avatar" />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="role">Função</Label>
-                    <Input 
-                      id="role"
-                      value={formData.role === 'admin' ? 'Administrador' : 'Membro'} 
-                      disabled
-                      className="bg-muted"
-                    />
+                    <Input id="role" value={formData.role === 'admin' ? 'Administrador' : 'Membro'} disabled className="bg-muted" />
                     <p className="text-sm text-muted-foreground">
                       A função não pode ser alterada
                     </p>
@@ -261,48 +240,38 @@ const MyProfile: React.FC = () => {
             </Card>
 
             {/* User's Active Accounts */}
-            {userAccounts.length > 0 && (
-              <Card className="mt-8">
+            {userAccounts.length > 0 && <Card className="mt-8">
                 <CardHeader>
                   <CardTitle>Minhas Contas Ativas</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {userAccounts.map(account => {
-                      const userSlots = account.slots?.filter(slot => slot.user_id === currentUser.id) || [];
-                      return (
-                        <div key={account.id} className="border rounded p-4">
+                  const userSlots = account.slots?.filter(slot => slot.user_id === currentUser.id) || [];
+                  return <div key={account.id} className="border rounded p-4">
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <p className="font-medium">{account.email}</p>
                               <div className="flex gap-2 mt-1">
-                                {userSlots.map(slot => (
-                                  <span key={slot.id} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                {userSlots.map(slot => <span key={slot.id} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
                                     Slot {slot.slot_number}
-                                  </span>
-                                ))}
+                                  </span>)}
                               </div>
                             </div>
                           </div>
-                          {account.games && account.games.length > 0 && (
-                            <div>
+                          {account.games && account.games.length > 0 && <div>
                               <p className="text-sm text-muted-foreground mb-1">Jogos disponíveis:</p>
                               <div className="flex flex-wrap gap-1">
-                                {account.games.map(game => (
-                                  <span key={game.id} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                {account.games.map(game => <span key={game.id} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                                     {game.name}
-                                  </span>
-                                ))}
+                                  </span>)}
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                            </div>}
+                        </div>;
+                })}
                   </div>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
           </div>
           
           <div>
@@ -316,24 +285,11 @@ const MyProfile: React.FC = () => {
                   <div className="flex flex-col items-center gap-4">
                     <div className="relative">
                       <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border">
-                        <img 
-                          src={profileImage || defaultProfileImage} 
-                          alt="Perfil" 
-                          className="h-full w-full object-cover"
-                        />
+                        <img src={profileImage || defaultProfileImage} alt="Perfil" className="h-full w-full object-cover" />
                       </div>
-                      <label 
-                        htmlFor="profile-image-input" 
-                        className="absolute bottom-0 right-0 p-1 rounded-full bg-primary text-white cursor-pointer"
-                      >
+                      <label htmlFor="profile-image-input" className="absolute bottom-0 right-0 p-1 rounded-full bg-primary text-white cursor-pointer">
                         <Camera className="h-4 w-4" />
-                        <input 
-                          id="profile-image-input"
-                          type="file" 
-                          accept="image/*"
-                          onChange={handleProfileImageChange}
-                          className="hidden" 
-                        />
+                        <input id="profile-image-input" type="file" accept="image/*" onChange={handleProfileImageChange} className="hidden" />
                       </label>
                     </div>
                   </div>
@@ -344,30 +300,13 @@ const MyProfile: React.FC = () => {
                   <div className="flex flex-col items-center gap-4">
                     <div className="relative w-full">
                       <div className="aspect-[3/1] w-full rounded-lg overflow-hidden bg-muted border">
-                        {bannerImage ? (
-                          <img 
-                            src={bannerImage} 
-                            alt="Banner" 
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                        {bannerImage ? <img src={bannerImage} alt="Banner" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-muted-foreground">
                             <Camera className="h-12 w-12" />
-                          </div>
-                        )}
+                          </div>}
                       </div>
-                      <label 
-                        htmlFor="banner-image-input" 
-                        className="absolute bottom-2 right-2 p-2 rounded-full bg-primary text-white cursor-pointer"
-                      >
+                      <label htmlFor="banner-image-input" className="absolute bottom-2 right-2 p-2 rounded-full bg-primary text-white cursor-pointer">
                         <Camera className="h-4 w-4" />
-                        <input 
-                          id="banner-image-input"
-                          type="file" 
-                          accept="image/*"
-                          onChange={handleBannerImageChange}
-                          className="hidden" 
-                        />
+                        <input id="banner-image-input" type="file" accept="image/*" onChange={handleBannerImageChange} className="hidden" />
                       </label>
                     </div>
                   </div>
@@ -379,8 +318,6 @@ const MyProfile: React.FC = () => {
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default MyProfile;
