@@ -223,7 +223,7 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
               <TableHead>Email</TableHead>
               <TableHead>Jogos</TableHead>
               <TableHead>Slots</TableHead>
-              <TableHead>Data de Nascimento</TableHead>
+              {/* <TableHead>Data de Nascimento</TableHead> */}
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
@@ -235,14 +235,14 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
                   {account.games && account.games.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
                       {account.games.slice(0, 2).map(game => (
-                        <Badge key={game.id} variant="secondary" className="text-xs">
+                        <span>
                           {game.name}
-                        </Badge>
+                        </span>
                       ))}
                       {account.games.length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
+                        <span>
                           +{account.games.length - 2}
-                        </Badge>
+                        </span>
                       )}
                     </div>
                   ) : (
@@ -269,9 +269,9 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
                     })}
                   </div>
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {account.birthday ? new Date(account.birthday).toLocaleDateString() : 'N/A'}
-                </TableCell>
+                </TableCell> */}
                 {isAdmin && (
                   <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

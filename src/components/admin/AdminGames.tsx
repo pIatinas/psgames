@@ -248,7 +248,7 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
               <TableHead>Nome</TableHead>
               <TableHead>Plataforma</TableHead>
               <TableHead>Contas</TableHead>
-              <TableHead>Desenvolvedor</TableHead>
+              {/* <TableHead>Desenvolvedor</TableHead> */}
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
@@ -297,7 +297,7 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
                       <span className="text-muted-foreground text-sm">Nenhuma conta</span>
                     )}
                   </TableCell>
-                  <TableCell>{game.developer}</TableCell>
+                  {/* <TableCell>{game.developer}</TableCell> */}
                   {isAdmin && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
