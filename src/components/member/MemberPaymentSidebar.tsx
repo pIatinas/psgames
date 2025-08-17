@@ -100,9 +100,7 @@ const MemberPaymentSidebar: React.FC<MemberPaymentSidebarProps> = ({
         </div>
 
         {/* Ver Histórico Button */}
-        <div className="p-3 rounded-md bg-muted">
-          <MemberPaymentHistory member={member} />
-        </div>
+        <MemberPaymentHistory member={member} />
       </CardContent>
     </Card>;
 };
