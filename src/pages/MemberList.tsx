@@ -10,8 +10,11 @@ import { userService, accountService } from '@/services/supabaseService';
 import { useQuery } from '@tanstack/react-query';
 import Loader from '@/components/Loader';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 const MemberList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 12;
   const {
     currentUser
   } = useAuth();
@@ -35,6 +38,15 @@ const MemberList = () => {
   const filteredMembers = users.filter(user => {
     return user.name.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedMembers = filteredMembers.slice(startIndex, startIndex + itemsPerPage);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
   if (isLoading) {
     return <div className="flex flex-col min-h-screen">
         <Header />
@@ -66,11 +78,50 @@ const MemberList = () => {
         
         {/* Grid de membros */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {filteredMembers.map(user => {
+          {paginatedMembers.map(user => {
             const activeAccountsCount = accounts.filter(account => account.slots?.some(slot => slot.user_id === user.id)).length;
             return <MemberCard key={user.id} member={user} activeAccountsCount={activeAccountsCount} />;
           })}
         </div>
+        
+        {/* Paginação */}
+        {filteredMembers.length > itemsPerPage && (
+          <div className="mt-8 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                {currentPage > 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className="cursor-pointer"
+                    />
+                  </PaginationItem>
+                )}
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                {currentPage < totalPages && (
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className="cursor-pointer"
+                    />
+                  </PaginationItem>
+                )}
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
         
         {/* Mensagem quando não há membros */}
         {filteredMembers.length === 0 && <div className="text-center py-12">

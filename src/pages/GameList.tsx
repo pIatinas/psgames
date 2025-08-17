@@ -10,9 +10,12 @@ import { useQuery } from '@tanstack/react-query';
 import { GamePlatform } from '@/types';
 import Loader from '@/components/Loader';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 const GameList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedPlatforms, setSelectedPlatforms] = React.useState<GamePlatform[]>([]);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10;
   const {
     data: games = [],
     isLoading
@@ -26,6 +29,15 @@ const GameList = () => {
     const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.some(platform => game.platform.includes(platform));
     return matchesSearch && matchesPlatform;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredGames.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedGames = filteredGames.slice(startIndex, startIndex + itemsPerPage);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedPlatforms]);
   const togglePlatform = (platform: GamePlatform) => {
     setSelectedPlatforms(prev => prev.includes(platform) ? prev.filter(p => p !== platform) : [...prev, platform]);
   };
@@ -69,8 +81,47 @@ const GameList = () => {
         
         {/* Grid de jogos - 5 por linha */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredGames.map(game => <GameCard key={game.id} game={game} />)}
+          {paginatedGames.map(game => <GameCard key={game.id} game={game} />)}
         </div>
+        
+        {/* Paginação */}
+        {filteredGames.length > itemsPerPage && (
+          <div className="mt-8 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                {currentPage > 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className="cursor-pointer"
+                    />
+                  </PaginationItem>
+                )}
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                {currentPage < totalPages && (
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className="cursor-pointer"
+                    />
+                  </PaginationItem>
+                )}
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
         
         {/* Mensagem quando não há jogos */}
         {filteredGames.length === 0 && <div className="text-center py-12">

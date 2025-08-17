@@ -10,9 +10,12 @@ import { useQuery } from '@tanstack/react-query';
 import { GamePlatform } from '@/types';
 import Loader from '@/components/Loader';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 const AccountList = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedPlatforms, setSelectedPlatforms] = React.useState<GamePlatform[]>([]);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 8;
   const {
     data: accounts = [],
     isLoading
@@ -26,6 +29,15 @@ const AccountList = () => {
     const matchesPlatform = selectedPlatforms.length === 0 || account.games?.some(game => selectedPlatforms.some(platform => game.platform.includes(platform)));
     return matchesSearch && matchesPlatform;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredAccounts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedAccounts = filteredAccounts.slice(startIndex, startIndex + itemsPerPage);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedPlatforms]);
   const togglePlatform = (platform: GamePlatform) => {
     setSelectedPlatforms(prev => prev.includes(platform) ? prev.filter(p => p !== platform) : [...prev, platform]);
   };
@@ -70,8 +82,47 @@ const AccountList = () => {
         
         {/* Grid de contas - 4 por linha */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredAccounts.map(account => <AccountCard key={account.id} account={account} />)}
+          {paginatedAccounts.map(account => <AccountCard key={account.id} account={account} />)}
         </div>
+        
+        {/* Paginação */}
+        {filteredAccounts.length > itemsPerPage && (
+          <div className="mt-8 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                {currentPage > 1 && (
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className="cursor-pointer"
+                    />
+                  </PaginationItem>
+                )}
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                {currentPage < totalPages && (
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className="cursor-pointer"
+                    />
+                  </PaginationItem>
+                )}
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
         
         {/* Mensagem quando não há contas */}
         {filteredAccounts.length === 0 && <div className="text-center py-12">

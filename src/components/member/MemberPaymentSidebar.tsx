@@ -24,12 +24,12 @@ const MemberPaymentSidebar: React.FC<MemberPaymentSidebarProps> = ({
     // TODO: Implement payment marking logic
     console.log('Mark payment as paid for member:', member.id);
   };
-  // Generate payment history for the last 6 months
+  // Generate payment history for the last 3 months
   const generatePaymentHistory = () => {
     const history = [];
     const currentDate = new Date();
     
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 2; i >= 0; i--) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
@@ -49,7 +49,7 @@ const MemberPaymentSidebar: React.FC<MemberPaymentSidebarProps> = ({
         month,
         year,
         status,
-        amount: payment?.amount || 25,
+        amount: payment?.amount || 0,
         paid_at: payment?.paid_at,
         monthName: date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
       });
@@ -71,9 +71,6 @@ const MemberPaymentSidebar: React.FC<MemberPaymentSidebarProps> = ({
             <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
               <div>
                 <p className="font-medium text-sm capitalize">{payment.monthName}</p>
-                <p className="text-xs text-muted-foreground">
-                  R$ {payment.amount.toFixed(2)}
-                </p>
                 {payment.paid_at && (
                   <p className="text-xs text-muted-foreground">
                     Pago em {new Date(payment.paid_at).toLocaleDateString('pt-BR')}
@@ -106,11 +103,6 @@ const MemberPaymentSidebar: React.FC<MemberPaymentSidebarProps> = ({
         <div className="p-3 rounded-md bg-muted">
           <MemberPaymentHistory member={member} />
         </div>
-
-        {/* Admin Action */}
-        {isAdmin && !isCurrentMonthPaid && <Button onClick={handleMarkAsPaid} className="w-full" size="sm">
-            Marcar como Pago
-          </Button>}
       </CardContent>
     </Card>;
 };

@@ -237,7 +237,7 @@ const GameDetail = () => {
               
               {/* Accounts with this game */}
               <div>
-                <SectionTitle title="Conta" subtitle={`${gameAccounts.length} ${gameAccounts.length === 1 ? 'conta disponível' : 'contas disponíveis'}`} />
+                <SectionTitle title="Conta" />
                 
                  {gameAccounts.length > 0 ? <div className="grid grid-cols-1 gap-4">
                      {gameAccounts.map(account => <AccountCard key={account.id} account={account} />)}
@@ -263,7 +263,8 @@ const AccountCard = ({
     return account.slots?.find(slot => slot.slot_number === slotNumber);
   };
   const isSlotOccupied = (slotNumber: number) => {
-    return getSlotByNumber(slotNumber) !== undefined;
+    const slot = getSlotByNumber(slotNumber);
+    return slot !== undefined && slot.user_id !== null;
   };
   return <div className="border rounded-lg p-4 mt-3">
       <div className="flex justify-between mb-2">

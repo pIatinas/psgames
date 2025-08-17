@@ -5,18 +5,24 @@ import { LogOut, User, Settings, Gamepad2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Breadcrumbs from '@/components/Breadcrumbs';
+import MobileMenu from '@/components/MobileMenu';
 
 // Navigation link component with active state
 const NavigationLink = ({ to, label }: { to: string; label: string }) => {
   const location = useLocation();
-  const isActive = location.pathname === to;
+  
+  // Check if current path matches or is a detail page of the section
+  const isActive = location.pathname === to || 
+    (to === '/games' && location.pathname.startsWith('/games/')) ||
+    (to === '/accounts' && location.pathname.startsWith('/accounts/')) ||
+    (to === '/members' && location.pathname.startsWith('/members/'));
   
   return (
     <Link 
       to={to} 
       className={`px-3 py-2 rounded-md transition-colors ${
         isActive 
-          ? 'text-pink-600' 
+          ? 'text-white bg-purple-900' 
           : 'text-muted-foreground hover:text-white'
       }`}
     >
@@ -42,7 +48,7 @@ const Header = () => {
             <span className="ms-2 font-bold">PS</span>Games
           </Link>
           
-          <nav className="flex-1 flex justify-center">
+          <nav className="hidden md:flex flex-1 justify-center">
             <div className="flex items-center space-x-6">
               <NavigationLink to="/" label="Home" />
               <NavigationLink to="/games" label="Jogos" />
@@ -52,15 +58,22 @@ const Header = () => {
           </nav>
           
           <div className="flex items-center space-x-2">
+            <MobileMenu />
             
-            {currentUser ? <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="font-bold text-slate-50 hover:bg-gray-950">
-                    <User className="h-4 w-4 mr-2" />
-                    {currentUser.name}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+            {currentUser ? <div className="hidden md:block">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="font-bold text-slate-50 hover:bg-gray-950">
+                      <User className="h-4 w-4 mr-2" />
+                      {currentUser.name}
+                    </Button>
+                  </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-card border border-border">
+                  <style>{`
+                    [data-radix-dropdown-menu-item]:hover {
+                      background-color: hsl(var(--pink-600)) !important;
+                    }
+                  `}</style>
                   <DropdownMenuItem asChild>
                     <Link to="/my-profile" className="flex items-center">
                       <User className="h-4 w-4 mr-2" />
@@ -92,14 +105,15 @@ const Header = () => {
                     Sair
                   </DropdownMenuItem>
                 </DropdownMenuContent>
-              </DropdownMenu> : <>
+              </DropdownMenu>
+            </div> : <div className="hidden md:flex items-center space-x-2">
                 <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-white">
                   <Link to="/login" className="hover:text-primary ">Entrar</Link>
                 </Button>
                 <Button asChild variant="secondary" size="sm">
                   <Link to="/register">Cadastro</Link>
                 </Button>
-              </>}
+              </div>}
           </div>
         </div>
       </div>

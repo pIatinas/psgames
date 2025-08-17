@@ -25,9 +25,8 @@ const MyProfile: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     avatar_url: '',
-    role: 'member' as UserRole
+    banner_url: ''
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [bannerImage, setBannerImage] = useState<string | null>(null);
@@ -53,9 +52,8 @@ const MyProfile: React.FC = () => {
       // Load current user data into form
       setFormData({
         name: currentUser.name || '',
-        email: currentUser.email || '',
         avatar_url: currentUser.profile?.avatar_url || '',
-        role: currentUser.role || 'member'
+        banner_url: ''
       });
       setProfileImage(currentUser.profile?.avatar_url || null);
     }
@@ -98,36 +96,14 @@ const MyProfile: React.FC = () => {
         active: currentUser.active
       });
 
-      // Update email if changed (requires auth update)
-      if (formData.email !== currentUser.email) {
-        const {
-          error: emailError
-        } = await supabase.auth.updateUser({
-          email: formData.email
-        });
-        if (emailError) {
-          console.error('Error updating email:', emailError);
-          toast({
-            title: "Aviso",
-            description: "Perfil atualizado, mas houve erro ao atualizar o email.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "Email atualizado",
-            description: "Verifique sua caixa de entrada para confirmar o novo email."
-          });
-        }
-      }
-
       // Update local user state
       const updatedUser = {
         ...currentUser,
         name: formData.name,
-        email: formData.email,
         profile: currentUser.profile ? {
           ...currentUser.profile,
-          name: formData.name
+          name: formData.name,
+          avatar_url: formData.avatar_url
         } : undefined
       };
       if (updateCurrentUser) {
@@ -200,18 +176,7 @@ const MyProfile: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input id="email" type="email" value={formData.email} onChange={e => setFormData(prev => ({
-                    ...prev,
-                    email: e.target.value
-                  }))} placeholder="Seu email" required />
-                    <p className="text-sm text-muted-foreground">
-                      Alterar o email requer confirmação via email
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="avatar_url">URL do Avatar</Label>
+                    <Label htmlFor="avatar_url">Avatar</Label>
                     <Input id="avatar_url" type="url" value={formData.avatar_url} onChange={e => setFormData(prev => ({
                     ...prev,
                     avatar_url: e.target.value
@@ -219,20 +184,16 @@ const MyProfile: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="role">Função</Label>
-                    <Input id="role" value={formData.role === 'admin' ? 'Administrador' : 'Membro'} disabled className="bg-muted" />
-                    <p className="text-sm text-muted-foreground">
-                      A função não pode ser alterada
-                    </p>
+                    <Label htmlFor="banner_url">Banner</Label>
+                    <Input id="banner_url" type="url" value={formData.banner_url} onChange={e => setFormData(prev => ({
+                    ...prev,
+                    banner_url: e.target.value
+                  }))} placeholder="URL da imagem do banner" />
                   </div>
 
                   <div className="flex gap-4">
-                    <Button type="submit" disabled={isLoading}>
+                    <Button type="submit" disabled={isLoading} className="bg-pink-600 hover:bg-pink-700">
                       {isLoading ? "Salvando..." : "Salvar Alterações"}
-                    </Button>
-                    
-                    <Button type="button" variant="outline" onClick={handlePasswordChange}>
-                      Redefinir Senha
                     </Button>
                   </div>
                 </form>
@@ -281,33 +242,24 @@ const MyProfile: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="profile-image">Imagem de Perfil</Label>
+                  <Label>Avatar</Label>
                   <div className="flex flex-col items-center gap-4">
-                    <div className="relative">
-                      <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border">
-                        <img src={profileImage || defaultProfileImage} alt="Perfil" className="h-full w-full object-cover" />
-                      </div>
-                      <label htmlFor="profile-image-input" className="absolute bottom-0 right-0 p-1 rounded-full bg-primary text-white cursor-pointer">
-                        <Camera className="h-4 w-4" />
-                        <input id="profile-image-input" type="file" accept="image/*" onChange={handleProfileImageChange} className="hidden" />
-                      </label>
+                    <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border">
+                      <img src={formData.avatar_url || defaultProfileImage} alt="Avatar" className="h-full w-full object-cover" />
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="banner-image">Banner do Perfil</Label>
+                  <Label>Banner</Label>
                   <div className="flex flex-col items-center gap-4">
-                    <div className="relative w-full">
-                      <div className="aspect-[3/1] w-full rounded-lg overflow-hidden bg-muted border">
-                        {bannerImage ? <img src={bannerImage} alt="Banner" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                            <Camera className="h-12 w-12" />
-                          </div>}
-                      </div>
-                      <label htmlFor="banner-image-input" className="absolute bottom-2 right-2 p-2 rounded-full bg-primary text-white cursor-pointer">
-                        <Camera className="h-4 w-4" />
-                        <input id="banner-image-input" type="file" accept="image/*" onChange={handleBannerImageChange} className="hidden" />
-                      </label>
+                    <div className="aspect-[3/1] w-full rounded-lg overflow-hidden bg-muted border">
+                      {formData.banner_url ? <img src={formData.banner_url} alt="Banner" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                          <div className="text-center">
+                            <Camera className="h-12 w-12 mx-auto mb-2" />
+                            <p>Preview do Banner</p>
+                          </div>
+                        </div>}
                     </div>
                   </div>
                 </div>
