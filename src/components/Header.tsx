@@ -22,7 +22,7 @@ const NavigationLink = ({ to, label }: { to: string; label: string }) => {
       to={to} 
       className={`px-3 py-2 rounded-md transition-colors ${
         isActive 
-          ? 'text-white bg-purple-900' 
+          ? 'text-pink-600' 
           : 'text-muted-foreground hover:text-white'
       }`}
     >
