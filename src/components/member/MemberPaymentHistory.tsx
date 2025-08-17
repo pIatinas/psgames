@@ -64,12 +64,7 @@ const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({ member }) =
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="h-auto p-0 text-left justify-start bg-pink-600 hover:bg-pink-700 text-white">
-          <div className="space-y-1">
-            <div className="text-sm font-medium">Ver Histórico</div>
-            <div className="text-xs flex items-center gap-1">
-              <ExternalLink className="h-3 w-3" />
-            </div>
-          </div>
+          Ver Histórico
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
