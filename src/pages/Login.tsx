@@ -64,11 +64,8 @@ const Login = () => {
     try {
       const success = await login(formValues.emailOrPsnId, formValues.password);
       if (success) {
-        toast({
-          title: "Sucesso",
-          description: "Login realizado com sucesso!"
-        });
-        navigate('/');  // Always redirect to home after login
+        // Don't show toast or navigate - AuthProvider will handle the redirect
+        // after the user profile is loaded
       } else {
         toast({
           title: "Erro",

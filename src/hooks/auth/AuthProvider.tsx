@@ -198,8 +198,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (emailOrPsn: string, password: string): Promise<boolean> => {
     try {
-      setIsLoading(true);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailOrPsn,
         password: password
@@ -207,35 +205,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Login error:', error);
-        toast({
-          title: "Erro de login",
-          description: "Credenciais inválidas.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
         return false;
       }
 
       if (data.user) {
         console.log('Login successful');
-        toast({
-          title: "Login bem-sucedido",
-          description: "Bem-vindo de volta!",
-        });
-        // Auth state change will handle loading the profile
+        // Auth state change will handle loading the profile and setting isLoading
         return true;
       }
 
-      setIsLoading(false);
       return false;
     } catch (error) {
       console.error("Login error:", error);
-      toast({
-        title: "Erro de login",
-        description: "Ocorreu um erro ao processar sua solicitação.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
       return false;
     }
   };

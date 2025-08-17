@@ -22,17 +22,39 @@ const ReCaptcha = forwardRef<ReCaptchaRef, ReCaptchaProps>(({
 }, ref) => {
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
+  // Check if recaptcha should be enabled based on hostname
+  const isRecaptchaEnabled = () => {
+    if (typeof window === 'undefined') return false;
+    const hostname = window.location.hostname;
+    return hostname === 'psgames.app' || hostname === 'psgames.lovable.app';
+  };
+
   useImperativeHandle(ref, () => ({
     reset: () => {
-      recaptchaRef.current?.reset();
+      if (isRecaptchaEnabled()) {
+        recaptchaRef.current?.reset();
+      }
     },
     getValue: () => {
-      return recaptchaRef.current?.getValue() || null;
+      if (isRecaptchaEnabled()) {
+        return recaptchaRef.current?.getValue() || null;
+      }
+      return 'development-bypass';
     },
     execute: () => {
-      recaptchaRef.current?.execute();
+      if (isRecaptchaEnabled()) {
+        recaptchaRef.current?.execute();
+      } else {
+        // In development, simulate recaptcha success
+        setTimeout(() => onChange?.('development-bypass'), 100);
+      }
     }
   }));
+
+  // Don't render recaptcha in development
+  if (!isRecaptchaEnabled()) {
+    return null;
+  }
 
   return (
     <ReCAPTCHA
