@@ -225,12 +225,10 @@ const MyAccounts: React.FC = () => {
                 </Card>;
         })}
           </div> : <div className="text-center py-12 border rounded-lg mt-5">
-            <p className="text-white mb-4">
+            <p className="text-white mb-4 opacity-60">
               Você não está utilizando nenhuma conta no momento.
             </p>
-            <Button onClick={() => navigate('/accounts')}>
-              Ver contas disponíveis
-            </Button>
+            <Button onClick={() => navigate('/accounts')} className="bg-pink-600 hover:bg-pink-500"> Contas Disponíveis</Button>
           </div>}
       </main>
 
