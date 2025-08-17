@@ -13,14 +13,10 @@ const AdminLayout: React.FC = () => {
       <main className="flex-grow container py-8">
         <div className="flex justify-between items-center mb-8">
           <SectionTitle title="Gerenciar" subtitle="Painel de administração do sistema" />
-          {isAdmin && (
-          <Button 
-            className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
-          >
+          <Button className="bg-pink-500 hover:bg-pink-600 text-white rounded-full">
             <Plus className="h-4 w-4 mr-2" />
             Cadastrar
           </Button>
-        )}
         </div>
         
         <Tabs defaultValue="games" className="w-full">
