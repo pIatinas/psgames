@@ -52,7 +52,7 @@ const AccountList = () => {
         
         {/* Filtros */}
         <div className="mb-8">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center justify-between gap-4 flex-wrap mt-5 ">
             <div className="flex items-center gap-2 flex-wrap ">
               <span className="text-sm font-medium">Plataformas:</span>
               {platforms.map(platform => <Button key={platform} variant={selectedPlatforms.includes(platform) ? "default" : "outline"} size="sm" onClick={() => togglePlatform(platform)}>
