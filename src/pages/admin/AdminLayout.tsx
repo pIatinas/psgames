@@ -6,6 +6,7 @@ import AdminMembers from '@/components/admin/AdminMembers';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SectionTitle from '@/components/SectionTitle';
+import { Button } from '@/components/ui/button';
 const AdminLayout: React.FC = () => {
   return <div className="flex flex-col min-h-screen">
       <Header />
