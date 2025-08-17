@@ -93,6 +93,8 @@ const MyProfile: React.FC = () => {
       // Update profile in Supabase
       const updatedProfile = await userService.updateProfile(currentUser.id, {
         name: formData.name,
+        avatar_url: formData.avatar_url,
+        banner_url: formData.banner_url,
         active: currentUser.active
       });
 

@@ -505,7 +505,7 @@ export const userService = {
     }
   },
 
-  async updateProfile(userId: string, updates: { name?: string; role?: UserRole; active?: boolean }): Promise<boolean> {
+  async updateProfile(userId: string, updates: { name?: string; role?: UserRole; active?: boolean; avatar_url?: string; banner_url?: string }): Promise<boolean> {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -585,13 +585,25 @@ export const userService = {
 
   async deleteUser(userId: string): Promise<boolean> {
     try {
-      // First remove all account slots for this user
+      // First remove user from all account slots
       await supabase
         .from('account_slots')
+        .update({ user_id: null, entered_at: null })
+        .eq('user_id', userId);
+
+      // Delete user payments
+      await supabase
+        .from('member_payments')
+        .delete()
+        .eq('member_id', userId);
+
+      // Delete user account usage history  
+      await supabase
+        .from('account_usage_history')
         .delete()
         .eq('user_id', userId);
 
-      // Delete user profile
+      // Delete profile
       const { error } = await supabase
         .from('profiles')
         .delete()

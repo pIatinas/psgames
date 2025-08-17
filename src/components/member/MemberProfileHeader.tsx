@@ -27,12 +27,8 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({
         <h1 className="text-3xl font-bold text-white">{member.name}</h1>
         
         <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
-          <Badge className={member.isApproved ? 'bg-green-500 hover:bg-green-600' : 'bg-amber-500 hover:bg-amber-600'}>
-            {member.isApproved ? 'Aprovado' : 'Pendente'}
-          </Badge>
-          
-          <Badge className={paymentStatus === 'paid' ? 'bg-secondary hover:bg-secondary/90' : 'bg-destructive hover:bg-destructive/90'}>
-            {paymentStatus === 'paid' ? 'Mensalidade Paga' : 'Mensalidade Pendente'}
+          <Badge variant="secondary">
+            Membro
           </Badge>
         </div>
         

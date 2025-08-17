@@ -282,11 +282,10 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Contas Ativas</TableHead>
               <TableHead>Criado em</TableHead>
+              <TableHead>Status</TableHead>
               {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
@@ -299,24 +298,10 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
               return (
                 <TableRow key={member.id}>
                   <TableCell className="font-medium">{member.name}</TableCell>
-                  <TableCell>{member.email}</TableCell>
                   <TableCell>
                     <Badge variant={member.role === 'admin' ? 'blue' : 'secondary'}>
                       {member.role === 'admin' ? 'Admin' : 'Membro'}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={member.active ? 'default' : 'destructive'}>
-                        {member.active ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                      {isAdmin && (
-                        <Switch
-                          checked={member.active}
-                          onCheckedChange={() => handleToggleActive(member.id, member.active)}
-                        />
-                      )}
-                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
@@ -331,6 +316,14 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                   </TableCell>
                   <TableCell>
                     {member.profile?.created_at ? new Date(member.profile.created_at).toLocaleDateString() : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    {isAdmin && (
+                      <Switch
+                        checked={member.active}
+                        onCheckedChange={() => handleToggleActive(member.id, member.active)}
+                      />
+                    )}
                   </TableCell>
                   {isAdmin && (
                     <TableCell className="text-right">

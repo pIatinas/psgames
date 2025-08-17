@@ -7,6 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Member } from '@/types';
 import { ExternalLink } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { memberPaymentService } from '@/services/memberPaymentService';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface MemberPaymentHistoryProps {
   member: Member;
@@ -15,6 +18,36 @@ interface MemberPaymentHistoryProps {
 const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({ member }) => {
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const handleStatusChange = async (month: number, year: number, status: string) => {
+    try {
+      await memberPaymentService.upsertPayment({
+        member_id: member.id,
+        month,
+        year,
+        status: status as 'paid' | 'pending' | 'overdue',
+        amount: 0,
+        paid_at: status === 'paid' ? new Date().toISOString() : undefined
+      });
+
+      toast({
+        title: "Status atualizado",
+        description: "O status do pagamento foi atualizado com sucesso."
+      });
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['member-payments', member.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status do pagamento.",
+        variant: "destructive"
+      });
+    }
+  };
   // Generate payment history for the last 12 months, grouped by year
   const generatePaymentHistory = () => {
     const history = [];
@@ -63,7 +96,7 @@ const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({ member }) =
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-auto p-0 text-left justify-start bg-pink-600 hover:bg-pink-700 text-white">
+        <Button variant="ghost" size="sm" className="w-full h-auto p-2 text-center bg-pink-600 hover:bg-pink-700 text-white block">
           Ver Histórico
         </Button>
       </DialogTrigger>
@@ -88,13 +121,10 @@ const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({ member }) =
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        {isAdmin && (
+                        {isAdmin ? (
                           <Select
                             defaultValue={payment.status}
-                            onValueChange={(value) => {
-                              // Handle status change here
-                              console.log('Changing status to:', value);
-                            }}
+                            onValueChange={(value) => handleStatusChange(payment.month, payment.year, value)}
                           >
                             <SelectTrigger className="w-32">
                               <SelectValue />
@@ -105,13 +135,14 @@ const MemberPaymentHistory: React.FC<MemberPaymentHistoryProps> = ({ member }) =
                               <SelectItem value="overdue">Atrasado</SelectItem>
                             </SelectContent>
                           </Select>
+                        ) : (
+                          <Badge 
+                            variant={payment.status === 'paid' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {payment.status === 'paid' ? 'Pago' : payment.status === 'overdue' ? 'Atrasado' : 'Pendente'}
+                          </Badge>
                         )}
-                        <Badge 
-                          variant={payment.status === 'paid' ? 'default' : 'secondary'}
-                          className="text-xs"
-                        >
-                          {payment.status === 'paid' ? 'Pago' : payment.status === 'overdue' ? 'Atrasado' : 'Pendente'}
-                        </Badge>
                       </div>
                     </div>
                   ))}
