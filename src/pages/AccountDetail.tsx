@@ -83,10 +83,8 @@ const AccountDetail = () => {
       navigate('/login');
       return;
     }
-    
     if (isActivating) return;
     setIsActivating(true);
-    
     try {
       const success = await accountService.assignSlot(account.id, slotNumber, currentUser.id);
       if (success) {
@@ -121,10 +119,8 @@ const AccountDetail = () => {
   };
   const handleReleaseAccount = async () => {
     if (!currentUser || !account.slots) return;
-    
     if (isReleasing) return;
     setIsReleasing(true);
-    
     try {
       const userSlot = account.slots.find(slot => slot.user_id === currentUser.id);
       if (userSlot) {
@@ -194,7 +190,7 @@ const AccountDetail = () => {
             </div>
             
             <div>
-              <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20 space-y-6 mt-10 ">
+              <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20 space-y-6 mt-16 ">
                 <div>
                   <h3 className="font-semibold mb-2 text-white text-2xl">Ativações</h3>
                   <div className="space-y-4">
@@ -205,12 +201,7 @@ const AccountDetail = () => {
                           {!isSlotOccupied(1) ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                         </div>
                         <div className="text-sm mt-2 text-center">
-                          {!isSlotOccupied(1) ? <Button 
-                              size="sm" 
-                              onClick={() => handleUseSlot(1)} 
-                              disabled={!currentUser || isActivating} 
-                              className="w-full"
-                            >
+                          {!isSlotOccupied(1) ? <Button size="sm" onClick={() => handleUseSlot(1)} disabled={!currentUser || isActivating} className="w-full">
                               {isActivating ? "Ativando..." : "Utilizar"}
                             </Button> : 'Ocupado'}
                         </div>
@@ -221,12 +212,7 @@ const AccountDetail = () => {
                           {!isSlotOccupied(2) ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                         </div>
                         <div className="text-sm mt-2 text-center">
-                          {!isSlotOccupied(2) ? <Button 
-                              size="sm" 
-                              onClick={() => handleUseSlot(2)} 
-                              disabled={!currentUser || isActivating} 
-                              className="w-full"
-                            >
+                          {!isSlotOccupied(2) ? <Button size="sm" onClick={() => handleUseSlot(2)} disabled={!currentUser || isActivating} className="w-full">
                               {isActivating ? "Ativando..." : "Utilizar"}
                             </Button> : 'Ocupado'}
                         </div>
@@ -235,13 +221,7 @@ const AccountDetail = () => {
                   </div>
                 </div>
                 
-                {isUsingSlot && <Button 
-                    size="lg" 
-                    variant="destructive" 
-                    className="w-full" 
-                    onClick={handleReleaseAccount}
-                    disabled={isReleasing}
-                  >
+                {isUsingSlot && <Button size="lg" variant="destructive" className="w-full" onClick={handleReleaseAccount} disabled={isReleasing}>
                     {isReleasing ? "Devolvendo..." : "Devolver"}
                   </Button>}
               </div>
