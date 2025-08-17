@@ -161,7 +161,7 @@ const GameDetail = () => {
               {/* Trophy counts from database - moved above description */}
               {(game.platinum || game.gold || game.silver || game.bronze) && (game.platinum || 0) + (game.gold || 0) + (game.silver || 0) + (game.bronze || 0) > 0 && <div>
                   <SectionTitle title="Troféus" />
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-5 gap-2 mt-4 ">
                     <div className="bg-gray-800/50 rounded-lg p-3 text-center">
                       <div className="text-yellow-400 mb-1">
                         <Trophy className="h-4 w-4 mx-auto" />
@@ -205,7 +205,7 @@ const GameDetail = () => {
               {/* Game description */}
               <div>
                 <SectionTitle title="Descrição" />
-                <p className="text-white">
+                <p className="text-white mt-4 ">
                   {gameDetails?.description || game.description || "Este é um jogo exclusivo disponível em nosso sistema de compartilhamento."}
                 </p>
                 
@@ -213,15 +213,15 @@ const GameDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                   {(gameDetails?.developer || game.developer) && <div className="p-4 bg-gray-800/20 rounded-lg">
                       <div className="text-sm font-bold text-white ">Desenvolvedor</div>
-                      <div className="text-white font-normal ">{gameDetails?.developer || game.developer}</div>
+                      <div className="text-white font-normal opacity-60">{gameDetails?.developer || game.developer}</div>
                     </div>}
                   {(gameDetails?.genre || game.genre) && <div className="p-4 bg-gray-800/20 rounded-lg">
                       <div className="text-sm font-bold text-white">Gênero</div>
-                      <div className="text-white font-normal ">{gameDetails?.genre || game.genre}</div>
+                      <div className="text-white font-normal opacity-60">{gameDetails?.genre || game.genre}</div>
                     </div>}
                   {(game.launch_date || game.release_date) && <div className="p-4 bg-gray-800/20 rounded-lg">
                       <div className="text-sm font-bold text-white">Lançamento</div>
-                      <div className="text-white font-normal ">
+                      <div className="text-white font-normal opacity-60 ">
                         {new Date(game.launch_date || game.release_date).toLocaleDateString()}
                       </div>
                     </div>}
@@ -299,7 +299,7 @@ const AccountCard = ({
       
       <div className="mt-4">
         <Button variant="outline" className="w-full" asChild>
-          <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`}>Ver Detalhes</Link>
+          <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`} className="bg-pink-600 border-none">Detalhes</Link>
         </Button>
       </div>
     </div>;
