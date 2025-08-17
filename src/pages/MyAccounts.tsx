@@ -11,14 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import { CalendarClock, GamepadIcon, Eye, X } from 'lucide-react';
 import { Account } from '@/types';
 import { accountService } from '@/services/supabaseService';
-import { 
-  Dialog, DialogContent, DialogDescription, 
-  DialogHeader, DialogTitle, DialogTrigger
-} from "@/components/ui/dialog";
-
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 const MyAccounts: React.FC = () => {
-  const { currentUser } = useAuth();
-  const { toast } = useToast();
+  const {
+    currentUser
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,28 +35,23 @@ const MyAccounts: React.FC = () => {
   useEffect(() => {
     const loadAccounts = async () => {
       if (!currentUser) return;
-      
       try {
         const allAccounts = await accountService.getAll();
-        const userAccounts = allAccounts.filter(account => 
-          account.slots?.some(slot => slot.user_id === currentUser.id)
-        );
+        const userAccounts = allAccounts.filter(account => account.slots?.some(slot => slot.user_id === currentUser.id));
         setAccounts(userAccounts);
       } catch (error) {
         console.error('Erro ao carregar contas:', error);
         toast({
           title: "Erro",
           description: "Não foi possível carregar suas contas.",
-          variant: "destructive",
+          variant: "destructive"
         });
       } finally {
         setLoading(false);
       }
     };
-
     loadAccounts();
   }, [currentUser, toast]);
-
   if (!currentUser) {
     return null;
   }
@@ -64,9 +59,11 @@ const MyAccounts: React.FC = () => {
   // Get slot information for a specific account
   const getMemberSlot = (account: Account) => {
     const slot = account.slots?.find(slot => slot.user_id === currentUser.id);
-    return slot ? { slotNumber: slot.slot_number, data: slot } : null;
+    return slot ? {
+      slotNumber: slot.slot_number,
+      data: slot
+    } : null;
   };
-
   const calculateDaysUsing = (enteredDate: string) => {
     const now = new Date();
     const entered = new Date(enteredDate);
@@ -74,26 +71,22 @@ const MyAccounts: React.FC = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
-
   const handleReleaseAccount = async (account: Account) => {
     if (!currentUser) return;
-    
     try {
       const success = await accountService.freeUserSlot(account.id, currentUser.id);
-      
       if (success) {
         // Update local state
         setAccounts(accounts.filter(acc => acc.id !== account.id));
-        
         toast({
           title: "Conta devolvida",
-          description: "Você devolveu a conta com sucesso.",
+          description: "Você devolveu a conta com sucesso."
         });
       } else {
         toast({
           title: "Erro",
           description: "Não foi possível devolver a conta.",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     } catch (error) {
@@ -101,16 +94,13 @@ const MyAccounts: React.FC = () => {
       toast({
         title: "Erro",
         description: "Não foi possível devolver a conta.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const defaultAccountImage = `https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=300&h=300&fit=crop`;
-
   if (loading) {
-    return (
-      <div className="flex flex-col min-h-screen">
+    return <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow container py-8">
           <div className="flex items-center justify-center h-64">
@@ -118,28 +108,19 @@ const MyAccounts: React.FC = () => {
           </div>
         </main>
         <Footer />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="flex flex-col min-h-screen">
+  return <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="flex-grow container py-8">
-        <SectionTitle 
-          title="Minhas Contas" 
-          subtitle={`${accounts.length} ${accounts.length === 1 ? 'conta em uso' : 'contas em uso'}`}
-        />
+        <SectionTitle title="Minhas Contas" subtitle={`${accounts.length} ${accounts.length === 1 ? 'conta em uso' : 'contas em uso'}`} />
         
-        {accounts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {accounts.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {accounts.map(account => {
-              const slot = getMemberSlot(account);
-              const daysUsing = slot?.data ? calculateDaysUsing(slot.data.entered_at || '') : 0;
-              
-              return (
-                <Card key={account.id} className="overflow-hidden">
+          const slot = getMemberSlot(account);
+          const daysUsing = slot?.data ? calculateDaysUsing(slot.data.entered_at || '') : 0;
+          return <Card key={account.id} className="overflow-hidden">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -162,36 +143,26 @@ const MyAccounts: React.FC = () => {
                       </Badge>
                     </div>
                     
-                    {account.games && account.games.length > 0 && (
-                      <div className="mt-4">
+                    {account.games && account.games.length > 0 && <div className="mt-4">
                         <div className="text-sm font-medium mb-2 text-white flex items-center">
                           <GamepadIcon className="h-4 w-4 mr-1" />
                           Jogos disponíveis ({account.games.length})
                         </div>
                         <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
-                          {account.games.slice(0, 3).map(game => (
-                            <Badge key={game.id} variant="outline" className="text-white">
+                          {account.games.slice(0, 3).map(game => <Badge key={game.id} variant="outline" className="text-white">
                               {game.name}
-                            </Badge>
-                          ))}
-                          {account.games.length > 3 && (
-                            <Badge variant="outline" className="text-white">
+                            </Badge>)}
+                          {account.games.length > 3 && <Badge variant="outline" className="text-white">
                               +{account.games.length - 3} mais
-                            </Badge>
-                          )}
+                            </Badge>}
                         </div>
-                      </div>
-                    )}
+                      </div>}
                   </CardContent>
                   
                   <CardFooter className="bg-gray-800/20 p-4 flex gap-2">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          className="flex-1"
-                          onClick={() => setSelectedAccount(account)}
-                        >
+                        <Button variant="outline" className="flex-1" onClick={() => setSelectedAccount(account)}>
                           <Eye className="mr-2 h-4 w-4" />
                           Detalhes
                         </Button>
@@ -204,8 +175,7 @@ const MyAccounts: React.FC = () => {
                           </DialogDescription>
                         </DialogHeader>
                         
-                        {selectedAccount && (
-                          <div className="space-y-6">
+                        {selectedAccount && <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                 <h4 className="font-medium mb-2">Credenciais de Acesso</h4>
@@ -220,72 +190,51 @@ const MyAccounts: React.FC = () => {
                                       {selectedAccount.password ? '••••••••' : 'Não definida'}
                                     </div>
                                   </div>
-                                  {selectedAccount.codes && (
-                                    <div>
+                                  {selectedAccount.codes && <div>
                                       <label className="text-sm font-medium">Códigos:</label>
                                       <div className="p-2 bg-muted rounded text-sm">{selectedAccount.codes}</div>
-                                    </div>
-                                  )}
+                                    </div>}
                                 </div>
                               </div>
                               
                               <div>
                                 <h4 className="font-medium mb-2">QR Code</h4>
                                 <div className="aspect-square bg-muted rounded-lg overflow-hidden">
-                                  <img 
-                                    src={selectedAccount.qr_code || defaultAccountImage} 
-                                    alt="QR Code" 
-                                    className="w-full h-full object-cover"
-                                  />
+                                  <img src={selectedAccount.qr_code || defaultAccountImage} alt="QR Code" className="w-full h-full object-cover" />
                                 </div>
                               </div>
                             </div>
                             
-                            {selectedAccount.games && selectedAccount.games.length > 0 && (
-                              <div>
+                            {selectedAccount.games && selectedAccount.games.length > 0 && <div>
                                 <h4 className="font-medium mb-2">Jogos Disponíveis</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                  {selectedAccount.games.map(game => (
-                                    <div key={game.id} className="p-2 bg-muted rounded text-sm">
+                                  {selectedAccount.games.map(game => <div key={game.id} className="p-2 bg-muted rounded text-sm">
                                       {game.name}
-                                    </div>
-                                  ))}
+                                    </div>)}
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                              </div>}
+                          </div>}
                       </DialogContent>
                     </Dialog>
                     
-                    <Button 
-                      variant="destructive" 
-                      className="flex-1"
-                      onClick={() => handleReleaseAccount(account)}
-                    >
+                    <Button variant="destructive" className="flex-1" onClick={() => handleReleaseAccount(account)}>
                       <X className="mr-2 h-4 w-4" />
                       Devolver
                     </Button>
                   </CardFooter>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-12 border rounded-lg">
+                </Card>;
+        })}
+          </div> : <div className="text-center py-12 border rounded-lg mt-5">
             <p className="text-white mb-4">
               Você não está utilizando nenhuma conta no momento.
             </p>
             <Button onClick={() => navigate('/accounts')}>
               Ver contas disponíveis
             </Button>
-          </div>
-        )}
+          </div>}
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default MyAccounts;
