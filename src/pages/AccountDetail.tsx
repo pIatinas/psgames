@@ -180,7 +180,7 @@ const AccountDetail = () => {
     const slot = getSlotByNumber(slotNumber);
     return slot?.user?.name || null;
   };
-  
+
   // Check if current user already has a slot in this account
   const userHasSlot = currentUser && account.slots?.some(slot => slot.user_id === currentUser.id);
   const canActivateSlot = (slotNumber: number) => {
@@ -189,7 +189,6 @@ const AccountDetail = () => {
     if (userHasSlot) return false; // User can only have one slot per account
     return true;
   };
-
   const handleSlotClick = (slotNumber: number) => {
     const slot = getSlotByNumber(slotNumber);
     if (slot && slot.user_id && currentUser?.role === 'admin') {
@@ -242,22 +241,11 @@ const AccountDetail = () => {
                           {!isSlotOccupied(1) ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                         </div>
                         <div className="text-sm mt-2 text-center">
-                          {!isSlotOccupied(1) ? (
-                            canActivateSlot(1) ? (
-                              <Button size="sm" onClick={() => handleUseSlot(1)} disabled={isActivating} className="w-full">
+                          {!isSlotOccupied(1) ? canActivateSlot(1) ? <Button size="sm" onClick={() => handleUseSlot(1)} disabled={isActivating} className="w-full bg-pink-600 hover:bg-pink-500">
                                 {isActivating ? "Ativando..." : "Utilizar"}
-                              </Button>
-                            ) : (
-                              <span className="text-muted-foreground">Bloqueado</span>
-                            )
-                          ) : (
-                            <span 
-                              className={`text-xs ${currentUser?.role === 'admin' ? 'cursor-pointer hover:text-red-400' : ''}`}
-                              onClick={() => handleSlotClick(1)}
-                            >
+                              </Button> : <span className="text-muted-foreground">Bloqueado</span> : <span className={`text-xs ${currentUser?.role === 'admin' ? 'cursor-pointer hover:text-red-400' : ''}`} onClick={() => handleSlotClick(1)}>
                               {getSlotUserName(1)}
-                            </span>
-                          )}
+                            </span>}
                         </div>
                       </div>
                       <div className={`p-3 rounded-lg ${!isSlotOccupied(2) ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
@@ -266,22 +254,11 @@ const AccountDetail = () => {
                           {!isSlotOccupied(2) ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                         </div>
                         <div className="text-sm mt-2 text-center">
-                          {!isSlotOccupied(2) ? (
-                            canActivateSlot(2) ? (
-                              <Button size="sm" onClick={() => handleUseSlot(2)} disabled={isActivating} className="w-full">
+                          {!isSlotOccupied(2) ? canActivateSlot(2) ? <Button size="sm" onClick={() => handleUseSlot(2)} disabled={isActivating} className="w-full bg-pink-600 hover:bg-pink-500">
                                 {isActivating ? "Ativando..." : "Utilizar"}
-                              </Button>
-                            ) : (
-                              <span className="text-muted-foreground">Bloqueado</span>
-                            )
-                          ) : (
-                            <span 
-                              className={`text-xs ${currentUser?.role === 'admin' ? 'cursor-pointer hover:text-red-400' : ''}`}
-                              onClick={() => handleSlotClick(2)}
-                            >
+                              </Button> : <span className="text-muted-foreground">Bloqueado</span> : <span className={`text-xs ${currentUser?.role === 'admin' ? 'cursor-pointer hover:text-red-400' : ''}`} onClick={() => handleSlotClick(2)}>
                               {getSlotUserName(2)}
-                            </span>
-                          )}
+                            </span>}
                         </div>
                       </div>
                     </div>
@@ -336,14 +313,12 @@ const AccountDetail = () => {
                 <div className="font-medium">Código de Acesso</div>
                 <div className="p-2 bg-muted rounded-md">{account.codes}</div>
               </div>
-              {account.qr_code && (
-                <div>
+              {account.qr_code && <div>
                   <div className="font-medium">QR Code</div>
                   <div className="p-2 bg-muted rounded-md flex justify-center">
                     <img src={account.qr_code} alt="QR Code" className="max-w-32 max-h-32" />
                   </div>
-                </div>
-              )}
+                </div>}
             </div>
           </div>
           
@@ -355,14 +330,10 @@ const AccountDetail = () => {
       </Dialog>
 
       {/* Slot Management Modal */}
-      <SlotManagementModal
-        isOpen={slotManagementModal.isOpen}
-        onClose={() => setSlotManagementModal(prev => ({ ...prev, isOpen: false }))}
-        accountId={slotManagementModal.accountId}
-        slotNumber={slotManagementModal.slotNumber}
-        userName={slotManagementModal.userName}
-        userId={slotManagementModal.userId}
-      />
+      <SlotManagementModal isOpen={slotManagementModal.isOpen} onClose={() => setSlotManagementModal(prev => ({
+      ...prev,
+      isOpen: false
+    }))} accountId={slotManagementModal.accountId} slotNumber={slotManagementModal.slotNumber} userName={slotManagementModal.userName} userId={slotManagementModal.userId} />
     </div>;
 };
 export default AccountDetail;
