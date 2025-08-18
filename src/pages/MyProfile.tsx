@@ -202,39 +202,6 @@ const MyProfile: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* User's Active Accounts */}
-            {userAccounts.length > 0 && <Card className="mt-8">
-                <CardHeader>
-                  <CardTitle>Minhas Contas Ativas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {userAccounts.map(account => {
-                  const userSlots = account.slots?.filter(slot => slot.user_id === currentUser.id) || [];
-                  return <div key={account.id} className="border rounded p-4">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <p className="font-medium">{account.email}</p>
-                              <div className="flex gap-2 mt-1">
-                                {userSlots.map(slot => <span key={slot.id} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                    Slot {slot.slot_number}
-                                  </span>)}
-                              </div>
-                            </div>
-                          </div>
-                          {account.games && account.games.length > 0 && <div>
-                              <p className="text-sm text-muted-foreground mb-1">Jogos disponíveis:</p>
-                              <div className="flex flex-wrap gap-1">
-                                {account.games.map(game => <span key={game.id} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                    {game.name}
-                                  </span>)}
-                              </div>
-                            </div>}
-                        </div>;
-                })}
-                  </div>
-                </CardContent>
-              </Card>}
           </div>
           
           <div>

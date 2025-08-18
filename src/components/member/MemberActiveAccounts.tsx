@@ -26,7 +26,7 @@ const MemberActiveAccounts: React.FC<MemberActiveAccountsProps> = ({ accounts, m
   return (
     <div>
       <SectionTitle 
-        title="Contas Ativas" 
+        title="Contas Ativas"
         subtitle={`${activeAccounts.length} ${activeAccounts.length === 1 ? 'conta em uso' : 'contas em uso'}`}
       />
       

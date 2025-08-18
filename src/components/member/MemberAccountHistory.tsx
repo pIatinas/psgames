@@ -25,7 +25,7 @@ const MemberAccountHistory: React.FC<MemberAccountHistoryProps> = ({ memberId })
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Contas Utilizadas</CardTitle>
+          <CardTitle>Contas <span>Utilizadas</span></CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground opacity-60">Carregando histórico...</p>
@@ -38,7 +38,7 @@ const MemberAccountHistory: React.FC<MemberAccountHistoryProps> = ({ memberId })
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Contas Utilizadas</CardTitle>
+          <CardTitle>Contas <span>Utilizadas</span></CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground opacity-60">Nenhuma conta utilizada ainda.</p>
@@ -50,7 +50,7 @@ const MemberAccountHistory: React.FC<MemberAccountHistoryProps> = ({ memberId })
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Contas Utilizadas</CardTitle>
+        <CardTitle>Contas <span>Utilizadas</span></CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {completedUsage.map(usage => {

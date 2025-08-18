@@ -115,13 +115,18 @@ const Index = () => {
           
           {recentMembers.length > 0 ? (
             <div className="md:hidden">
-              <MemberSlider members={recentMembers} accounts={[]} />
+              <MemberSlider members={recentMembers} accounts={recentAccounts} />
             </div>
           ) : null}
           
           {recentMembers.length > 0 ? (
             <div className="hidden md:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {recentMembers.map(member => <MemberCard key={member.id} member={member} />)}
+              {recentMembers.map(member => {
+                const activeAccountsCount = recentAccounts.filter(account => 
+                  account.slots?.some(slot => slot.user_id === member.id)
+                ).length;
+                return <MemberCard key={member.id} member={member} activeAccountsCount={activeAccountsCount} />;
+              })}
             </div>
           ) : (
             <div className="text-center py-8">

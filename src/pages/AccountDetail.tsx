@@ -232,7 +232,7 @@ const AccountDetail = () => {
             <div>
               <div className="rounded-lg p-6 sticky top-20 bg-gray-800/10 border border-gray-800/20 space-y-6 mt-16 ">
                 <div>
-                  <h3 className="font-semibold mb-2 text-white text-2xl">Ativações</h3>
+                  <h3 className="font-semibold mb-2 text-white text-2xl">Contas <span>Ativas</span></h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className={`p-3 rounded-lg ${!isSlotOccupied(1) ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>

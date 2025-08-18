@@ -267,34 +267,39 @@ const AccountCard = ({
     return slot !== undefined && slot.user_id !== null;
   };
   return <div className="border rounded-lg p-4 mt-3">
-      <div className="flex justify-between mb-2">
-        <h3 className="font-medium text-white">
-          {account.email.split('@')[0]}
-        </h3>
-        <Badge variant="outline" className="text-white">
-          {account.games?.length || 0} jogos
-        </Badge>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      <div className="grid grid-cols-2 gap-2">
         <div className={`p-3 rounded text-center ${!isSlotOccupied(1) ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
           <div className="text-xs">Slot 1</div>
-          {isSlotOccupied(1) ? <div className="flex items-center justify-center mt-1 flex-col">
+          {isSlotOccupied(1) ? (
+            <div className="flex items-center justify-center mt-1 flex-col">
               <User className="h-4 w-4" />
               <span className="text-xs mt-1">Ocupado</span>
-            </div> : <div className="flex justify-center mt-1">
+            </div>
+          ) : (
+            <div className="flex flex-col items-center mt-1">
               <Check className="h-4 w-4" />
-            </div>}
+              <Button size="sm" className="bg-pink-600 hover:bg-pink-500 text-white text-xs mt-2 py-1 px-2 h-auto">
+                Utilizar
+              </Button>
+            </div>
+          )}
         </div>
         
         <div className={`p-3 rounded text-center ${!isSlotOccupied(2) ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
           <div className="text-xs">Slot 2</div>
-          {isSlotOccupied(2) ? <div className="flex items-center justify-center mt-1 flex-col">
+          {isSlotOccupied(2) ? (
+            <div className="flex items-center justify-center mt-1 flex-col">
               <User className="h-4 w-4" />
               <span className="text-xs mt-1">Ocupado</span>
-            </div> : <div className="flex justify-center mt-1">
+            </div>
+          ) : (
+            <div className="flex flex-col items-center mt-1">
               <Check className="h-4 w-4" />
-            </div>}
+              <Button size="sm" className="bg-pink-600 hover:bg-pink-500 text-white text-xs mt-2 py-1 px-2 h-auto">
+                Utilizar
+              </Button>
+            </div>
+          )}
         </div>
       </div>
       
