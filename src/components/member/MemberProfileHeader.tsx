@@ -52,7 +52,7 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({
     }));
   };
   const paymentHistory = generatePaymentHistory();
-  return <div className="flex flex-col md:flex-row gap-6 items-center md:items-start  ">
+  return <div className="flex flex-col md:flex-row gap-4 items-center md:items-start  ">
       <Avatar className="w-24 h-24">
         <AvatarImage src={member.profile_image} alt={member.name} />
         <AvatarFallback className="bg-accent/20 text-accent text-4xl">{initials}</AvatarFallback>
@@ -63,7 +63,7 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({
         
         
         
-        <div className="flex flex-col md:flex-row gap-4 text-sm text-muted-foreground ">
+        <div className="flex flex-col md:flex-row text-sm text-muted-foreground flex-wrap text-center">
           
           
           
