@@ -54,7 +54,6 @@ const MemberPaymentSection: React.FC<MemberPaymentSectionProps> = ({ member }) =
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Pagamentos</CardTitle>
-        <MemberPaymentHistory member={member} />
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -78,6 +77,7 @@ const MemberPaymentSection: React.FC<MemberPaymentSectionProps> = ({ member }) =
           ))}
         </div>
       </CardContent>
+      <MemberPaymentHistory member={member} />
     </Card>
   );
 };
