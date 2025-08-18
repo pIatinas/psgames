@@ -59,11 +59,11 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({
       </Avatar>
       
       <div className="flex-1 text-center md:text-left">
-        <h1 className="text-3xl font-bold text-white">{member.name}</h1>
+        <h1 className="text-3xl font-bold text-white mt-2">{member.name}</h1>
         
         
         
-        <div className="flex flex-col md:flex-row text-sm text-muted-foreground flex-wrap text-center">
+        <div className="flex flex-col text-sm text-muted-foreground flex-wrap text-center">
           
           
           
@@ -72,7 +72,7 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({
           </div>
           
           <div className="flex items-center justify-start mt-1">
-            <Calendar className="h-4 w-4 mr-1" />
+            
             <span>Membro desde {new Date(member.created_at).toLocaleDateString()}</span>
           </div>
         </div>
