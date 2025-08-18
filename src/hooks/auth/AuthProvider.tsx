@@ -152,9 +152,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setSession(currentSession);
               await loadUserProfile(currentSession.user.id);
               
-              // Force navigation to accounts after successful login
+              // Navigate to accounts after successful login without page reload
               setTimeout(() => {
-                window.location.href = '/my-accounts';
+                if (window.location.pathname === '/' || window.location.pathname.includes('/login')) {
+                  window.history.pushState({}, '', '/my-accounts');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }
               }, 100);
             }
             break;
