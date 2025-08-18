@@ -6,24 +6,29 @@ import { useAuth } from '@/hooks/auth';
 import { memberPaymentService } from '@/services/memberPaymentService';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-
 interface MemberPaymentSectionWithSelectProps {
   member: Member;
 }
-
-const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectProps> = ({ member }) => {
-  const { currentUser } = useAuth();
+const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectProps> = ({
+  member
+}) => {
+  const {
+    currentUser
+  } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch member payments
-  const { data: memberPayments = [] } = useQuery({
+  const {
+    data: memberPayments = []
+  } = useQuery({
     queryKey: ['member-payments', member.id],
     queryFn: () => memberPaymentService.getByMember(member.id),
     enabled: !!member.id
   });
-
   const handleStatusChange = async (month: number, year: number, status: string) => {
     try {
       await memberPaymentService.upsertPayment({
@@ -34,15 +39,18 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
         amount: 0,
         paid_at: status === 'paid' ? new Date().toISOString() : undefined
       });
-
       toast({
         title: "Status atualizado",
         description: "O status do pagamento foi atualizado com sucesso."
       });
 
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['member-payments', member.id] });
-      queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+      queryClient.invalidateQueries({
+        queryKey: ['member-payments', member.id]
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['admin-members']
+      });
     } catch (error) {
       toast({
         title: "Erro",
@@ -56,23 +64,22 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
   const generatePaymentHistory = () => {
     const history = [];
     const currentDate = new Date();
-    
     for (let i = 11; i >= 0; i--) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
-      
       const payment = memberPayments.find(p => p.month === month && p.year === year);
-      
       history.push({
         month,
         year,
         status: payment?.status || 'pending',
-        monthName: date.toLocaleDateString('pt-BR', { month: 'long' }),
+        monthName: date.toLocaleDateString('pt-BR', {
+          month: 'long'
+        }),
         paid_at: payment?.paid_at
       });
     }
-    
+
     // Group by year
     const groupedByYear = history.reduce((groups, payment) => {
       const year = payment.year;
@@ -82,45 +89,30 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
       groups[year].push(payment);
       return groups;
     }, {} as Record<number, typeof history>);
-
-    return Object.keys(groupedByYear)
-      .map(Number)
-      .sort((a, b) => b - a)
-      .map(year => ({
-        year,
-        payments: groupedByYear[year].sort((a, b) => b.month - a.month)
-      }));
+    return Object.keys(groupedByYear).map(Number).sort((a, b) => b - a).map(year => ({
+      year,
+      payments: groupedByYear[year].sort((a, b) => b.month - a.month)
+    }));
   };
-
   const paymentHistory = generatePaymentHistory();
-
-  return (
-    <Card>
+  return <Card>
       <CardHeader>
         <CardTitle>Histórico de <span>Pagamentos</span></CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {paymentHistory.map((yearGroup) => (
-            <div key={yearGroup.year}>
+          {paymentHistory.map(yearGroup => <div key={yearGroup.year}>
               <h4 className="font-bold text-lg mb-3">{yearGroup.year}</h4>
               <div className="space-y-3 grid grid-cols-2 gap-2">
-                {yearGroup.payments.map((payment, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                {yearGroup.payments.map((payment, index) => <div key={index} className="flex items-center justify-center border rounded-lg flex-col text-center ">
                     <div>
                       <p className="font-medium text-sm capitalize">{payment.monthName}</p>
-                      {payment.paid_at && (
-                        <p className="text-xs text-muted-foreground">
+                      {payment.paid_at && <p className="text-xs text-muted-foreground">
                           Pago em {new Date(payment.paid_at).toLocaleDateString('pt-BR')}
-                        </p>
-                      )}
+                        </p>}
                     </div>
                     <div className="flex items-center gap-2">
-                      {isAdmin ? (
-                         <Select 
-                           value={payment.status} 
-                           onValueChange={(value) => handleStatusChange(payment.month, payment.year, value)}
-                         >
+                      {isAdmin ? <Select value={payment.status} onValueChange={value => handleStatusChange(payment.month, payment.year, value)}>
                           <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>
@@ -129,28 +121,15 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
                             <SelectItem value="pending">Pendente</SelectItem>
                             <SelectItem value="overdue">Atrasado</SelectItem>
                           </SelectContent>
-                        </Select>
-                      ) : (
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          payment.status === 'paid' 
-                            ? 'bg-green-100 text-green-800' 
-                            : payment.status === 'overdue' 
-                            ? 'bg-red-100 text-red-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
+                        </Select> : <span className={`text-xs px-2 py-1 rounded ${payment.status === 'paid' ? 'bg-green-100 text-green-800' : payment.status === 'overdue' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
                           {payment.status === 'paid' ? 'Pago' : payment.status === 'overdue' ? 'Atrasado' : 'Pendente'}
-                        </span>
-                      )}
+                        </span>}
                     </div>
-                  </div>
-                ))}
+                  </div>)}
               </div>
-            </div>
-          ))}
+            </div>)}
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default MemberPaymentSectionWithSelect;
