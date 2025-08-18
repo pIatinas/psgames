@@ -241,7 +241,7 @@ const GameDetail = () => {
                 
                  {gameAccounts.length > 0 ? <div className="grid grid-cols-1 gap-4">
                      {gameAccounts.map(account => <AccountCard key={account.id} account={account} />)}
-                   </div> : <p className="text-white">Nenhuma conta encontrada com este jogo.</p>}
+                   </div> : <p className="text-white opacity-60 mt-5">Nenhuma conta encontrada com este jogo.</p>}
               </div>
             </div>
           </div>
