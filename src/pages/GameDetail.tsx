@@ -300,7 +300,7 @@ const AccountCard = ({
       
       <div className="mt-4">
         <Button variant="outline" className="w-full" asChild>
-          <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`} className="bg-pink-600 border-none">Detalhes</Link>
+          <Link to={`/accounts/${generateAccountSlug(account.id, account.email)}`} className="bg-pink-600 border-none hover:bg-pink-500">Detalhes</Link>
         </Button>
       </div>
     </div>;
