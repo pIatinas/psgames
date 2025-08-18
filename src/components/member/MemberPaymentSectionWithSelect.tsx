@@ -104,7 +104,7 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
           {paymentHistory.map(yearGroup => <div key={yearGroup.year}>
               <h4 className="font-bold text-lg mb-3">{yearGroup.year}</h4>
               <div className="space-y-3 grid grid-cols-2 gap-2">
-                {yearGroup.payments.map((payment, index) => <div key={index} className="flex items-center justify-center border rounded-lg flex-col text-center p-2 ">
+                {yearGroup.payments.map((payment, index) => <div key={index} className="flex items-center justify-center border rounded-lg flex-col text-center py-4 px-2 ">
                     <div>
                       <p className="font-medium text-sm capitalize">{payment.monthName}</p>
                       {payment.paid_at && <p className="text-xs text-muted-foreground">
