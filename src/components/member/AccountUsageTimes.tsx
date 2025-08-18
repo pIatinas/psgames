@@ -21,7 +21,7 @@ const AccountUsageTimes: React.FC<AccountUsageTimesProps> = ({
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
-  return <div>
+  return <div className="grid grid-cols-2 gap-4">
       {memberAccounts.map(account => {
       // Find the slot this member is using
       const slot = account.slots?.find(slot => slot.user_id === memberId);
