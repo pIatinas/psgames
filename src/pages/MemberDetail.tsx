@@ -11,7 +11,7 @@ import MemberTrophyStats from '@/components/member/MemberTrophyStats';
 import AccountUsageTimes from '@/components/member/AccountUsageTimes';
 import MemberPaymentSidebar from '@/components/member/MemberPaymentSidebar';
 import MemberAccountHistory from '@/components/member/MemberAccountHistory';
-import MemberPaymentHistory from '@/components/member/MemberPaymentHistory';
+import MemberPaymentSection from '@/components/member/MemberPaymentSection';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { parseMemberSlug } from '@/utils/gameUtils';
 import { useQuery } from '@tanstack/react-query';
@@ -126,11 +126,8 @@ const MemberDetail = () => {
             
             {/* Barra lateral */}
             <div className="space-y-6">
-              {/* Payment Sidebar */}
-              <MemberPaymentSidebar member={member} />
-              
-              {/* Informações do Status do Membro */}
-              
+              {/* Payment Section */}
+              <MemberPaymentSection member={member} />
             </div>
           </div>
         </div>

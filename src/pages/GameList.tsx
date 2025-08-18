@@ -66,7 +66,7 @@ const GameList = () => {
           <div className="flex items-center justify-between gap-4 flex-wrap mt-7 ">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-medium">Plataformas:</span>
-              {platforms.map(platform => <Button key={platform} variant={selectedPlatforms.includes(platform) ? "default" : "outline"} size="sm" onClick={() => togglePlatform(platform)}>
+              {platforms.map(platform => <Button key={platform} variant={selectedPlatforms.includes(platform) ? "default" : "outline"} size="sm" onClick={() => togglePlatform(platform)} className={selectedPlatforms.includes(platform) ? "bg-pink-600 hover:bg-pink-700" : ""}>
                   {platform}
                 </Button>)}
               {selectedPlatforms.length > 0 && <Button variant="ghost" size="sm" onClick={() => setSelectedPlatforms([])}>

@@ -48,6 +48,19 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     queryFn: () => accountService.getAll()
   });
 
+  React.useEffect(() => {
+    const handleOpenModal = () => {
+      resetForm();
+      setIsDialogOpen(true);
+    };
+    
+    window.addEventListener('openMemberModal', handleOpenModal);
+    
+    return () => {
+      window.removeEventListener('openMemberModal', handleOpenModal);
+    };
+  }, []);
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -262,18 +275,9 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header with title and add button */}
+      {/* Header with title */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-white">Membros</h2>
-        {isAdmin && (
-          <Button 
-            onClick={handleOpenCreateModal}
-            className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Cadastrar Membro
-          </Button>
-        )}
       </div>
 
       {/* Members Table */}
@@ -322,6 +326,7 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                       <Switch
                         checked={member.active}
                         onCheckedChange={() => handleToggleActive(member.id, member.active)}
+                        disabled={member.id === currentUser?.id}
                       />
                     )}
                   </TableCell>

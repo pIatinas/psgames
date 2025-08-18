@@ -45,6 +45,19 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
     queryFn: () => gameService.getAll()
   });
 
+  React.useEffect(() => {
+    const handleOpenModal = () => {
+      resetForm();
+      setIsDialogOpen(true);
+    };
+    
+    window.addEventListener('openAccountModal', handleOpenModal);
+    
+    return () => {
+      window.removeEventListener('openAccountModal', handleOpenModal);
+    };
+  }, []);
+
   const resetForm = () => {
     setFormData({
       email: '',
@@ -201,18 +214,9 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header with title and add button */}
+      {/* Header with title */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-white">Contas</h2>
-        {isAdmin && (
-          <Button 
-            onClick={handleOpenCreateModal}
-            className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Cadastrar Conta
-          </Button>
-        )}
       </div>
 
       {/* Accounts Table */}

@@ -50,20 +50,17 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
   });
 
   React.useEffect(() => {
-    if (onOpenModal) {
-      const handleOpenModal = () => {
-        resetForm();
-        setIsDialogOpen(true);
-      };
-      
-      // You can trigger this from parent component
-      window.addEventListener('openGameModal', handleOpenModal);
-      
-      return () => {
-        window.removeEventListener('openGameModal', handleOpenModal);
-      };
-    }
-  }, [onOpenModal]);
+    const handleOpenModal = () => {
+      resetForm();
+      setIsDialogOpen(true);
+    };
+    
+    window.addEventListener('openGameModal', handleOpenModal);
+    
+    return () => {
+      window.removeEventListener('openGameModal', handleOpenModal);
+    };
+  }, []);
 
   const resetForm = () => {
     setFormData({
@@ -225,18 +222,9 @@ const AdminGames: React.FC<AdminGamesProps> = ({ onOpenModal }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header with title and add button */}
+      {/* Header with title */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-white">Jogos</h2>
-        {isAdmin && (
-          <Button 
-            onClick={handleOpenCreateModal}
-            className="bg-pink-500 hover:bg-pink-600 text-white rounded-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Cadastrar Jogo
-          </Button>
-        )}
       </div>
 
       {/* Games Table */}

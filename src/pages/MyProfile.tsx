@@ -94,7 +94,7 @@ const MyProfile: React.FC = () => {
       const updatedProfile = await userService.updateProfile(currentUser.id, {
         name: formData.name,
         avatar_url: formData.avatar_url,
-        banner_url: formData.banner_url,
+        banner_url: bannerImage || formData.banner_url,
         active: currentUser.active
       });
 

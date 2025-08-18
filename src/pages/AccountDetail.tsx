@@ -173,7 +173,8 @@ const AccountDetail = () => {
     return account.slots?.find(slot => slot.slot_number === slotNumber);
   };
   const isSlotOccupied = (slotNumber: number) => {
-    return getSlotByNumber(slotNumber) !== undefined;
+    const slot = getSlotByNumber(slotNumber);
+    return slot !== undefined && slot.user_id !== null;
   };
   const getSlotUserName = (slotNumber: number) => {
     const slot = getSlotByNumber(slotNumber);
