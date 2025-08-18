@@ -121,7 +121,7 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
                             <SelectItem value="pending">Pendente</SelectItem>
                             <SelectItem value="overdue">Atrasado</SelectItem>
                           </SelectContent>
-                        </Select> : <span className={`text-xs px-2 py-1 rounded ${payment.status === 'paid' ? 'bg-green-100 text-green-800' : payment.status === 'overdue' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        </Select> { payment.status } : <span className={`text-xs px-2 py-1 rounded ${payment.status === 'paid' ? 'bg-green-100 text-green-800' : payment.status === 'overdue' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
                           {payment.status === 'paid' ? 'Pago' : payment.status === 'overdue' ? 'Atrasado' : 'Pendente'}
                         </span>}
                     </div>
