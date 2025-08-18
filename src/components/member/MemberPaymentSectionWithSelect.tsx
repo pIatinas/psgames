@@ -111,7 +111,7 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
                           Pago em {new Date(payment.paid_at).toLocaleDateString('pt-BR')}
                         </p>}
                     </div>
-                    <div className="flex items-center gap-2" style={{position: absolute, bottom: '-15px'}}>
+                    <div className="flex items-center gap-2 absolute -bottom-10">
                       {isAdmin ? <Select value={payment.status} onValueChange={value => handleStatusChange(payment.month, payment.year, value)}>
                           <SelectTrigger className="w-32">
                             <SelectValue />
