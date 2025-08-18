@@ -243,7 +243,7 @@ const AccountDetail = () => {
                         <div className="text-sm mt-2 text-center">
                           {!isSlotOccupied(1) ? canActivateSlot(1) ? <Button size="sm" onClick={() => handleUseSlot(1)} disabled={isActivating} className="w-full bg-pink-600 hover:bg-pink-500">
                                 {isActivating ? "Ativando..." : "Utilizar"}
-                              </Button> : <span className="text-muted-foreground">Bloqueado</span> : <span className={`text-xs ${currentUser?.role === 'admin' ? 'cursor-pointer hover:text-red-400' : ''}`} onClick={() => handleSlotClick(1)}>
+                              </Button> : <span className="text-muted-foreground">Indisponível</span> : <span className={`text-xs ${currentUser?.role === 'admin' ? 'cursor-pointer hover:text-red-400' : ''}`} onClick={() => handleSlotClick(1)}>
                               {getSlotUserName(1)}
                             </span>}
                         </div>
