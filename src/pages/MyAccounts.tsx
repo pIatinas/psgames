@@ -190,10 +190,6 @@ const MyAccounts: React.FC = () => {
                                       {selectedAccount.password ? '••••••••' : 'Não definida'}
                                     </div>
                                   </div>
-                                  {selectedAccount.codes && <div>
-                                      <label className="text-sm font-medium">Códigos:</label>
-                                      <div className="p-2 bg-muted rounded text-sm">{selectedAccount.codes}</div>
-                                    </div>}
                                 </div>
                               </div>
                               

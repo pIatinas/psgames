@@ -130,6 +130,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          password: string | null
           qr_code: string | null
           security_answer: string | null
           updated_at: string
@@ -140,6 +141,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          password?: string | null
           qr_code?: string | null
           security_answer?: string | null
           updated_at?: string
@@ -150,6 +152,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          password?: string | null
           qr_code?: string | null
           security_answer?: string | null
           updated_at?: string
@@ -300,6 +303,7 @@ export type Database = {
         Row: {
           active: boolean
           avatar_url: string | null
+          banner_url: string | null
           created_at: string
           id: string
           name: string | null
@@ -310,6 +314,7 @@ export type Database = {
         Insert: {
           active?: boolean
           avatar_url?: string | null
+          banner_url?: string | null
           created_at?: string
           id: string
           name?: string | null
@@ -320,6 +325,7 @@ export type Database = {
         Update: {
           active?: boolean
           avatar_url?: string | null
+          banner_url?: string | null
           created_at?: string
           id?: string
           name?: string | null

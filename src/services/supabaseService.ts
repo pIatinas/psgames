@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { User, Account, Game, UserRole, GamePlatform } from '@/types';
-
+import { accountUsageService } from '@/services/accountUsageService';
 // Game service
 export const gameService = {
   async getAll(): Promise<Game[]> {
@@ -361,11 +361,25 @@ export const accountService = {
         throw new Error('Erro ao criar slot');
       }
     }
+    // Log usage history
+    await accountUsageService.createUsageRecord({
+      account_id: accountId,
+      user_id: userId,
+      slot_number: slotNumber,
+    });
     
     return true;
   },
 
   async freeSlot(accountId: string, slotNumber: number): Promise<boolean> {
+    // Get current slot to capture user_id before clearing
+    const { data: slotBefore } = await supabase
+      .from('account_slots')
+      .select('user_id')
+      .eq('account_id', accountId)
+      .eq('slot_number', slotNumber)
+      .maybeSingle();
+
     const { error } = await supabase
       .from('account_slots')
       .update({ user_id: null, entered_at: null })
@@ -375,6 +389,11 @@ export const accountService = {
     if (error) {
       console.error('Error freeing slot:', error);
       return false;
+    }
+
+    // End usage record if we had an active user
+    if (slotBefore?.user_id) {
+      await accountUsageService.endUsageRecord(accountId, slotBefore.user_id);
     }
     
     return true;

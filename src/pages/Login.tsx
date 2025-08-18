@@ -33,6 +33,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showRedirectOverlay, setShowRedirectOverlay] = useState(false);
   const recaptchaRef = useRef<ReCaptchaRef>(null);
 
   // Admin user should be created through Supabase dashboard for security
@@ -64,8 +65,8 @@ const Login = () => {
     try {
       const success = await login(formValues.emailOrPsnId, formValues.password);
       if (success) {
-        // Don't show toast or navigate - AuthProvider will handle the redirect
-        // after the user profile is loaded
+        // Mostrar overlay de redirecionamento; AuthProvider fará o redirect automático
+        setShowRedirectOverlay(true);
       } else {
         toast({
           title: "Erro",
@@ -92,7 +93,24 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
   return <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="w-full max-w-md px-4">
+      <div className="w-full max-w-md px-4 relative">
+        {showRedirectOverlay && (
+          <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
+            <div className="text-center space-y-3">
+              <p className="text-lg font-semibold">Login efetuado</p>
+              <p className="text-sm text-muted-foreground">
+                Caso você não seja redirecionado automaticamente,{' '}
+                <button
+                  type="button"
+                  className="underline text-secondary hover:text-secondary/80"
+                  onClick={() => navigate('/my-accounts')}
+                >
+                  clique aqui
+                </button>.
+              </p>
+            </div>
+          </div>
+        )}
         <div>
           <div className="text-center mb-8">
             <h1 className="text-foreground text-4xl font-bold">Login</h1>

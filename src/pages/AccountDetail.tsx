@@ -309,16 +309,14 @@ const AccountDetail = () => {
                   {account.password ? '••••••••' : 'Não definida'}
                 </div>
               </div>
-              <div>
-                <div className="font-medium">Código de Acesso</div>
-                <div className="p-2 bg-muted rounded-md">{account.codes}</div>
-              </div>
-              {account.qr_code && <div>
+              {account.qr_code && (
+                <div>
                   <div className="font-medium">QR Code</div>
                   <div className="p-2 bg-muted rounded-md flex justify-center">
                     <img src={account.qr_code} alt="QR Code" className="max-w-32 max-h-32" />
                   </div>
-                </div>}
+                </div>
+              )}
             </div>
           </div>
           

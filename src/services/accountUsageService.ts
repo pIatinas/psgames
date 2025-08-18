@@ -55,5 +55,23 @@ export const accountUsageService = {
 
     if (error) throw error;
     return data || [];
+  },
+
+  async getByAccount(accountId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('account_usage_history')
+      .select(`
+        *,
+        profiles:user_id (
+          id,
+          name,
+          avatar_url
+        )
+      `)
+      .eq('account_id', accountId)
+      .order('activated_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   }
 };
