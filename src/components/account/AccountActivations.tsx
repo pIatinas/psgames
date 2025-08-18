@@ -36,7 +36,7 @@ const AccountActivations: React.FC<AccountActivationsProps> = ({
       <CardHeader>
         <CardTitle>Últimas Ativações</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 grid gap-4 grid-cols-1 md:grid-cols-3">
         {allActivations.slice(0, 5).map((slot, index) => <div key={`${slot.id}-${index}`} className="flex items-center space-x-3 p-3 border rounded-lg">
             <Avatar className="h-10 w-10">
               <AvatarImage src="" />
