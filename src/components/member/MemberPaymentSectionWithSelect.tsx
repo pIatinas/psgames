@@ -2,10 +2,10 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Member } from '@/types';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/auth';
 import { memberPaymentService } from '@/services/memberPaymentService';
 import { useToast } from '@/hooks/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 interface MemberPaymentSectionWithSelectProps {
   member: Member;
@@ -16,6 +16,13 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
   const isAdmin = currentUser?.role === 'admin';
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch member payments
+  const { data: memberPayments = [] } = useQuery({
+    queryKey: ['member-payments', member.id],
+    queryFn: () => memberPaymentService.getByMember(member.id),
+    enabled: !!member.id
+  });
 
   const handleStatusChange = async (month: number, year: number, status: string) => {
     try {
@@ -55,7 +62,7 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
       
-      const payment = member.payments?.find(p => p.month === month && p.year === year);
+      const payment = memberPayments.find(p => p.month === month && p.year === year);
       
       history.push({
         month,
@@ -110,10 +117,10 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
                     </div>
                     <div className="flex items-center gap-2">
                       {isAdmin ? (
-                        <Select 
-                          defaultValue={payment.status} 
-                          onValueChange={(value) => handleStatusChange(payment.month, payment.year, value)}
-                        >
+                         <Select 
+                           value={payment.status} 
+                           onValueChange={(value) => handleStatusChange(payment.month, payment.year, value)}
+                         >
                           <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>

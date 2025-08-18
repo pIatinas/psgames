@@ -12,7 +12,8 @@ const AccountActivations: React.FC<AccountActivationsProps> = ({
   account
 }) => {
   // Get all historical slot activations sorted by most recent
-  const allActivations = account.slots?.filter(slot => slot.user && slot.entered_at).sort((a, b) => new Date(b.entered_at!).getTime() - new Date(a.entered_at!).getTime()) || [];
+  // Include ALL slots with entered_at (even those without current user)
+  const allActivations = account.slots?.filter(slot => slot.entered_at).sort((a, b) => new Date(b.entered_at!).getTime() - new Date(a.entered_at!).getTime()) || [];
   
   const getInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);

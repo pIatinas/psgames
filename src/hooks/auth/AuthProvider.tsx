@@ -151,6 +151,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (currentSession?.user && currentSession.user.id !== lastProfileFetch.current) {
               setSession(currentSession);
               await loadUserProfile(currentSession.user.id);
+              
+              // Force navigation to accounts after successful login
+              setTimeout(() => {
+                window.location.href = '/my-accounts';
+              }, 100);
             }
             break;
             

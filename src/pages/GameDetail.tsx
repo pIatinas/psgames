@@ -16,6 +16,8 @@ import Loader from '@/components/Loader';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import RelatedGames from '@/components/RelatedGames';
 import ImagePlaceholder from '@/components/ui/image-placeholder';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Interface for trophy data
 interface TrophyInfo {
@@ -252,20 +254,69 @@ const GameDetail = () => {
     </div>;
 };
 
-// Updated account card component to show member names
+// Updated account card component to show member names and working activation buttons
 const AccountCard = ({
   account
 }: {
   account: Account;
 }) => {
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   // Helper functions for slot management
   const getSlotByNumber = (slotNumber: number) => {
     return account.slots?.find(slot => slot.slot_number === slotNumber);
   };
+  
   const isSlotOccupied = (slotNumber: number) => {
     const slot = getSlotByNumber(slotNumber);
     return slot !== undefined && slot.user_id !== null;
   };
+
+  const getUserNameForSlot = (slotNumber: number) => {
+    const slot = getSlotByNumber(slotNumber);
+    return slot?.user?.name || 'Usuário desconhecido';
+  };
+
+  const handleSlotActivation = async (slotNumber: number) => {
+    if (!currentUser) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para ativar um slot.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const success = await accountService.assignSlot(account.id, slotNumber as 1 | 2, currentUser.id);
+      
+      if (success) {
+        toast({
+          title: "Slot ativado",
+          description: `Slot ${slotNumber} ativado com sucesso!`
+        });
+        
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ['accounts'] });
+        queryClient.invalidateQueries({ queryKey: ['account', account.id] });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível ativar o slot.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao ativar slot.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return <div className="border rounded-lg p-4 mt-3">
       <div className="grid grid-cols-2 gap-2">
         <div className={`p-3 rounded text-center ${!isSlotOccupied(1) ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
@@ -273,12 +324,16 @@ const AccountCard = ({
           {isSlotOccupied(1) ? (
             <div className="flex items-center justify-center mt-1 flex-col">
               <User className="h-4 w-4" />
-              <span className="text-xs mt-1">Ocupado</span>
+              <span className="text-xs mt-1">{getUserNameForSlot(1)}</span>
             </div>
           ) : (
             <div className="flex flex-col items-center mt-1">
               <Check className="h-4 w-4" />
-              <Button size="sm" className="bg-pink-600 hover:bg-pink-500 text-white text-xs mt-2 py-1 px-2 h-auto">
+              <Button 
+                size="sm" 
+                className="bg-pink-600 hover:bg-pink-500 text-white text-xs mt-2 py-1 px-2 h-auto"
+                onClick={() => handleSlotActivation(1)}
+              >
                 Utilizar
               </Button>
             </div>
@@ -290,12 +345,16 @@ const AccountCard = ({
           {isSlotOccupied(2) ? (
             <div className="flex items-center justify-center mt-1 flex-col">
               <User className="h-4 w-4" />
-              <span className="text-xs mt-1">Ocupado</span>
+              <span className="text-xs mt-1">{getUserNameForSlot(2)}</span>
             </div>
           ) : (
             <div className="flex flex-col items-center mt-1">
               <Check className="h-4 w-4" />
-              <Button size="sm" className="bg-pink-600 hover:bg-pink-500 text-white text-xs mt-2 py-1 px-2 h-auto">
+              <Button 
+                size="sm" 
+                className="bg-pink-600 hover:bg-pink-500 text-white text-xs mt-2 py-1 px-2 h-auto"
+                onClick={() => handleSlotActivation(2)}
+              >
                 Utilizar
               </Button>
             </div>
