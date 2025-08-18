@@ -53,9 +53,10 @@ const MyProfile: React.FC = () => {
       setFormData({
         name: currentUser.name || '',
         avatar_url: currentUser.profile?.avatar_url || '',
-        banner_url: ''
+        banner_url: (currentUser.profile as any)?.banner_url || ''
       });
       setProfileImage(currentUser.profile?.avatar_url || null);
+      setBannerImage((currentUser.profile as any)?.banner_url || null);
     }
   }, [currentUser, navigate]);
   if (!currentUser) {
@@ -81,7 +82,12 @@ const MyProfile: React.FC = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setBannerImage(reader.result as string);
+        const result = reader.result as string;
+        setBannerImage(result);
+        setFormData(prev => ({
+          ...prev,
+          banner_url: result
+        }));
       };
       reader.readAsDataURL(file);
     }
@@ -222,14 +228,14 @@ const MyProfile: React.FC = () => {
                 <div className="space-y-2">
                   <Label>Banner</Label>
                   <div className="flex flex-col items-center gap-4">
-                    <div className="aspect-[3/1] w-full rounded-lg overflow-hidden bg-muted border">
-                      {formData.banner_url ? <img src={formData.banner_url} alt="Banner" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                          <div className="text-center">
-                            <Camera className="h-12 w-12 mx-auto mb-2" />
-                            <p>Preview do Banner</p>
-                          </div>
-                        </div>}
-                    </div>
+                     <div className="aspect-[3/1] w-full rounded-lg overflow-hidden bg-muted border">
+                       {(formData.banner_url || bannerImage) ? <img src={bannerImage || formData.banner_url} alt="Banner" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                           <div className="text-center">
+                             <Camera className="h-12 w-12 mx-auto mb-2" />
+                             <p>Preview do Banner</p>
+                           </div>
+                         </div>}
+                     </div>
                   </div>
                 </div>
               </CardContent>

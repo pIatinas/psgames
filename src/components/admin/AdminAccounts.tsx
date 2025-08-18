@@ -35,7 +35,8 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({
     birthday: '',
     security_answer: '',
     codes: '',
-    qr_code: ''
+    qr_code: '',
+    password: ''
   });
   const {
     data: accounts = [],
@@ -66,7 +67,8 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({
       birthday: '',
       security_answer: '',
       codes: '',
-      qr_code: ''
+      qr_code: '',
+      password: ''
     });
     setSelectedGames([]);
     setEditingAccount(null);
@@ -82,7 +84,8 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({
       birthday: account.birthday || '',
       security_answer: account.security_answer || '',
       codes: account.codes || '',
-      qr_code: account.qr_code || ''
+      qr_code: account.qr_code || '',
+      password: account.password || ''
     });
     if (account.games) {
       setSelectedGames(account.games.map(g => g.id));
@@ -113,7 +116,8 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({
           birthday: formData.birthday,
           security_answer: formData.security_answer,
           codes: formData.codes,
-          qr_code: formData.qr_code
+          qr_code: formData.qr_code,
+          password: formData.password
         });
 
         // Link games to account
@@ -129,7 +133,8 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({
           birthday: formData.birthday,
           security_answer: formData.security_answer,
           codes: formData.codes,
-          qr_code: formData.qr_code
+          qr_code: formData.qr_code,
+          password: formData.password
         });
         if (newAccount) {
           // Link games to new account
@@ -274,6 +279,14 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({
               ...prev,
               email: e.target.value
             }))} required />
+            </div>
+            
+            <div>
+              <Label htmlFor="password">Senha</Label>
+              <Input id="password" type="password" value={formData.password} onChange={e => setFormData(prev => ({
+              ...prev,
+              password: e.target.value
+            }))} />
             </div>
             
             <div>

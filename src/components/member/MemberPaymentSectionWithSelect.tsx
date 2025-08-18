@@ -112,7 +112,7 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
                         </p>}
                     </div>
                     <div className="flex items-center gap-2">
-                      {isAdmin ? <Select value={payment.status} onValueChange={value => handleStatusChange(payment.month, payment.year, value)}>
+                       {isAdmin ? <Select value={payment.status} onValueChange={value => handleStatusChange(payment.month, payment.year, value)}>
                           <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>

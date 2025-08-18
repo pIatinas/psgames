@@ -196,6 +196,9 @@ export const accountService = {
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, name, active');
+
+    // Get usage history for this account
+    const usageHistory = await accountUsageService.getByAccount(id);
     
     return {
       ...data,
@@ -214,8 +217,9 @@ export const accountService = {
             active: userProfile.active
           } : undefined
         };
-      })
-    };
+      }),
+      usage_history: usageHistory
+    } as Account;
   },
 
   async create(account: Omit<Account, 'id' | 'created_at' | 'updated_at' | 'games' | 'slots'>): Promise<Account | null> {

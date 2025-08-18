@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from '@/hooks/useAuth';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Unlock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ReCaptcha, { ReCaptchaRef } from '@/components/ReCaptcha';
 const formSchema = z.object({
@@ -94,23 +94,7 @@ const Login = () => {
   };
   return <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md px-4 relative">
-        {showRedirectOverlay && (
-          <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
-            <div className="text-center space-y-3">
-              <p className="text-lg font-semibold">Login efetuado</p>
-              <p className="text-sm text-muted-foreground">
-                Caso você não seja redirecionado automaticamente,{' '}
-                <button
-                  type="button"
-                  className="underline text-secondary hover:text-secondary/80"
-                  onClick={() => navigate('/my-accounts')}
-                >
-                  clique aqui
-                </button>.
-              </p>
-            </div>
-          </div>
-        )}
+        {showRedirectOverlay && <RedirectOverlay />}
         <div>
           <div className="text-center mb-8">
             <h1 className="text-foreground text-4xl font-bold">Login</h1>
@@ -181,4 +165,44 @@ const Login = () => {
       </div>
     </div>;
 };
+const RedirectOverlay = () => {
+  const [countdown, setCountdown] = useState(5);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          navigate('/');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [navigate]);
+
+  return (
+    <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
+      <div className="text-center space-y-4">
+        <Unlock className="h-16 w-16 mx-auto text-green-500" />
+        <p className="text-lg font-semibold">Login efetuado</p>
+        <p className="text-sm text-muted-foreground">
+          Redirecionamento automático em {countdown} segundos
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Caso você não seja redirecionado automaticamente, clique no botão abaixo
+        </p>
+        <Button 
+          onClick={() => navigate('/')}
+          className="bg-pink-600 hover:bg-pink-700"
+        >
+          Ir para a Home
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export default Login;

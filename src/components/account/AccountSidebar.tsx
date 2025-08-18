@@ -231,10 +231,12 @@ const AccountSidebar: React.FC<AccountSidebarProps> = ({
                 <div className="font-medium">Email</div>
                 <div className="p-2 bg-muted rounded-md">{account.email}</div>
               </div>
-              <div>
-                <div className="font-medium">Senha</div>
-                <div className="p-2 bg-muted rounded-md">{account.password ? '••••••••' : 'Não definida'}</div>
-              </div>
+              {account.password && (
+                <div>
+                  <div className="font-medium">Senha</div>
+                  <div className="p-2 bg-muted rounded-md">{account.password}</div>
+                </div>
+              )}
               {account.security_answer && (
                 <div>
                   <div className="font-medium">Resposta de Segurança</div>

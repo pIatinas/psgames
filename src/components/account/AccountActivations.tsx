@@ -11,9 +11,9 @@ interface AccountActivationsProps {
 const AccountActivations: React.FC<AccountActivationsProps> = ({
   account
 }) => {
-  // Get all historical slot activations sorted by most recent
-  // Include ALL slots with entered_at (even those without current user)
-  const allActivations = account.slots?.filter(slot => slot.entered_at).sort((a, b) => new Date(b.entered_at!).getTime() - new Date(a.entered_at!).getTime()) || [];
+  // Get all usage history from account_usage_history instead of current slots
+  // This shows complete activation history, not just current slots
+  const allActivations = ((account as any).usage_history || []).sort((a: any, b: any) => new Date(b.activated_at).getTime() - new Date(a.activated_at).getTime());
   
   const getInitials = (name: string) => {
     return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
@@ -27,14 +27,14 @@ const AccountActivations: React.FC<AccountActivationsProps> = ({
   };
 
   // Group activations by month and year
-  const groupedActivations = allActivations.reduce((groups, slot) => {
-    const date = new Date(slot.entered_at!);
+  const groupedActivations = allActivations.reduce((groups, usage) => {
+    const date = new Date(usage.activated_at);
     const monthYear = format(date, 'MMMM yyyy', { locale: ptBR });
     
     if (!groups[monthYear]) {
       groups[monthYear] = [];
     }
-    groups[monthYear].push(slot);
+    groups[monthYear].push(usage);
     return groups;
   }, {} as Record<string, typeof allActivations>);
 
@@ -64,19 +64,19 @@ const AccountActivations: React.FC<AccountActivationsProps> = ({
           <div key={monthYear}>
             <h3 className="font-semibold text-lg mb-4 capitalize">{monthYear}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {activations.map((slot, index) => (
-                <div key={`${slot.id}-${index}`} className="flex items-center space-x-3 p-3 border rounded-lg">
+              {(activations as any[]).map((usage: any, index: number) => (
+                <div key={`${usage.id}-${index}`} className="flex items-center space-x-3 p-3 border rounded-lg">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src="" />
+                    <AvatarImage src={(usage.profiles as any)?.avatar_url || ""} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                      {getInitials(slot.user?.name || 'U')}
+                      {getInitials((usage.profiles as any)?.name || 'U')}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{slot.user?.name}</p>
+                    <p className="font-medium text-sm">{(usage.profiles as any)?.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Slot {slot.slot_number} • Ativado {formatDistanceToNow(new Date(slot.entered_at!), {
+                      Slot {usage.slot_number} • Ativado {formatDistanceToNow(new Date(usage.activated_at), {
                         addSuffix: true,
                         locale: ptBR
                       })}
@@ -84,11 +84,11 @@ const AccountActivations: React.FC<AccountActivationsProps> = ({
                   </div>
                   
                   <div className="text-right">
-                    <Badge variant={slot.user_id ? "default" : "secondary"} className="text-xs">
-                      {slot.user_id ? 'Ativo' : 'Inativo'}
+                    <Badge variant={usage.deactivated_at ? "secondary" : "default"} className="text-xs">
+                      {usage.deactivated_at ? 'Finalizado' : 'Ativo'}
                     </Badge>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {calculateDuration(slot.entered_at!)} dias
+                      {calculateDuration(usage.activated_at)} dias
                     </p>
                   </div>
                 </div>
