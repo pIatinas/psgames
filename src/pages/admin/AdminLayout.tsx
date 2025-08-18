@@ -35,7 +35,7 @@ const AdminLayout: React.FC = () => {
         </div>
         
         <Tabs defaultValue="games" value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-muted rounded-full p-1 mt-5">
+          <TabsList className="grid w-full grid-cols-3 bg-muted rounded-full p-1 mt-5 mb-4">
             <TabsTrigger value="games" className="rounded-full">Jogos</TabsTrigger>
             <TabsTrigger value="accounts" className="rounded-full">Contas</TabsTrigger>
             <TabsTrigger value="members" className="rounded-full">Membros</TabsTrigger>
