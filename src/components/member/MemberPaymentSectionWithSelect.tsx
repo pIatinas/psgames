@@ -103,7 +103,7 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
         <div className="space-y-6">
           {paymentHistory.map(yearGroup => <div key={yearGroup.year}>
               <h4 className="font-bold text-lg mb-3">{yearGroup.year}</h4>
-              <div className="space-y-3 grid grid-cols-2 gap-2 relative">
+              <div className="space-y-3 grid grid-cols-2 gap-2">
                 {yearGroup.payments.map((payment, index) => <div key={index} className="flex items-center justify-center border rounded-lg flex-col text-center p-2 ">
                     <div>
                       <p className="font-medium text-sm capitalize">{payment.monthName}</p>
@@ -111,7 +111,7 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
                           Pago em {new Date(payment.paid_at).toLocaleDateString('pt-BR')}
                         </p>}
                     </div>
-                    <div className="flex items-center gap-2" style="position: absolute; bottom: -10px;">
+                    <div className="flex items-center gap-2" style={{position: absolute, bottom: '-15px'}}>
                       {isAdmin ? <Select value={payment.status} onValueChange={value => handleStatusChange(payment.month, payment.year, value)}>
                           <SelectTrigger className="w-32">
                             <SelectValue />
