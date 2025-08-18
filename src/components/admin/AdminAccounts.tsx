@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -14,14 +13,18 @@ import { accountService, gameService } from '@/services/supabaseService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Account } from '@/types';
-
 interface AdminAccountsProps {
   onOpenModal?: () => void;
 }
-
-const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
-  const { toast } = useToast();
-  const { currentUser } = useAuth();
+const AdminAccounts: React.FC<AdminAccountsProps> = ({
+  onOpenModal
+}) => {
+  const {
+    toast
+  } = useToast();
+  const {
+    currentUser
+  } = useAuth();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -34,30 +37,29 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
     codes: '',
     qr_code: ''
   });
-
-  const { data: accounts = [], isLoading: accountsLoading } = useQuery({
+  const {
+    data: accounts = [],
+    isLoading: accountsLoading
+  } = useQuery({
     queryKey: ['admin-accounts'],
     queryFn: () => accountService.getAll()
   });
-
-  const { data: games = [] } = useQuery({
+  const {
+    data: games = []
+  } = useQuery({
     queryKey: ['admin-games'],
     queryFn: () => gameService.getAll()
   });
-
   React.useEffect(() => {
     const handleOpenModal = () => {
       resetForm();
       setIsDialogOpen(true);
     };
-    
     window.addEventListener('openAccountModal', handleOpenModal);
-    
     return () => {
       window.removeEventListener('openAccountModal', handleOpenModal);
     };
   }, []);
-
   const resetForm = () => {
     setFormData({
       email: '',
@@ -69,12 +71,10 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
     setSelectedGames([]);
     setEditingAccount(null);
   };
-
   const handleOpenCreateModal = () => {
     resetForm();
     setIsDialogOpen(true);
   };
-
   const handleEdit = (account: Account) => {
     setEditingAccount(account);
     setFormData({
@@ -89,20 +89,12 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
     }
     setIsDialogOpen(true);
   };
-
   const handleGameToggle = (gameId: string) => {
-    setSelectedGames(prev =>
-      prev.includes(gameId)
-        ? prev.filter(id => id !== gameId)
-        : [...prev, gameId]
-    );
+    setSelectedGames(prev => prev.includes(gameId) ? prev.filter(id => id !== gameId) : [...prev, gameId]);
   };
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (isSubmitting) return;
     setIsSubmitting(true);
     if (!formData.email) {
@@ -113,7 +105,6 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
       });
       return;
     }
-
     try {
       if (editingAccount) {
         // Update existing account
@@ -127,7 +118,6 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
 
         // Link games to account
         await accountService.linkToGames(editingAccount.id, selectedGames);
-
         toast({
           title: "Conta atualizada",
           description: "A conta foi atualizada com sucesso."
@@ -141,11 +131,9 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
           codes: formData.codes,
           qr_code: formData.qr_code
         });
-
         if (newAccount) {
           // Link games to new account
           await accountService.linkToGames(newAccount.id, selectedGames);
-
           toast({
             title: "Conta criada",
             description: "A nova conta foi criada com sucesso."
@@ -159,8 +147,9 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
           return;
         }
       }
-
-      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      queryClient.invalidateQueries({
+        queryKey: ['admin-accounts']
+      });
       setIsDialogOpen(false);
       resetForm();
     } catch (error) {
@@ -174,18 +163,16 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
       setIsSubmitting(false);
     }
   };
-
   const handleDeleteConfirm = async () => {
     if (!deleteAccountId) return;
-
     try {
       const success = await accountService.delete(deleteAccountId);
       if (success) {
         // Remove from local state immediately
-        queryClient.setQueryData(['admin-accounts'], (oldData: Account[] | undefined) => 
-          oldData ? oldData.filter(account => account.id !== deleteAccountId) : []
-        );
-        queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+        queryClient.setQueryData(['admin-accounts'], (oldData: Account[] | undefined) => oldData ? oldData.filter(account => account.id !== deleteAccountId) : []);
+        queryClient.invalidateQueries({
+          queryKey: ['admin-accounts']
+        });
         toast({
           title: "Conta excluída",
           description: "A conta foi excluída com sucesso."
@@ -201,23 +188,15 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
       setDeleteAccountId(null);
     }
   };
-
   const isAdmin = currentUser?.role === 'admin';
-
   if (accountsLoading) {
-    return (
-      <div className="text-center py-12">
+    return <div className="text-center py-12">
         <p className="text-lg text-muted-foreground">Carregando contas...</p>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header with title */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-white">Contas</h2>
-      </div>
+      
 
       {/* Accounts Table */}
       <div className="border rounded-lg">
@@ -232,81 +211,46 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {accounts.map(account => (
-              <TableRow key={account.id}>
+            {accounts.map(account => <TableRow key={account.id}>
                 <TableCell className="font-medium">{account.email}</TableCell>
                 <TableCell>
-                  {account.games && account.games.length > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {account.games.slice(0, 2).map(game => (
-                        <span>
+                  {account.games && account.games.length > 0 ? <div className="flex flex-wrap gap-1">
+                      {account.games.slice(0, 2).map(game => <span>
                           {game.name}
-                        </span>
-                      ))}
-                      {account.games.length > 2 && (
-                        <span>
+                        </span>)}
+                      {account.games.length > 2 && <span>
                           +{account.games.length - 2}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">Nenhum jogo</span>
-                  )}
+                        </span>}
+                    </div> : <span className="text-muted-foreground text-sm">Nenhum jogo</span>}
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     {[1, 2].map(slotNumber => {
-                      const slot = account.slots?.find(s => s.slot_number === slotNumber);
-                      const isOccupied = slot?.user_id;
-                      
-                      return (
-                        <Badge 
-                          key={slotNumber}
-                          variant={isOccupied ? "destructive" : "secondary"}
-                          className={`text-xs ${
-                            isOccupied ? 'bg-red-500' : 'bg-green-500'
-                          }`}
-                        >
+                  const slot = account.slots?.find(s => s.slot_number === slotNumber);
+                  const isOccupied = slot?.user_id;
+                  return <Badge key={slotNumber} variant={isOccupied ? "destructive" : "secondary"} className={`text-xs ${isOccupied ? 'bg-red-500' : 'bg-green-500'}`}>
                           {isOccupied ? slot?.user?.name || 'Ocupado' : `Slot ${slotNumber}`}
-                        </Badge>
-                      );
-                    })}
+                        </Badge>;
+                })}
                   </div>
                 </TableCell>
                 {/* <TableCell>
                   {account.birthday ? new Date(account.birthday).toLocaleDateString() : 'N/A'}
-                </TableCell> */}
-                {isAdmin && (
-                  <TableCell className="text-right">
+                 </TableCell> */}
+                {isAdmin && <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => window.location.href = `/accounts/${account.id}`}
-                          className="hover:bg-white hover:text-gray-900"
-                        >
+                        <Button variant="outline" size="sm" onClick={() => window.location.href = `/accounts/${account.id}`} className="hover:bg-white hover:text-gray-900">
                           Ver
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleEdit(account)}
-                          className="hover:bg-white hover:text-gray-900"
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(account)} className="hover:bg-white hover:text-gray-900">
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm" 
-                          onClick={() => setDeleteAccountId(account.id)}
-                        >
+                        <Button variant="destructive" size="sm" onClick={() => setDeleteAccountId(account.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
+                  </TableCell>}
+              </TableRow>)}
           </TableBody>
         </Table>
       </div>
@@ -326,50 +270,42 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email">Email *</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                value={formData.email} 
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                required 
-              />
+              <Input id="email" type="email" value={formData.email} onChange={e => setFormData(prev => ({
+              ...prev,
+              email: e.target.value
+            }))} required />
             </div>
             
             <div>
               <Label htmlFor="birthday">Data de Nascimento</Label>
-              <Input 
-                id="birthday" 
-                type="date" 
-                value={formData.birthday} 
-                onChange={(e) => setFormData(prev => ({ ...prev, birthday: e.target.value }))}
-              />
+              <Input id="birthday" type="date" value={formData.birthday} onChange={e => setFormData(prev => ({
+              ...prev,
+              birthday: e.target.value
+            }))} />
             </div>
             
             <div>
               <Label htmlFor="security_answer">Resposta de Segurança</Label>
-              <Input 
-                id="security_answer" 
-                value={formData.security_answer} 
-                onChange={(e) => setFormData(prev => ({ ...prev, security_answer: e.target.value }))}
-              />
+              <Input id="security_answer" value={formData.security_answer} onChange={e => setFormData(prev => ({
+              ...prev,
+              security_answer: e.target.value
+            }))} />
             </div>
             
             <div>
               <Label htmlFor="codes">Códigos</Label>
-              <Input 
-                id="codes" 
-                value={formData.codes} 
-                onChange={(e) => setFormData(prev => ({ ...prev, codes: e.target.value }))}
-              />
+              <Input id="codes" value={formData.codes} onChange={e => setFormData(prev => ({
+              ...prev,
+              codes: e.target.value
+            }))} />
             </div>
             
             <div>
               <Label htmlFor="qr_code">QR Code</Label>
-              <Input 
-                id="qr_code" 
-                value={formData.qr_code} 
-                onChange={(e) => setFormData(prev => ({ ...prev, qr_code: e.target.value }))}
-              />
+              <Input id="qr_code" value={formData.qr_code} onChange={e => setFormData(prev => ({
+              ...prev,
+              qr_code: e.target.value
+            }))} />
             </div>
 
             <div className="grid gap-2">
@@ -378,18 +314,12 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
                 Selecione os jogos que estarão disponíveis nesta conta
               </div>
               <div className="max-h-48 overflow-y-auto border rounded p-2">
-                {games.map(game => (
-                  <div key={game.id} className="flex items-center space-x-2 p-1">
-                    <Checkbox 
-                      id={`game-${game.id}`}
-                      checked={selectedGames.includes(game.id)}
-                      onCheckedChange={() => handleGameToggle(game.id)}
-                    />
+                {games.map(game => <div key={game.id} className="flex items-center space-x-2 p-1">
+                    <Checkbox id={`game-${game.id}`} checked={selectedGames.includes(game.id)} onCheckedChange={() => handleGameToggle(game.id)} />
                     <Label htmlFor={`game-${game.id}`} className="cursor-pointer">
                       {game.name}
                     </Label>
-                  </div>
-                ))}
+                  </div>)}
               </div>
             </div>
             
@@ -398,7 +328,7 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (editingAccount ? "Atualizando..." : "Criando...") : (editingAccount ? 'Atualizar' : 'Criar')} Conta
+                {isSubmitting ? editingAccount ? "Atualizando..." : "Criando..." : editingAccount ? 'Atualizar' : 'Criar'} Conta
               </Button>
             </DialogFooter>
           </form>
@@ -422,8 +352,6 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({ onOpenModal }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>;
 };
-
 export default AdminAccounts;

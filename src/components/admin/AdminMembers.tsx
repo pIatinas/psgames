@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -16,19 +15,26 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { User, Account } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 interface AdminMembersProps {
   onOpenModal?: () => void;
 }
-
-const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
-  const { toast } = useToast();
-  const { currentUser } = useAuth();
+const AdminMembers: React.FC<AdminMembersProps> = ({
+  onOpenModal
+}) => {
+  const {
+    toast
+  } = useToast();
+  const {
+    currentUser
+  } = useAuth();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<User | null>(null);
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null);
-  const [selectedAccountSlots, setSelectedAccountSlots] = useState<Array<{ accountId: string, slotNumber: 1 | 2 }>>([]);
+  const [selectedAccountSlots, setSelectedAccountSlots] = useState<Array<{
+    accountId: string;
+    slotNumber: 1 | 2;
+  }>>([]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -37,30 +43,29 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     active: false
   });
   const [showPassword, setShowPassword] = useState(false);
-
-  const { data: members = [], isLoading: membersLoading } = useQuery({
+  const {
+    data: members = [],
+    isLoading: membersLoading
+  } = useQuery({
     queryKey: ['admin-members'],
     queryFn: () => userService.getAll()
   });
-
-  const { data: accounts = [] } = useQuery({
+  const {
+    data: accounts = []
+  } = useQuery({
     queryKey: ['admin-accounts'],
     queryFn: () => accountService.getAll()
   });
-
   React.useEffect(() => {
     const handleOpenModal = () => {
       resetForm();
       setIsDialogOpen(true);
     };
-    
     window.addEventListener('openMemberModal', handleOpenModal);
-    
     return () => {
       window.removeEventListener('openMemberModal', handleOpenModal);
     };
   }, []);
-
   const resetForm = () => {
     setFormData({
       name: '',
@@ -72,12 +77,10 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     setSelectedAccountSlots([]);
     setEditingMember(null);
   };
-
   const handleOpenCreateModal = () => {
     resetForm();
     setIsDialogOpen(true);
   };
-
   const handleEdit = (member: User) => {
     setEditingMember(member);
     setFormData({
@@ -89,13 +92,16 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     });
 
     // Get member's current account slots
-    const memberSlots: Array<{ accountId: string, slotNumber: 1 | 2 }> = [];
+    const memberSlots: Array<{
+      accountId: string;
+      slotNumber: 1 | 2;
+    }> = [];
     accounts.forEach(account => {
       account.slots?.forEach(slot => {
         if (slot.user_id === member.id) {
-          memberSlots.push({ 
-            accountId: account.id, 
-            slotNumber: slot.slot_number 
+          memberSlots.push({
+            accountId: account.id,
+            slotNumber: slot.slot_number
           });
         }
       });
@@ -103,18 +109,19 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
     setSelectedAccountSlots(memberSlots);
     setIsDialogOpen(true);
   };
-
   const handleAccountSlotToggle = (accountId: string, slotNumber: 1 | 2) => {
     setSelectedAccountSlots(prev => {
       const exists = prev.find(slot => slot.accountId === accountId && slot.slotNumber === slotNumber);
       if (exists) {
         return prev.filter(slot => !(slot.accountId === accountId && slot.slotNumber === slotNumber));
       } else {
-        return [...prev, { accountId, slotNumber }];
+        return [...prev, {
+          accountId,
+          slotNumber
+        }];
       }
     });
   };
-
   const handleToggleActive = async (memberId: string, currentActive: boolean) => {
     try {
       const success = await userService.toggleUserActive(memberId, !currentActive);
@@ -123,7 +130,9 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
           title: "Status atualizado",
           description: `Usuário ${!currentActive ? 'ativado' : 'desativado'} com sucesso.`
         });
-        queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+        queryClient.invalidateQueries({
+          queryKey: ['admin-members']
+        });
       } else {
         toast({
           title: "Erro",
@@ -139,15 +148,12 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
       });
     }
   };
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (isSubmitting) return;
     setIsSubmitting(true);
-    if (!formData.name || (!editingMember && !formData.email)) {
+    if (!formData.name || !editingMember && !formData.email) {
       toast({
         title: "Erro",
         description: "Nome e email são obrigatórios.",
@@ -156,7 +162,6 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
       setIsSubmitting(false);
       return;
     }
-
     try {
       if (editingMember) {
         // Update existing member profile
@@ -168,7 +173,6 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
 
         // Update account slots
         await userService.linkToAccounts(editingMember.id, selectedAccountSlots);
-
         toast({
           title: "Membro atualizado",
           description: "O membro foi atualizado com sucesso."
@@ -183,15 +187,16 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
           });
           return;
         }
-
-        const { user, error } = await userService.createUser({
+        const {
+          user,
+          error
+        } = await userService.createUser({
           name: formData.name,
           email: formData.email,
           password: formData.password,
           role: formData.role,
           active: formData.active
         });
-
         if (error) {
           toast({
             title: "Erro",
@@ -200,20 +205,21 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
           });
           return;
         }
-
         if (user) {
           // Link account slots
           await userService.linkToAccounts(user.id, selectedAccountSlots);
-
           toast({
             title: "Membro criado",
             description: "O novo membro foi criado com sucesso."
           });
         }
       }
-
-      queryClient.invalidateQueries({ queryKey: ['admin-members'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+      queryClient.invalidateQueries({
+        queryKey: ['admin-members']
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['admin-accounts']
+      });
       setIsDialogOpen(false);
       resetForm();
     } catch (error) {
@@ -227,20 +233,20 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
       setIsSubmitting(false);
     }
   };
-
   const handleDeleteConfirm = async () => {
     if (!deleteMemberId) return;
-
     try {
       // Delete user completely from the database
       const success = await userService.deleteUser(deleteMemberId);
       if (success) {
         // Remove from local state immediately
-        queryClient.setQueryData(['admin-members'], (oldData: User[] | undefined) => 
-          oldData ? oldData.filter(member => member.id !== deleteMemberId) : []
-        );
-        queryClient.invalidateQueries({ queryKey: ['admin-members'] });
-        queryClient.invalidateQueries({ queryKey: ['admin-accounts'] });
+        queryClient.setQueryData(['admin-members'], (oldData: User[] | undefined) => oldData ? oldData.filter(member => member.id !== deleteMemberId) : []);
+        queryClient.invalidateQueries({
+          queryKey: ['admin-members']
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['admin-accounts']
+        });
         toast({
           title: "Membro excluído",
           description: "O membro foi excluído com sucesso."
@@ -262,23 +268,15 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
       setDeleteMemberId(null);
     }
   };
-
   const isAdmin = currentUser?.role === 'admin';
-
   if (membersLoading) {
-    return (
-      <div className="text-center py-12">
+    return <div className="text-center py-12">
         <p className="text-lg text-muted-foreground">Carregando membros...</p>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header with title */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-white">Membros</h2>
-      </div>
+      
 
       {/* Members Table */}
       <div className="border rounded-lg">
@@ -295,12 +293,8 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
           </TableHeader>
           <TableBody>
             {members.map(member => {
-              const memberAccounts = accounts.filter(account => 
-                account.slots?.some(slot => slot.user_id === member.id)
-              );
-              
-              return (
-                <TableRow key={member.id}>
+            const memberAccounts = accounts.filter(account => account.slots?.some(slot => slot.user_id === member.id));
+            return <TableRow key={member.id}>
                   <TableCell className="font-medium">{member.name}</TableCell>
                   <TableCell>
                     <Badge variant={member.role === 'admin' ? 'blue' : 'secondary'}>
@@ -309,59 +303,32 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {memberAccounts.length > 0 ? memberAccounts.map(account => (
-                        <Badge key={account.id} variant="outline" className="text-xs">
+                      {memberAccounts.length > 0 ? memberAccounts.map(account => <Badge key={account.id} variant="outline" className="text-xs">
                           {account.email}
-                        </Badge>
-                      )) : (
-                        <span className="text-xs text-muted-foreground">Nenhuma conta ativa</span>
-                      )}
+                        </Badge>) : <span className="text-xs text-muted-foreground">Nenhuma conta ativa</span>}
                     </div>
                   </TableCell>
                   <TableCell>
                     {member.profile?.created_at ? new Date(member.profile.created_at).toLocaleDateString() : 'N/A'}
                   </TableCell>
                   <TableCell>
-                    {isAdmin && (
-                      <Switch
-                        checked={member.active}
-                        onCheckedChange={() => handleToggleActive(member.id, member.active)}
-                        disabled={member.id === currentUser?.id}
-                      />
-                    )}
+                    {isAdmin && <Switch checked={member.active} onCheckedChange={() => handleToggleActive(member.id, member.active)} disabled={member.id === currentUser?.id} />}
                   </TableCell>
-                  {isAdmin && (
-                    <TableCell className="text-right">
+                  {isAdmin && <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => window.location.href = `/members/${member.id}`}
-                          className="hover:bg-white hover:text-gray-900"
-                        >
+                        <Button variant="outline" size="sm" onClick={() => window.location.href = `/members/${member.id}`} className="hover:bg-white hover:text-gray-900">
                           Ver
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleEdit(member)}
-                          className="hover:bg-white hover:text-gray-900"
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(member)} className="hover:bg-white hover:text-gray-900">
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm" 
-                          onClick={() => setDeleteMemberId(member.id)}
-                        >
+                        <Button variant="destructive" size="sm" onClick={() => setDeleteMemberId(member.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>
-                  )}
-                </TableRow>
-              );
-            })}
+                    </TableCell>}
+                </TableRow>;
+          })}
           </TableBody>
         </Table>
       </div>
@@ -382,55 +349,41 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="name">Nome *</Label>
-                <Input 
-                  id="name" 
-                  value={formData.name} 
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  required 
-                />
+                <Input id="name" value={formData.name} onChange={e => setFormData(prev => ({
+                ...prev,
+                name: e.target.value
+              }))} required />
               </div>
               
-              {!editingMember && (
-                <div>
+              {!editingMember && <div>
                   <Label htmlFor="email">Email *</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    value={formData.email} 
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    required 
-                  />
-                </div>
-              )}
+                  <Input id="email" type="email" value={formData.email} onChange={e => setFormData(prev => ({
+                ...prev,
+                email: e.target.value
+              }))} required />
+                </div>}
             </div>
 
-            {!editingMember && (
-              <div>
+            {!editingMember && <div>
                 <Label htmlFor="password">Senha *</Label>
                 <div className="relative">
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
-                    value={formData.password} 
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    required 
-                    className="pr-10"
-                  />
-                  <button 
-                    type="button" 
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition" 
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
+                  <Input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={e => setFormData(prev => ({
+                ...prev,
+                password: e.target.value
+              }))} required className="pr-10" />
+                  <button type="button" className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
-              </div>
-            )}
+              </div>}
             
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="role">Role</Label>
-                <Select value={formData.role} onValueChange={(value: 'admin' | 'member') => setFormData(prev => ({ ...prev, role: value }))}>
+                <Select value={formData.role} onValueChange={(value: 'admin' | 'member') => setFormData(prev => ({
+                ...prev,
+                role: value
+              }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o role" />
                   </SelectTrigger>
@@ -442,10 +395,10 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
               </div>
               
               <div className="flex items-center space-x-2">
-                <Switch
-                  checked={formData.active}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
-                />
+                <Switch checked={formData.active} onCheckedChange={checked => setFormData(prev => ({
+                ...prev,
+                active: checked
+              }))} />
                 <Label>Usuário Ativo</Label>
               </div>
             </div>
@@ -456,38 +409,21 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                 Selecione os slots das contas para este membro
               </div>
               <div className="max-h-48 overflow-y-auto border rounded p-2">
-                {accounts.map(account => (
-                  <div key={account.id} className="p-2 border-b last:border-b-0">
+                {accounts.map(account => <div key={account.id} className="p-2 border-b last:border-b-0">
                     <div className="font-medium text-sm mb-2">{account.email}</div>
                     <div className="flex gap-4">
                       {[1, 2].map(slotNumber => {
-                        const isSelected = selectedAccountSlots.some(slot => 
-                          slot.accountId === account.id && slot.slotNumber === slotNumber
-                        );
-                        const isOccupied = account.slots?.some(slot => 
-                          slot.slot_number === slotNumber && slot.user_id && slot.user_id !== editingMember?.id
-                        );
-                        
-                        return (
-                          <div key={slotNumber} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`account-${account.id}-slot-${slotNumber}`}
-                              checked={isSelected}
-                              disabled={isOccupied}
-                              onCheckedChange={() => handleAccountSlotToggle(account.id, slotNumber as 1 | 2)}
-                            />
-                            <Label 
-                              htmlFor={`account-${account.id}-slot-${slotNumber}`} 
-                              className={`cursor-pointer text-xs ${isOccupied ? 'text-muted-foreground' : ''}`}
-                            >
+                    const isSelected = selectedAccountSlots.some(slot => slot.accountId === account.id && slot.slotNumber === slotNumber);
+                    const isOccupied = account.slots?.some(slot => slot.slot_number === slotNumber && slot.user_id && slot.user_id !== editingMember?.id);
+                    return <div key={slotNumber} className="flex items-center space-x-2">
+                            <Checkbox id={`account-${account.id}-slot-${slotNumber}`} checked={isSelected} disabled={isOccupied} onCheckedChange={() => handleAccountSlotToggle(account.id, slotNumber as 1 | 2)} />
+                            <Label htmlFor={`account-${account.id}-slot-${slotNumber}`} className={`cursor-pointer text-xs ${isOccupied ? 'text-muted-foreground' : ''}`}>
                               Slot {slotNumber} {isOccupied ? '(Ocupado)' : ''}
                             </Label>
-                          </div>
-                        );
-                      })}
+                          </div>;
+                  })}
                     </div>
-                  </div>
-                ))}
+                  </div>)}
               </div>
             </div>
             
@@ -496,7 +432,7 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (editingMember ? "Atualizando..." : "Criando...") : (editingMember ? 'Atualizar' : 'Criar')} Membro
+                {isSubmitting ? editingMember ? "Atualizando..." : "Criando..." : editingMember ? 'Atualizar' : 'Criar'} Membro
               </Button>
             </DialogFooter>
           </form>
@@ -520,8 +456,6 @@ const AdminMembers: React.FC<AdminMembersProps> = ({ onOpenModal }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>;
 };
-
 export default AdminMembers;
