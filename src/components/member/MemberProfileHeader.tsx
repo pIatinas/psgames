@@ -52,8 +52,8 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({
     }));
   };
   const paymentHistory = generatePaymentHistory();
-  return <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-      <Avatar className="w-32 h-32">
+  return <div className="flex flex-col md:flex-row gap-6 items-center md:items-start  ">
+      <Avatar className="w-24 h-24">
         <AvatarImage src={member.profile_image} alt={member.name} />
         <AvatarFallback className="bg-accent/20 text-accent text-4xl">{initials}</AvatarFallback>
       </Avatar>
@@ -61,13 +61,9 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({
       <div className="flex-1 text-center md:text-left">
         <h1 className="text-3xl font-bold text-white">{member.name}</h1>
         
-        <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
-          <Badge variant="secondary">
-            Membro
-          </Badge>
-        </div>
         
-        <div className="flex flex-col md:flex-row gap-4 text-sm text-muted-foreground -mt-1">
+        
+        <div className="flex flex-col md:flex-row gap-4 text-sm text-muted-foreground ">
           
           
           
@@ -75,7 +71,7 @@ const MemberProfileHeader: React.FC<MemberProfileHeaderProps> = ({
             <span>PSN ID: {member.psn_id}</span>
           </div>
           
-          <div className="flex items-center justify-center md:justify-start">
+          <div className="flex items-center justify-start mt-1">
             <Calendar className="h-4 w-4 mr-1" />
             <span>Membro desde {new Date(member.created_at).toLocaleDateString()}</span>
           </div>
