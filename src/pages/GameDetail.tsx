@@ -327,8 +327,9 @@ const AccountCard = ({
               <span className="text-xs mt-1">{getUserNameForSlot(1)}</span>
             </div>
           ) : (
-            <div className="flex flex-col items-center mt-1">
+            <div className="flex items-center justify-center mt-1 flex-col">
               <Check className="h-4 w-4" />
+              <span className="text-xs mt-1">Livre</span>
             </div>
           )}
         </div>
@@ -341,8 +342,9 @@ const AccountCard = ({
               <span className="text-xs mt-1">{getUserNameForSlot(2)}</span>
             </div>
           ) : (
-            <div className="flex flex-col items-center mt-1">
+            <div className="flex items-center justify-center mt-1 flex-col">
               <Check className="h-4 w-4" />
+              <span className="text-xs mt-1">Livre</span>
             </div>
           )}
         </div>
