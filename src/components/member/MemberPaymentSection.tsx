@@ -76,8 +76,8 @@ const MemberPaymentSection: React.FC<MemberPaymentSectionProps> = ({ member }) =
             </div>
           ))}
         </div>
+        <MemberPaymentHistory member={member} />
       </CardContent>
-      <MemberPaymentHistory member={member} />
     </Card>
   );
 };
