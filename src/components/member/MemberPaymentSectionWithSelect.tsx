@@ -22,13 +22,12 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
   const queryClient = useQueryClient();
 
   // Fetch member payments
-  const targetMemberId = isAdmin ? member.id : (currentUser?.id || member.id);
   const {
     data: memberPayments = []
   } = useQuery({
-    queryKey: ['member-payments', targetMemberId],
-    queryFn: () => memberPaymentService.getByMember(targetMemberId),
-    enabled: !!targetMemberId
+    queryKey: ['member-payments', member.id],
+    queryFn: () => memberPaymentService.getByMember(member.id),
+    enabled: !!member.id
   });
   const handleStatusChange = async (month: number, year: number, status: string) => {
     try {
@@ -107,6 +106,8 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
               <div className="space-y-3 grid grid-cols-2 gap-2">
                 {yearGroup.payments.map((payment, index) => <div key={index} className={`flex items-center justify-center border rounded-lg flex-col text-center py-4 px-2 relative ${payment.status === 'paid' ? 'bg-primary/10 border-primary/40' : payment.status === 'overdue' ? 'bg-destructive/10 border-destructive/40' : 'bg-muted/20 border-muted/40'}`}>
                     <div>
+                      {payment}
+                      {payment.status}
                       <p className="font-medium text-sm capitalize">{payment.monthName}</p>
                       {payment.paid_at && <p className="text-xs text-muted-foreground">
                           Pago em {new Date(payment.paid_at).toLocaleDateString('pt-BR')}
