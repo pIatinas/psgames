@@ -82,24 +82,16 @@ const MemberDetail = () => {
   return <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-grow">
-        {/* Profile Banner */}
-        <div className="relative h-40 w-full">
-          {(user.profile as any)?.banner_url && (
-            <>
-              <img src={(user.profile as any)?.banner_url} alt="Banner do perfil" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-            </>
-          )}
-        </div>
-        <div className="container py-8">
+      <main className="flex-grow relative">
+        {/* Breadcrumbs and Back Button over hero */}
+        <div className="container py-4 absolute z-10 top-0 left-0 right-0 w-full">
           <div className="flex items-center justify-between">
             <nav className="flex items-center space-x-2 text-sm">
-              <Link to="/" className="text-muted-foreground hover:text-foreground">Início</Link>
-              <span className="text-muted-foreground">/</span>
-              <Link to="/members" className="text-muted-foreground hover:text-foreground">Membros</Link>
-              <span className="text-muted-foreground">/</span>
-              <span className="text-foreground">{user.name}</span>
+              <Link to="/" className="text-white/80 hover:text-white">Início</Link>
+              <span className="text-white/60">/</span>
+              <Link to="/members" className="text-white/80 hover:text-white">Membros</Link>
+              <span className="text-white/60">/</span>
+              <span className="text-white">{user.name}</span>
             </nav>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/members">
@@ -108,21 +100,36 @@ const MemberDetail = () => {
               </Link>
             </Button>
           </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10 ">
+        </div>
+
+        {/* Hero Banner with overlayed content */}
+        <div className="relative h-[40vh] min-h-[300px] max-h-[500px]">
+          {(user.profile as any)?.banner_url ? (
+            <>
+              <img src={(user.profile as any)?.banner_url} alt="Banner do perfil" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent" />
+            </>
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50" />
+          )}
+
+          <div className="absolute bottom-0 left-0 right-0 container py-8">
+            <MemberProfileHeader member={member} />
+          </div>
+        </div>
+
+        {/* Page content */}
+        <div className="container py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Coluna principal */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Informações do perfil */}
-              <MemberProfileHeader member={member} />
-              
               {/* Troféus do PSN ID */}
               <MemberTrophyStats psnId={member.psn_id || member.name} />
-              
+
               {/* Contas ativas com detalhes de jogos e tempo de uso */}
               <Card>
                 <CardHeader>
                   <CardTitle>Contas <span>Ativas</span></CardTitle>
-                  
                 </CardHeader>
                 <CardContent>
                   <AccountUsageTimes accounts={accounts} memberId={memberId || ''} />
@@ -132,7 +139,7 @@ const MemberDetail = () => {
               {/* Member Account History */}
               <MemberAccountHistory memberId={memberId || ''} />
             </div>
-            
+
             {/* Barra lateral */}
             <div className="space-y-6">
               {/* Payment Section */}

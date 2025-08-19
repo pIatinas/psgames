@@ -22,8 +22,19 @@ export const memberPaymentService = {
       .order('year', { ascending: false })
       .order('month', { ascending: false });
 
+    const normalizeStatus = (s?: string): 'paid' | 'pending' | 'overdue' => {
+      const t = (s || '').toLowerCase();
+      if (['paid', 'pago', 'paga', 'pagou'].includes(t)) return 'paid';
+      if (['overdue', 'atrasado', 'atrasada', 'vencido', 'vencida', 'em atraso'].includes(t)) return 'overdue';
+      if (['pending', 'pendente'].includes(t)) return 'pending';
+      return 'pending';
+    };
+
     if (!errorMember && dataMember && dataMember.length > 0) {
-      return dataMember as MemberPayment[];
+      return (dataMember as MemberPayment[]).map(p => ({
+        ...p,
+        status: normalizeStatus((p as any).status)
+      }));
     }
 
     // Fallback to legacy 'payments' table if no records found
@@ -36,7 +47,10 @@ export const memberPaymentService = {
 
     if (errorMember && errorLegacy) throw errorMember;
 
-    return (dataLegacy || []) as MemberPayment[];
+    return ((dataLegacy || []) as MemberPayment[]).map(p => ({
+      ...p,
+      status: normalizeStatus((p as any).status)
+    }));
   },
 
   async upsertPayment(payment: Omit<MemberPayment, 'id' | 'created_at' | 'updated_at'>): Promise<MemberPayment | null> {
