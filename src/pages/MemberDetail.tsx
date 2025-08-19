@@ -85,9 +85,9 @@ const MemberDetail = () => {
       <main className="flex-grow">
         {/* Profile Banner */}
         <div className="relative h-40 w-full">
-          {user.profile?.banner_url && (
+          {(user.profile as any)?.banner_url && (
             <>
-              <img src={user.profile?.banner_url} alt="Banner do perfil" className="w-full h-full object-cover" />
+              <img src={(user.profile as any)?.banner_url} alt="Banner do perfil" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
             </>
           )}
