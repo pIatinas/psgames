@@ -14,15 +14,29 @@ export interface MemberPayment {
 
 export const memberPaymentService = {
   async getByMember(memberId: string): Promise<MemberPayment[]> {
-    const { data, error } = await supabase
+    // Try member_payments first
+    const { data: dataMember, error: errorMember } = await supabase
       .from('member_payments')
       .select('*')
       .eq('member_id', memberId)
       .order('year', { ascending: false })
       .order('month', { ascending: false });
 
-    if (error) throw error;
-    return (data || []) as MemberPayment[];
+    if (!errorMember && dataMember && dataMember.length > 0) {
+      return dataMember as MemberPayment[];
+    }
+
+    // Fallback to legacy 'payments' table if no records found
+    const { data: dataLegacy, error: errorLegacy } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('member_id', memberId)
+      .order('year', { ascending: false })
+      .order('month', { ascending: false });
+
+    if (errorMember && errorLegacy) throw errorMember;
+
+    return (dataLegacy || []) as MemberPayment[];
   },
 
   async upsertPayment(payment: Omit<MemberPayment, 'id' | 'created_at' | 'updated_at'>): Promise<MemberPayment | null> {
