@@ -166,14 +166,14 @@ const Login = () => {
     </div>;
 };
 const RedirectOverlay = () => {
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(10);
   const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
-          navigate('/');
+          navigate('/', { replace: true });
           return 0;
         }
         return prev - 1;
@@ -195,7 +195,7 @@ const RedirectOverlay = () => {
           Caso você não seja redirecionado automaticamente, clique no botão abaixo
         </p>
         <Button 
-          onClick={() => navigate('/my-accounts')}
+          onClick={() => navigate('/')}
           className="bg-pink-600 hover:bg-pink-700"
         >
           Ir para a Home

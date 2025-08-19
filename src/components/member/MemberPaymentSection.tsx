@@ -5,16 +5,20 @@ import { Member } from '@/types';
 import MemberPaymentHistory from './MemberPaymentHistory';
 import { memberPaymentService } from '@/services/memberPaymentService';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 
 interface MemberPaymentSectionProps {
   member: Member;
 }
 
 const MemberPaymentSection: React.FC<MemberPaymentSectionProps> = ({ member }) => {
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
+  const targetMemberId = isAdmin ? member.id : (currentUser?.id || member.id);
   const { data: memberPayments = [] } = useQuery({
-    queryKey: ['member-payments', member.id],
-    queryFn: () => memberPaymentService.getByMember(member.id),
-    enabled: !!member.id,
+    queryKey: ['member-payments', targetMemberId],
+    queryFn: () => memberPaymentService.getByMember(targetMemberId),
+    enabled: !!targetMemberId,
   });
   // Generate payment history grouped by year
   const generatePaymentHistory = () => {

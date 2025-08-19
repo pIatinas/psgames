@@ -83,6 +83,15 @@ const MemberDetail = () => {
       <Header />
 
       <main className="flex-grow">
+        {/* Profile Banner */}
+        <div className="relative h-40 w-full">
+          {user.profile?.banner_url && (
+            <>
+              <img src={user.profile?.banner_url} alt="Banner do perfil" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+            </>
+          )}
+        </div>
         <div className="container py-8">
           <div className="flex items-center justify-between">
             <nav className="flex items-center space-x-2 text-sm">

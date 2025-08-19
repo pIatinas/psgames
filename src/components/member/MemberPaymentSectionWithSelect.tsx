@@ -22,12 +22,13 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
   const queryClient = useQueryClient();
 
   // Fetch member payments
+  const targetMemberId = isAdmin ? member.id : (currentUser?.id || member.id);
   const {
     data: memberPayments = []
   } = useQuery({
-    queryKey: ['member-payments', member.id],
-    queryFn: () => memberPaymentService.getByMember(member.id),
-    enabled: !!member.id
+    queryKey: ['member-payments', targetMemberId],
+    queryFn: () => memberPaymentService.getByMember(targetMemberId),
+    enabled: !!targetMemberId
   });
   const handleStatusChange = async (month: number, year: number, status: string) => {
     try {

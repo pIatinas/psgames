@@ -100,7 +100,7 @@ const MyProfile: React.FC = () => {
       const updatedProfile = await userService.updateProfile(currentUser.id, {
         name: formData.name,
         avatar_url: formData.avatar_url,
-        banner_url: bannerImage || formData.banner_url,
+        banner_url: formData.banner_url || bannerImage,
         active: currentUser.active
       });
 
@@ -123,9 +123,7 @@ const MyProfile: React.FC = () => {
         description: "Suas informações foram atualizadas com sucesso."
       });
 
-      // Ensure local state keeps banner
-      setFormData(prev => ({ ...prev, banner_url: bannerImage || prev.banner_url }));
-      setBannerImage(bannerImage || formData.banner_url || null);
+      // Mantém estado do banner sem sobrescrever
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       toast({
@@ -174,7 +172,7 @@ const MyProfile: React.FC = () => {
         {(formData.banner_url || bannerImage) && (
           <>
             <img
-              src={bannerImage || formData.banner_url}
+              src={formData.banner_url || bannerImage}
               alt="Banner do perfil"
               className="w-full h-full object-cover"
             />
@@ -212,10 +210,10 @@ const MyProfile: React.FC = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="banner_url">Banner</Label>
-                    <Input id="banner_url" type="url" value={formData.banner_url} onChange={e => setFormData(prev => ({
+                    <Input id="banner_url" type="url" value={formData.banner_url} onChange={e => { setFormData(prev => ({
                     ...prev,
                     banner_url: e.target.value
-                  }))} placeholder="URL da imagem do banner" />
+                  })); setBannerImage(null); }} placeholder="URL da imagem do banner" />
                   </div>
 
                   <div className="flex gap-4">
@@ -248,7 +246,7 @@ const MyProfile: React.FC = () => {
                   <Label>Banner</Label>
                   <div className="flex flex-col items-center gap-4">
                      <div className="aspect-[3/1] w-full rounded-lg overflow-hidden bg-muted border">
-                       {(formData.banner_url || bannerImage) ? <img src={bannerImage || formData.banner_url} alt="Banner" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                       {(formData.banner_url || bannerImage) ? <img src={formData.banner_url || bannerImage} alt="Banner" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center text-muted-foreground">
                            <div className="text-center">
                              <Camera className="h-12 w-12 mx-auto mb-2" />
                              <p>Preview do Banner</p>

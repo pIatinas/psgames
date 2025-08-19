@@ -26,9 +26,9 @@ const AccountCard: React.FC<AccountCardProps> = ({
 
           {account.games && account.games.length > 0 && <div className="flex-grow">
               <div className="flex flex-wrap gap-1">
-                {account.games.slice(0, 3).map(game => <span key={game.id} className="text-base font-normal p-0 ">
-                    {game.name}
-                  </span>)}
+                <span className="text-base font-normal p-0 ">
+                  {account.games.slice(0, 3).map(g => g.name).join(', ')}
+                </span>
                 {account.games.length > 3 && <span className="text-xs px-2 py-1 rounded">
                     +{account.games.length - 3}
                   </span>}
