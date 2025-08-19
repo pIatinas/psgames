@@ -184,12 +184,12 @@ const MyAccounts: React.FC = () => {
                                     <label className="text-sm font-medium">Email:</label>
                                     <div className="p-2 bg-muted rounded text-sm">{selectedAccount.email}</div>
                                   </div>
-                                  <div>
-                                    <label className="text-sm font-medium">Senha:</label>
-                                    <div className="p-2 bg-muted rounded text-sm">
-                                      {selectedAccount.password ? '••••••••' : 'Não definida'}
-                                    </div>
-                                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Senha:</label>
+                    <div className="p-2 bg-muted rounded text-sm">
+                      {selectedAccount.password || 'Não definida'}
+                    </div>
+                  </div>
                                 </div>
                               </div>
                               

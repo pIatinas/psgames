@@ -195,7 +195,7 @@ const RedirectOverlay = () => {
           Caso você não seja redirecionado automaticamente, clique no botão abaixo
         </p>
         <Button 
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/my-accounts')}
           className="bg-pink-600 hover:bg-pink-700"
         >
           Ir para a Home

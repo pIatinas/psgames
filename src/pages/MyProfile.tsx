@@ -108,11 +108,12 @@ const MyProfile: React.FC = () => {
       const updatedUser = {
         ...currentUser,
         name: formData.name,
-        profile: currentUser.profile ? {
-          ...currentUser.profile,
-          name: formData.name,
-          avatar_url: formData.avatar_url
-        } : undefined
+          profile: currentUser.profile ? {
+            ...currentUser.profile,
+            name: formData.name,
+            avatar_url: formData.avatar_url,
+            banner_url: bannerImage || formData.banner_url
+          } : undefined
       };
       if (updateCurrentUser) {
         updateCurrentUser(updatedUser);
@@ -121,6 +122,10 @@ const MyProfile: React.FC = () => {
         title: "Perfil atualizado",
         description: "Suas informações foram atualizadas com sucesso."
       });
+
+      // Ensure local state keeps banner
+      setFormData(prev => ({ ...prev, banner_url: bannerImage || prev.banner_url }));
+      setBannerImage(bannerImage || formData.banner_url || null);
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       toast({
@@ -163,6 +168,20 @@ const MyProfile: React.FC = () => {
   const defaultProfileImage = `https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=200&h=200&fit=crop&crop=face`;
   return <div className="flex flex-col min-h-screen">
       <Header />
+
+      {/* Profile Banner */}
+      <div className="relative h-40 w-full">
+        {(formData.banner_url || bannerImage) && (
+          <>
+            <img
+              src={bannerImage || formData.banner_url}
+              alt="Banner do perfil"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+          </>
+        )}
+      </div>
 
       <main className="flex-grow container py-8">
         <SectionTitle title="Meu Perfil" subtitle="Gerencie suas informações pessoais" />

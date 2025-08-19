@@ -219,14 +219,13 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({
             {accounts.map(account => <TableRow key={account.id}>
                 <TableCell className="font-medium">{account.email}</TableCell>
                 <TableCell>
-                  {account.games && account.games.length > 0 ? <div className="flex flex-wrap gap-1">
-                      {account.games.slice(0, 2).map(game => <span>
-                          {game.name}
-                        </span>)}
-                      {account.games.length > 2 && <span>
-                          +{account.games.length - 2}
-                        </span>}
-                    </div> : <span className="text-muted-foreground text-sm">Nenhum jogo</span>}
+                  {account.games && account.games.length > 0 ? (
+                    <span className="text-sm">
+                      {account.games.map(g => g.name).join(', ')}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">Nenhum jogo</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
@@ -283,7 +282,7 @@ const AdminAccounts: React.FC<AdminAccountsProps> = ({
             
             <div>
               <Label htmlFor="password">Senha</Label>
-              <Input id="password" type="password" value={formData.password} onChange={e => setFormData(prev => ({
+              <Input id="password" type="text" value={formData.password} onChange={e => setFormData(prev => ({
               ...prev,
               password: e.target.value
             }))} />

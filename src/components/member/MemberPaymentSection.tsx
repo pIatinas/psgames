@@ -3,15 +3,22 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Member } from '@/types';
 import MemberPaymentHistory from './MemberPaymentHistory';
+import { memberPaymentService } from '@/services/memberPaymentService';
+import { useQuery } from '@tanstack/react-query';
 
 interface MemberPaymentSectionProps {
   member: Member;
 }
 
 const MemberPaymentSection: React.FC<MemberPaymentSectionProps> = ({ member }) => {
+  const { data: memberPayments = [] } = useQuery({
+    queryKey: ['member-payments', member.id],
+    queryFn: () => memberPaymentService.getByMember(member.id),
+    enabled: !!member.id,
+  });
   // Generate payment history grouped by year
   const generatePaymentHistory = () => {
-    const history = [];
+    const history: Array<{ month: number; year: number; status: 'paid' | 'pending' | 'overdue'; monthName: string; }> = [];
     const currentDate = new Date();
     
     for (let i = 11; i >= 0; i--) {
@@ -19,12 +26,11 @@ const MemberPaymentSection: React.FC<MemberPaymentSectionProps> = ({ member }) =
       const month = date.getMonth() + 1;
       const year = date.getFullYear();
       
-      const payment = member.payments?.find(p => p.month === month && p.year === year);
-      
+      const payment = memberPayments.find(p => p.month === month && p.year === year);
       history.push({
         month,
         year,
-        status: payment?.status || 'pending',
+        status: (payment?.status as 'paid' | 'pending' | 'overdue') || 'pending',
         monthName: date.toLocaleDateString('pt-BR', { month: 'long' })
       });
     }
@@ -62,7 +68,7 @@ const MemberPaymentSection: React.FC<MemberPaymentSectionProps> = ({ member }) =
               <h4 className="font-bold text-lg mb-2 text-white">{yearGroup.year}</h4>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {yearGroup.payments.map((payment, index) => (
-                  <div key={index} className="text-center p-2 border rounded">
+                  <div key={index} className={`text-center p-2 border rounded ${payment.status === 'paid' ? 'bg-green-100 border-green-300' : (payment.status as string) === 'overdue' ? 'bg-red-100 border-red-300' : 'bg-muted/20 border-muted/40'}`}>
                     <p className="text-xs capitalize">{payment.monthName}</p>
                     <Badge 
                       variant={payment.status === 'paid' ? 'default' : (payment.status as string) === 'overdue' ? 'destructive' : 'secondary'}

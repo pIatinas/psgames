@@ -303,12 +303,12 @@ const AccountDetail = () => {
                 <div className="font-medium">Email</div>
                 <div className="p-2 bg-muted rounded-md">{account.email}</div>
               </div>
-              <div>
-                <div className="font-medium">Senha</div>
-                <div className="p-2 bg-muted rounded-md">
-                  {account.password ? '••••••••' : 'Não definida'}
+                <div>
+                  <div className="font-medium">Senha</div>
+                  <div className="p-2 bg-muted rounded-md">
+                    {account.password || 'Não definida'}
+                  </div>
                 </div>
-              </div>
               {account.qr_code && (
                 <div>
                   <div className="font-medium">QR Code</div>

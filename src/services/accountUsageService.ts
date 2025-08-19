@@ -60,18 +60,27 @@ export const accountUsageService = {
   async getByAccount(accountId: string): Promise<any[]> {
     const { data, error } = await supabase
       .from('account_usage_history')
-      .select(`
-        *,
-        profiles:user_id (
-          id,
-          name,
-          avatar_url
-        )
-      `)
+      .select('*')
       .eq('account_id', accountId)
       .order('activated_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+
+    const usage = data || [];
+    const userIds = Array.from(new Set(usage.map((u: any) => u.user_id))).filter(Boolean);
+
+    if (userIds.length === 0) return usage;
+
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .in('id', userIds);
+
+    const profileMap = new Map((profiles || []).map(p => [p.id, p] as const));
+
+    return usage.map((u: any) => ({
+      ...u,
+      profiles: profileMap.get(u.user_id) || null,
+    }));
   }
 };
