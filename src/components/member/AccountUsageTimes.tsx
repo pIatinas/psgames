@@ -28,10 +28,9 @@ const AccountUsageTimes: React.FC<AccountUsageTimesProps> = ({
       if (!slot) return null;
       const daysSince = calculateDaysSince(slot.entered_at || new Date());
       return <Card key={account.id} className="mb-4">
-            <div className="p-4 flex items-center justify-between border-b border-border/20">
+            <div className="p-4 flex items-start justify-start flex-col border-b border-border/20">
               <CardTitle className="text-base font-medium">{account.email}</CardTitle>
               <div className="flex items-center text-xs text-muted-foreground">
-                <Calendar className="h-3.5 w-3.5 mr-1" />
                 <span>{daysSince} dia{daysSince !== 1 ? 's' : ''} com a conta</span>
               </div>
             </div>
