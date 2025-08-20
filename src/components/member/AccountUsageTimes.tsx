@@ -37,14 +37,14 @@ const AccountUsageTimes: React.FC<AccountUsageTimesProps> = ({
             </div>
             <CardContent className="p-3">
               {account.games && account.games.length > 0 ? <div className="flex items-start justify-start">
-                  <div className="text-sm font-bols">Jogos</div>
+                  <div className="text-sm font-bols hidden">Jogos</div>
                   <div className="text-sm text-muted-foreground">
                     {account.games.map((game, index) => <div key={game.id} className="mr-1">
                         {game.name} <span className="text-xs bg-secondary/20 text-secondary px-1 rounded hidden">{game.platform.join(', ')}</span>
                       </div>)}
                   </div>
                 </div> : <div className="text-sm text-muted-foreground">
-                  Não há jogos cadastrados nesta conta.
+                  Não há jogos nessa conta.
                 </div>}
             </CardContent>
           </Card>;
