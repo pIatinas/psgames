@@ -95,7 +95,11 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
     }));
   };
   const paymentHistory = generatePaymentHistory();
-  console.debug('MemberPaymentSectionWithSelect', { memberId: member.id, memberPayments, paymentHistory });
+  console.debug('MemberPaymentSectionWithSelect', {
+    memberId: member.id,
+    memberPayments,
+    paymentHistory
+  });
   return <Card>
       <CardHeader>
         <CardTitle>Histórico de <span>Pagamentos</span></CardTitle>
@@ -104,15 +108,13 @@ const MemberPaymentSectionWithSelect: React.FC<MemberPaymentSectionWithSelectPro
         <div className="space-y-6">
           {paymentHistory.map(yearGroup => <div key={yearGroup.year}>
               <h4 className="font-bold text-lg mb-3">{yearGroup.year}</h4>
-              <div className="space-y-3 grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {yearGroup.payments.map((payment, index) => <div key={index} className={`flex items-center justify-center border rounded-lg flex-col text-center py-4 px-2 relative ${payment.status === 'paid' ? 'bg-primary/10 border-primary/40' : payment.status === 'overdue' ? 'bg-destructive/10 border-destructive/40' : 'bg-muted/20 border-muted/40'}`}>
                     <div className="mb-2">
                       <p className="font-medium text-sm capitalize">{payment.monthName}</p>
-                      {payment.paid_at && (
-                        <p className="text-xs text-muted-foreground">
+                      {payment.paid_at && <p className="text-xs text-muted-foreground">
                           Pago em {new Date(payment.paid_at).toLocaleDateString('pt-BR')}
-                        </p>
-                      )}
+                        </p>}
                     </div>
                     <div className="flex items-center gap-2">
                        {isAdmin ? <Select value={payment.status} onValueChange={value => handleStatusChange(payment.month, payment.year, value)}>
